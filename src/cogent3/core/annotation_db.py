@@ -835,6 +835,81 @@ def _make_db_connection(
     return conn
 
 
+def _get_name_to_rowid_batch(
+    conn: sqlite3.Connection,
+    table_name: str,
+    names: set[str],
+) -> dict[str, int]:
+    """Get rowids for multiple features by name in a single query.
+
+    Parameters
+    ----------
+    conn
+        Database connection
+    table_name
+        Name of table to query
+    names
+        Set of feature names to look up
+
+    Returns
+    -------
+    Dict mapping feature name to rowid
+    """
+    if not names:
+        return {}
+    placeholders = ",".join("?" * len(names))
+    names_list = list(names)
+    sql = f"SELECT name, rowid FROM {table_name} WHERE name IN ({placeholders})"  # noqa: S608
+    cursor = conn.execute(sql, tuple(names_list))
+    return {row[0]: row[1] for row in cursor.fetchall()}
+
+
+def _populate_hierarchy_table(
+    conn: sqlite3.Connection,
+    table_name: str,
+    entries: list[tuple[int, str]],
+) -> None:
+    """Populate the feature_hierarchy table from child-parent entries.
+
+    Parameters
+    ----------
+    conn
+        Database connection with feature_hierarchy table
+    table_name
+        Name of feature table (gff, gb, user)
+    entries
+        List of (child_rowid, parent_id_string) tuples where parent_id_string
+        may contain comma-separated parent names
+    """
+    if not entries:
+        return
+
+    # Collect all parent names for batch lookup
+    parent_names: set[str] = set()
+    for _, parent_id in entries:
+        for p in parent_id.replace(" ", "").split(","):
+            if p := p.strip():
+                parent_names.add(p)
+
+    # Batch lookup parent names to rowids
+    name_to_rowid = _get_name_to_rowid_batch(conn, table_name, parent_names)
+
+    # Build hierarchy rows
+    hierarchy_rows = []
+    for child_rowid, parent_id in entries:
+        for p in parent_id.replace(" ", "").split(","):
+            p = p.strip()
+            if p and p in name_to_rowid:
+                hierarchy_rows.append((child_rowid, name_to_rowid[p], table_name))
+
+    if hierarchy_rows:
+        conn.executemany(
+            "INSERT OR IGNORE INTO feature_hierarchy (child_id, parent_id, table_name) VALUES (?, ?, ?)",
+            hierarchy_rows,
+        )
+        conn.commit()
+
+
 def _compatible_schema(
     db: sqlite3.Connection, schema: dict[str, set[tuple[str, str]]]
 ) -> bool:
@@ -2392,40 +2467,36 @@ class GffAnnotationDb(SqliteAnnotationDbMixin, AnnotationDbABC):
         table_name: str,
         entries: list[tuple[str, str | None]],
     ) -> None:
-        """Populate hierarchy table for a batch of records."""
+        """Populate hierarchy table for a batch of records.
+
+        Parameters
+        ----------
+        table_name
+            Name of feature table (gff, gb, user)
+        entries
+            List of (child_name, parent_id_string) tuples
+        """
         if not self._can_use_hierarchy():
             return
 
-        # Collect all names (children and parents) for a single batch lookup
-        all_names: set[str] = set()
-        for child_name, parent_id in entries:
-            all_names.add(child_name)
-            if parent_id:
-                for p in parent_id.replace(" ", "").split(","):
-                    if p := p.strip():
-                        all_names.add(p)
+        # Collect child names that have parent_id
+        child_names: set[str] = {
+            child_name for child_name, parent_id in entries if parent_id
+        }
+        if not child_names:
+            return
 
-        # Get all rowids in a single query
-        name_to_rowid = self._get_feature_rowids_batch(table_name, all_names)
+        # Batch lookup child names to rowids
+        name_to_rowid = self._get_feature_rowids_batch(table_name, child_names)
 
-        # Build hierarchy entries with inlined parent resolution
-        hierarchy_rows = []
-        for child_name, parent_id in entries:
-            if child_name not in name_to_rowid or not parent_id:
-                continue
-            child_rowid = name_to_rowid[child_name]
-            # Inline parent_id parsing to avoid function call overhead
-            for p in parent_id.replace(" ", "").split(","):
-                p = p.strip()
-                if p and p in name_to_rowid:
-                    hierarchy_rows.append((child_rowid, name_to_rowid[p], table_name))
+        # Convert to (child_rowid, parent_id) format for shared helper
+        rowid_entries = [
+            (name_to_rowid[child_name], parent_id)
+            for child_name, parent_id in entries
+            if parent_id and child_name in name_to_rowid
+        ]
 
-        if hierarchy_rows:
-            self.db.executemany(
-                "INSERT OR IGNORE INTO feature_hierarchy (child_id, parent_id, table_name) VALUES (?, ?, ?)",
-                hierarchy_rows,
-            )
-            self.db.commit()
+        _populate_hierarchy_table(self.db, table_name, rowid_entries)
 
     def update_record_spans(self, *, name: str, spans: list[tuple[int, int]]) -> None:
         """updates spans attribute of a gff table record if present
@@ -3196,12 +3267,7 @@ def upgrade_annotation_db(
         raise OSError(msg)
 
     # Open the database to check schema version
-    conn = sqlite3.connect(
-        source_path,
-        detect_types=sqlite3.PARSE_DECLTYPES,
-        check_same_thread=False,
-    )
-    conn.row_factory = sqlite3.Row
+    conn = _make_db_connection(source_path)
 
     current_version = _get_schema_version(conn)
     if current_version >= SCHEMA_VERSION:
@@ -3247,15 +3313,14 @@ def upgrade_annotation_db(
         cursor = conn.execute(f"SELECT rowid, * FROM {table_name}")  # noqa: S608
         records = cursor.fetchall()
 
-        # Build hierarchy entries
-        hierarchy_entries = []
+        # Build hierarchy entries as (child_rowid, parent_id_string) tuples
+        hierarchy_entries: list[tuple[int, str]] = []
 
         for row in records:
             row_dict = dict(zip(row.keys(), row, strict=False))
             rowid = row_dict.get("rowid")
             seqid = row_dict.get("seqid") or ""
             biotype = row_dict.get("biotype") or ""
-            name = row_dict.get("name") or ""
             parent_id = row_dict.get("parent_id")
 
             # Add to lookup tables (this populates the seqids/biotypes tables)
@@ -3266,31 +3331,10 @@ def upgrade_annotation_db(
 
             # Collect hierarchy entries
             if parent_id and rowid is not None:
-                parent_names = [
-                    p.strip()
-                    for p in parent_id.replace(" ", "").split(",")
-                    if p.strip()
-                ]
-                hierarchy_entries.extend(
-                    (rowid, name, parent_name, table_name)
-                    for parent_name in parent_names
-                )
-        # Populate hierarchy table
-        if hierarchy_entries:
-            # Need to resolve parent names to rowids
-            for child_rowid, _, parent_name, tbl in hierarchy_entries:
-                cursor = conn.execute(
-                    f"SELECT rowid FROM {tbl} WHERE name = ?",  # noqa: S608
-                    (parent_name,),
-                )
-                if row := cursor.fetchone():
-                    parent_rowid = row[0]
-                    with contextlib.suppress(sqlite3.IntegrityError):
-                        conn.execute(
-                            "INSERT OR IGNORE INTO feature_hierarchy (child_id, parent_id, table_name) VALUES (?, ?, ?)",
-                            (child_rowid, parent_rowid, tbl),
-                        )
-            conn.commit()
+                hierarchy_entries.append((rowid, parent_id))
+
+        # Populate hierarchy table using shared helper
+        _populate_hierarchy_table(conn, table_name, hierarchy_entries)
 
     # Set schema version
     _set_schema_version(conn, SCHEMA_VERSION)

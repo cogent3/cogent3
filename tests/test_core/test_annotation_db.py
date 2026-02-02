@@ -13,6 +13,7 @@ from cogent3.core.annotation_db import (
     GenbankAnnotationDb,
     GffAnnotationDb,
     LookupTableCache,
+    _make_db_connection,
     _matching_conditions,
     _rename_column_if_exists,
     load_annotations,
@@ -1819,10 +1820,7 @@ def test_load_annotations_roundtrip_gb(DATA_DIR, tmp_path):
 
 def test_lookup_cache_get_seqid_name_cache_hit():
     """Test get_seqid_name returns cached value when ID is in reverse cache."""
-    import sqlite3
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn = _make_db_connection(":memory:")
     conn.execute("CREATE TABLE seqids (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
     conn.execute("INSERT INTO seqids (name) VALUES ('chr1')")
     conn.commit()
@@ -1839,10 +1837,7 @@ def test_lookup_cache_get_seqid_name_cache_hit():
 
 def test_lookup_cache_get_seqid_name_db_lookup():
     """Test get_seqid_name performs DB lookup when ID not in cache."""
-    import sqlite3
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn = _make_db_connection(":memory:")
     conn.execute("CREATE TABLE seqids (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
     conn.execute("INSERT INTO seqids (name) VALUES ('chr1')")
     conn.commit()
@@ -1865,10 +1860,7 @@ def test_lookup_cache_get_seqid_name_db_lookup():
 
 def test_lookup_cache_get_seqid_name_not_found():
     """Test get_seqid_name returns None when ID doesn't exist."""
-    import sqlite3
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn = _make_db_connection(":memory:")
     conn.execute("CREATE TABLE seqids (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
     conn.commit()
 
@@ -1882,10 +1874,7 @@ def test_lookup_cache_get_seqid_name_not_found():
 
 def test_lookup_cache_get_biotype_name():
     """Test get_biotype_name works correctly."""
-    import sqlite3
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn = _make_db_connection(":memory:")
     conn.execute("CREATE TABLE biotypes (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
     conn.execute("INSERT INTO biotypes (name) VALUES ('gene')")
     conn.commit()
@@ -1905,10 +1894,7 @@ def test_lookup_cache_get_biotype_name():
 
 def test_lookup_cache_get_source_name():
     """Test get_source_name works correctly."""
-    import sqlite3
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn = _make_db_connection(":memory:")
     conn.execute("CREATE TABLE sources (id INTEGER PRIMARY KEY, name TEXT UNIQUE)")
     conn.execute("INSERT INTO sources (name) VALUES ('GFF3')")
     conn.commit()
