@@ -226,3 +226,7 @@ phylip = "cogent3.format.sequence:PhylipWriter"
 
 [project.entry-points."cogent3.load.annotations"]
 c3anndb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
+# basic, genbank and gff specific annotation db suffixes
+c3andb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
+c3gbdb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
+c3gffdb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"

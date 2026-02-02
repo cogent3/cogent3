@@ -1,3 +1,4 @@
+import contextlib
 import functools
 import io
 import pathlib
@@ -339,10 +340,8 @@ class Location:
     ) -> None:
         """Returns new LocalLocation object."""
 
-        try:
+        with contextlib.suppress(TypeError):
             data = int(data)
-        except TypeError:
-            pass  # assume was two Location objects.
         self._data = data
         self.ambiguity = ambiguity
         self.is_between = is_between

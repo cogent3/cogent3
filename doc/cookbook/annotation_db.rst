@@ -27,8 +27,8 @@ Achieved by creating an ``BasicAnnotationDb`` instance. This is an empty databas
     anno_db = BasicAnnotationDb()
     anno_db
 
-How to load an standalone ``AnnotationDb`` from a data file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+How to load a standalone ``AnnotationDb`` from a data file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Typically, we want to load a collection of features from a genomic annotation file, such as a GFF or Genbank file. For the following examples, we will use data from the bacterium *Mycoplasma genitalium*.
 
@@ -107,14 +107,14 @@ In the above examples, all databases indicate that ``source=":memory:"``, i.e. t
 .. code-block:: python
 
     # write to disk
-    gb_db.write("data/m-genitalium-database.gbdb")
+    gb_db.write("data/m-genitalium-database.c3gbdb")
 
     # do something
 
     # re-load from disk
-    quick_load_gb_db = GenbankAnnotationDb(source="data/m-genitalium-database.gbdb")
+    quick_load_gb_db = load_annotations(path="data/m-genitalium-database.c3gbdb")
 
-.. note:: The suffix of the outpath (".gbdb" in the above example) can be arbitrarily chosen, however, this behaviour may change in the future to only accept registered suffixes! 👀
+.. note:: The suffix of the outpath (``.c3gbdb`` in the above example) is required for a GenBank derived db file. For a GFF3 or GFF file, the suffix must be ``.c3gffdb``. For the basic annottaion db it is ``.c3andb`. 👀
 
 How to query an ``AnnotationDb``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -294,13 +294,13 @@ The ``update()`` method will update records of a given database with another and
 Initialise a ``AnnotationDb`` with another database
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
-You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If it's the same class, its db will be bound to self and directly modified.
+You can assign a compatible database to the ``db`` argument in the ``AnnotationDb`` constructor. If it's the same class, its db will be bound to self and directly modified with any new data you add.
 
 .. jupyter-execute::
 
     from cogent3.core.annotation_db import GenbankAnnotationDb
 
-    new_gb_db = GenbankAnnotationDb(source="m-genitalium-database.gbdb", db=anno_db)
+    new_gb_db = GenbankAnnotationDb(source="m-genitalium-database.c3gbdb", db=anno_db)
     new_gb_db
 
 How to get a subset of an ``AnnotationDb``
@@ -316,7 +316,7 @@ If you want a subset of a db, use the same arguments as you would for ``db.get_r
     just_cds = gff_db.subset(biotype="CDS")
     just_cds.describe
 
-.. note:: The result is an in-memory database by default. To have this written to disk, assign a path to the source argument, e.g. ``gff_db.subset(source="som/path/subset.gff3db", biotype="CDS")``.
+.. note:: The result is an in-memory database by default. To have this written to disk, assign a path to the source argument, e.g. ``gff_db.subset(source="some/path/subset.c3gffdb", biotype="CDS")``.
 
 .. _assign_db_to_seq:
 
@@ -391,5 +391,5 @@ In the above example, the sequence name in the fasta file does not match any rec
 
     # clean up files
 
-    path = pathlib.Path("m-genitalium-database.gbdb")
+    path = pathlib.Path("m-genitalium-database.c3gbdb")
     path.unlink()
