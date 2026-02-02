@@ -859,7 +859,7 @@ def _get_name_to_rowid_batch(
         return {}
     placeholders = ",".join("?" * len(names))
     names_list = list(names)
-    sql = f"SELECT name, rowid FROM {table_name} WHERE name IN ({placeholders})"  # noqa: S608
+    sql = f"SELECT name, rowid FROM {table_name} WHERE name IN ({placeholders})"
     cursor = conn.execute(sql, tuple(names_list))
     return {row[0]: row[1] for row in cursor.fetchall()}
 
@@ -907,6 +907,118 @@ def _populate_hierarchy_table(
             "INSERT OR IGNORE INTO feature_hierarchy (child_id, parent_id, table_name) VALUES (?, ?, ?)",
             hierarchy_rows,
         )
+        conn.commit()
+
+
+def _migrate_to_normalized_schema(
+    conn: sqlite3.Connection,
+    table_names: list[str],
+    lookup_cache: LookupTableCache,
+) -> None:
+    """Migrate old TEXT columns (seqid, biotype, source) to new *_id INTEGER columns.
+
+    Parameters
+    ----------
+    conn
+        Database connection
+    table_names
+        List of table names to migrate (gff, gb, user)
+    lookup_cache
+        LookupTableCache instance for getting/creating ID mappings
+
+    Notes
+    -----
+    This function handles the schema migration from old-format databases that used
+    TEXT columns directly to the new normalized format using lookup tables.
+    """
+    # Mapping of old column names to new column names
+    column_mappings = [
+        ("seqid", "seqid_id", lookup_cache.get_seqid_id),
+        ("biotype", "biotype_id", lookup_cache.get_biotype_id),
+        ("source", "source_id", lookup_cache.get_source_id),
+    ]
+
+    for table_name in table_names:
+        # Get current table columns
+        table_info = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+        existing_columns = {row["name"] for row in table_info}
+
+        # Check which old columns need to be migrated
+        columns_to_migrate = []
+        for old_col, new_col, get_id_func in column_mappings:
+            if old_col in existing_columns and new_col not in existing_columns:
+                columns_to_migrate.append((old_col, new_col, get_id_func))
+
+        if not columns_to_migrate:
+            continue
+
+        # Add new INTEGER columns
+        for old_col, new_col, _ in columns_to_migrate:
+            conn.execute(
+                f"ALTER TABLE {table_name} ADD COLUMN {new_col} INTEGER DEFAULT 0"
+            )
+        conn.commit()
+
+        # Get all unique values for each column to migrate and populate lookup tables
+        # Then update all rows with the new IDs
+        for old_col, new_col, get_id_func in columns_to_migrate:
+            # Get all distinct values from the old column
+            cursor = conn.execute(
+                f"SELECT DISTINCT {old_col} FROM {table_name} WHERE {old_col} IS NOT NULL AND {old_col} != ''"
+            )
+            distinct_values = [row[old_col] for row in cursor.fetchall()]
+
+            # Populate lookup table and get ID mappings
+            value_to_id = {}
+            for value in distinct_values:
+                if value:
+                    value_to_id[value] = get_id_func(value)
+
+            # Update rows with new IDs
+            for value, id_val in value_to_id.items():
+                conn.execute(
+                    f"UPDATE {table_name} SET {new_col} = ? WHERE {old_col} = ?",
+                    (id_val, value),
+                )
+
+        conn.commit()
+
+        # Now we need to drop the old columns
+        # SQLite doesn't support DROP COLUMN directly in older versions,
+        # so we need to recreate the table without those columns
+        # Get the full schema to recreate the table
+        table_info = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+        old_column_names = {old_col for old_col, _, _ in columns_to_migrate}
+
+        # Build column list for new table (excluding old TEXT columns)
+        new_columns = []
+        column_defs = []
+        for col in table_info:
+            if col["name"] not in old_column_names:
+                new_columns.append(col["name"])
+                col_type = col["type"]
+                col_def = f'"{col["name"]}" {col_type}'
+                if col["notnull"]:
+                    col_def += " NOT NULL"
+                if col["dflt_value"] is not None:
+                    col_def += f" DEFAULT {col['dflt_value']}"
+                column_defs.append(col_def)
+
+        # Create temporary table with new schema
+        temp_table = f"{table_name}_migration_temp"
+        create_sql = f"CREATE TABLE {temp_table} ({', '.join(column_defs)})"
+        conn.execute(create_sql)
+
+        # Copy data to temporary table
+        columns_str = ", ".join(f'"{c}"' for c in new_columns)
+        conn.execute(
+            f"INSERT INTO {temp_table} ({columns_str}) SELECT {columns_str} FROM {table_name}"
+        )
+
+        # Drop old table and rename temporary table
+        conn.execute(f"DROP TABLE {table_name}")
+        conn.execute(f"ALTER TABLE {temp_table} RENAME TO {table_name}")
+
         conn.commit()
 
 
@@ -1286,10 +1398,10 @@ class SqliteAnnotationDbMixin:
         """Get rowid for a feature by name (and optionally biotype)."""
         if biotype and self._lookup_cache is not None:
             biotype_id = self._lookup_cache.get_biotype_id(biotype)
-            sql = f"SELECT rowid FROM {table_name} WHERE name = ? AND biotype_id = ?"  # noqa: S608
+            sql = f"SELECT rowid FROM {table_name} WHERE name = ? AND biotype_id = ?"
             cursor = self._execute_sql(sql, (name, biotype_id))
         else:
-            sql = f"SELECT rowid FROM {table_name} WHERE name = ?"  # noqa: S608
+            sql = f"SELECT rowid FROM {table_name} WHERE name = ?"
             cursor = self._execute_sql(sql, (name,))
         row = cursor.fetchone()
         return row[0] if row else None
@@ -1488,7 +1600,7 @@ class SqliteAnnotationDbMixin:
     ) -> Iterator[FeatureDataType]:
         # First, find the parent's rowid
         cursor = self._execute_sql(
-            f"SELECT rowid FROM {table_name} WHERE name = ?",  # noqa: S608
+            f"SELECT rowid FROM {table_name} WHERE name = ?",
             (parent_name,),
         )
         row = cursor.fetchone()
@@ -1503,7 +1615,7 @@ class SqliteAnnotationDbMixin:
             SELECT {columns_str} FROM {table_name} f
             INNER JOIN feature_hierarchy h ON f.rowid = h.child_id
             WHERE h.parent_id = ? AND h.table_name = ?
-        """  # noqa: S608
+        """
         vals: list[Any] = [parent_rowid, table_name]
 
         if biotype is not None and self._lookup_cache is not None:
@@ -1529,7 +1641,7 @@ class SqliteAnnotationDbMixin:
     ) -> Iterator[FeatureDataType]:
         # First, find the child's rowid
         cursor = self._execute_sql(
-            f"SELECT rowid FROM {table_name} WHERE name = ?",  # noqa: S608
+            f"SELECT rowid FROM {table_name} WHERE name = ?",
             (child_name,),
         )
         row = cursor.fetchone()
@@ -1544,7 +1656,7 @@ class SqliteAnnotationDbMixin:
             SELECT {columns_str} FROM {table_name} f
             INNER JOIN feature_hierarchy h ON f.rowid = h.parent_id
             WHERE h.child_id = ? AND h.table_name = ?
-        """  # noqa: S608
+        """
         vals = child_rowid, table_name
 
         for result in self._execute_sql(sql, values=vals):
@@ -1868,7 +1980,7 @@ class SqliteAnnotationDbMixin:
 
                 join_clause = " ".join(dict.fromkeys(joins))  # Remove duplicates
                 sql = (
-                    f"SELECT {', '.join(select_parts)}, COUNT(*) as count "  # noqa: S608
+                    f"SELECT {', '.join(select_parts)}, COUNT(*) as count "
                     f"FROM {table} t {join_clause} {where_clause} "
                     f"GROUP BY {', '.join(group_by_parts)};"
                 )
@@ -1881,7 +1993,7 @@ class SqliteAnnotationDbMixin:
                     where_clause = ""
                     values = ()
                 sql = (
-                    f"SELECT {', '.join(header)}, COUNT(*) as count FROM {table}"  # noqa: S608
+                    f"SELECT {', '.join(header)}, COUNT(*) as count FROM {table}"
                     f" {where_clause} GROUP BY {', '.join(header)};"
                 )
 
@@ -1905,11 +2017,11 @@ class SqliteAnnotationDbMixin:
                 if self._lookup_cache is not None:
                     # Use joins for normalized columns
                     if column == "seqid":
-                        sql = f"SELECT s.name, COUNT(*) FROM {table} t LEFT JOIN seqids s ON t.seqid_id = s.id GROUP BY t.seqid_id;"  # noqa: S608
+                        sql = f"SELECT s.name, COUNT(*) FROM {table} t LEFT JOIN seqids s ON t.seqid_id = s.id GROUP BY t.seqid_id;"
                     else:  # biotype
-                        sql = f"SELECT b.name, COUNT(*) FROM {table} t LEFT JOIN biotypes b ON t.biotype_id = b.id GROUP BY t.biotype_id;"  # noqa: S608
+                        sql = f"SELECT b.name, COUNT(*) FROM {table} t LEFT JOIN biotypes b ON t.biotype_id = b.id GROUP BY t.biotype_id;"
                 else:
-                    sql = f"SELECT {column}, COUNT(*) FROM {table} GROUP BY {column};"  # noqa: S608
+                    sql = f"SELECT {column}, COUNT(*) FROM {table} GROUP BY {column};"
                 if result := self._execute_sql(sql).fetchall():
                     counts = dict(tuple(r) for r in result)
                     for distinct, count in counts.items():
@@ -1919,7 +2031,7 @@ class SqliteAnnotationDbMixin:
         row_counts: list[int] = []
         for table in self.table_names:
             result = self._execute_sql(
-                f"SELECT COUNT(*) as count FROM {table}",  # noqa: S608
+                f"SELECT COUNT(*) as count FROM {table}",
             ).fetchone()
             row_counts.append(result["count"])
 
@@ -1936,9 +2048,9 @@ class SqliteAnnotationDbMixin:
         counts: dict[str, int] = collections.Counter()
         for table in self.table_names:
             if self._lookup_cache is not None:
-                sql = f"SELECT b.name as biotype FROM {table} t LEFT JOIN biotypes b ON t.biotype_id = b.id"  # noqa: S608
+                sql = f"SELECT b.name as biotype FROM {table} t LEFT JOIN biotypes b ON t.biotype_id = b.id"
             else:
-                sql = f"SELECT biotype FROM {table}"  # noqa: S608
+                sql = f"SELECT biotype FROM {table}"
             if result := self._execute_sql(sql).fetchall():
                 counts.update(v for r in result if (v := r["biotype"]))
         return counts
@@ -3308,9 +3420,12 @@ def upgrade_annotation_db(
     # Build lookup tables from existing data
     lookup_cache = LookupTableCache(conn)
 
+    # Migrate old TEXT columns to new *_id INTEGER columns
+    _migrate_to_normalized_schema(conn, table_names, lookup_cache)
+
     for table_name in table_names:
         # Get all records from this table
-        cursor = conn.execute(f"SELECT rowid, * FROM {table_name}")  # noqa: S608
+        cursor = conn.execute(f"SELECT rowid, * FROM {table_name}")
         records = cursor.fetchall()
 
         # Build hierarchy entries as (child_rowid, parent_id_string) tuples
@@ -3319,15 +3434,7 @@ def upgrade_annotation_db(
         for row in records:
             row_dict = dict(zip(row.keys(), row, strict=False))
             rowid = row_dict.get("rowid")
-            seqid = row_dict.get("seqid") or ""
-            biotype = row_dict.get("biotype") or ""
             parent_id = row_dict.get("parent_id")
-
-            # Add to lookup tables (this populates the seqids/biotypes tables)
-            if seqid:
-                lookup_cache.get_seqid_id(seqid)
-            if biotype:
-                lookup_cache.get_biotype_id(biotype)
 
             # Collect hierarchy entries
             if parent_id and rowid is not None:

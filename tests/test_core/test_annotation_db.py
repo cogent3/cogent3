@@ -2126,3 +2126,91 @@ def test_upgrade_annotation_db_no_backup(DATA_DIR, tmp_path):
     version = cursor.fetchone()[0]
     assert version == SCHEMA_VERSION
     conn.close()
+
+
+def test_upgrade_annotation_db_migrates_columns(tmp_path):
+    """Test that upgrade_annotation_db migrates old TEXT columns to new *_id columns.
+
+    Old databases have seqid/biotype/source as TEXT columns.
+    New databases have seqid_id/biotype_id/source_id as INTEGER columns
+    referencing lookup tables. The upgrade function must migrate the schema.
+    """
+    import sqlite3
+
+    import numpy
+
+    db_path = tmp_path / "old_schema_test.c3gffdb"
+
+    # Create database with OLD schema (TEXT columns, not *_id INTEGER columns)
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+
+    # Old schema used seqid, biotype, source as TEXT columns (not *_id INTEGER)
+    conn.execute("""
+        CREATE TABLE gff (
+            seqid TEXT,
+            source TEXT,
+            biotype TEXT,
+            start INTEGER,
+            stop INTEGER,
+            score TEXT,
+            strand INTEGER,
+            phase TEXT,
+            attributes TEXT,
+            comments TEXT,
+            spans array,
+            name TEXT,
+            parent_id TEXT
+        )
+    """)
+
+    # Also need user table with old schema
+    conn.execute("""
+        CREATE TABLE user (
+            seqid TEXT,
+            biotype TEXT,
+            name TEXT,
+            parent_id TEXT,
+            start INTEGER,
+            stop INTEGER,
+            strand INTEGER,
+            spans array,
+            attributes TEXT,
+            on_alignment INT
+        )
+    """)
+
+    # Insert test data with the old schema
+    # Need to serialize spans as numpy array
+    from cogent3.core.annotation_db import array_to_sqlite
+
+    spans_data = array_to_sqlite(numpy.array([[100, 500]], dtype=int))
+    conn.execute(
+        """
+        INSERT INTO gff (seqid, source, biotype, start, stop, strand, name, spans)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        ("chr1", "test_source", "gene", 100, 500, 1, "gene1", spans_data),
+    )
+    conn.commit()
+    conn.close()
+
+    # Upgrade the database
+    upgrade_annotation_db(db_path, backup=False)
+
+    # Now try to load and use the database - this should work after proper upgrade
+    loaded_db = GffAnnotationDb.from_file(db_path)
+
+    # Query features - this will fail if columns weren't migrated properly
+    # because the code will try to query seqid_id but the table still has seqid
+    features = list(loaded_db.get_features_matching(seqid="chr1"))
+    assert len(features) == 1
+    assert features[0]["name"] == "gene1"
+    assert features[0]["biotype"] == "gene"
+    assert features[0]["seqid"] == "chr1"
+
+    # Also verify we can query by biotype
+    features = list(loaded_db.get_features_matching(biotype="gene"))
+    assert len(features) == 1
+
+    loaded_db.close()
