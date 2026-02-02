@@ -2137,8 +2137,6 @@ def test_upgrade_annotation_db_migrates_columns(tmp_path):
     """
     import sqlite3
 
-    import numpy
-
     db_path = tmp_path / "old_schema_test.c3gffdb"
 
     # Create database with OLD schema (TEXT columns, not *_id INTEGER columns)
