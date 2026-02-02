@@ -2965,11 +2965,11 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
         """
         # was this an already saved db
         path = pathlib.Path(path)
-        if path.name.endswith(ANNDB_SUFFIX_GENBANK):
+        if path.name.endswith(f".{ANNDB_SUFFIX_GENBANK}"):
             return GenbankAnnotationDb.from_file(path)
-        if path.name.endswith(ANNDB_SUFFIX_GFF):
+        if path.name.endswith(f".{ANNDB_SUFFIX_GFF}"):
             return GffAnnotationDb.from_file(path)
-        if path.name.endswith(ANNDB_SUFFIX_BASIC):
+        if path.name.endswith(f".{ANNDB_SUFFIX_BASIC}"):
             return BasicAnnotationDb.from_file(path)
 
         # Determine format from format_name parameter or file suffix

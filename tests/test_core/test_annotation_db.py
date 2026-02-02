@@ -1462,8 +1462,7 @@ def test_hierarchy_table_populated(DATA_DIR):
     cursor = conn.execute("SELECT COUNT(*) FROM feature_hierarchy")
     count = cursor.fetchone()[0]
     # The shortened GFF should have some hierarchy entries
-    assert count >= 0  # May be 0 if no parent_id in data
-
+    assert count > 0  # May be 0 if no parent_id in data
     db.close()
 
 

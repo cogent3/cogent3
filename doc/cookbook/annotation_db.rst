@@ -316,7 +316,7 @@ If you want a subset of a db, use the same arguments as you would for ``db.get_r
     just_cds = gff_db.subset(biotype="CDS")
     just_cds.describe
 
-.. note:: The result is an in-memory database by default. To have this written to disk, assign a path to the source argument, e.g. ``gff_db.subset(source="som/path/subset.c3gffdb", biotype="CDS")``.
+.. note:: The result is an in-memory database by default. To have this written to disk, assign a path to the source argument, e.g. ``gff_db.subset(source="some/path/subset.c3gffdb", biotype="CDS")``.
 
 .. _assign_db_to_seq:
 
