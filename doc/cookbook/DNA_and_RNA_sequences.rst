@@ -170,7 +170,7 @@ You can also specify the :ref:`genetic code <genetic-codes>`.
 
 .. jupyter-execute::
 
-    my_seq.get_translation(gc="Vertebrate Mitochondrial") # or gc=2
+    my_seq.get_translation(gc="Vertebrate Mitochondrial")  # or gc=2
 
 Translating a DNA sequence containing stop codons
 """""""""""""""""""""""""""""""""""""""""""""""""
@@ -315,3 +315,40 @@ Remove gaps from a sequence
     s = make_seq("--AUUAUGCUAU-UAU--", moltype="rna")
     s.degap()
 
+Getting GC% by counting states
+""""""""""""""""""""""""""""""
+
+We can obtain the percentage of GC nucleotides by using the counts method on sequences. This returns an object that behaves like a dictionary.
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    s = make_seq("ACCGTGACGA", moltype="dna")
+    counts = s.counts()
+    GC = counts["G"] + counts["C"]
+    GC_frac = GC / sum(counts.values())
+    GC_frac * 100
+
+.. note:: Other arguments on the ``counts()`` method allow including ambiguous or gap characters in the result.
+
+Counting k-mers
+"""""""""""""""
+
+A k-mer is a word of size :math:`k` and, as is the convention, its counts are derived from all possible positions (as distinct from non-overlapping words which is how motif counts are calculated).
+
+.. jupyter-execute::
+
+    from cogent3 import make_seq
+
+    s = make_seq("ACCGTGACGA", moltype="dna")
+    kcounts = s.count_kmers(k=2)
+    kcounts
+
+In this case, the result is a numpy array with the order of elements corresponding to the result of
+
+.. jupyter-execute::
+
+    s.moltype.alphabet.get_kmer_alphabet(2)
+
+.. note:: We support third-party plugins for k-mer counting. After installing one, they can be selected by specifying the package with the ``.count_kmers(k=2, use_hook="<package name>")``.
