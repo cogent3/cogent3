@@ -25,6 +25,13 @@
 ## 📣 Feature Announcements 📣
 
 <details>
+  <summary>The cogent3 code-sharing site 📚🔌</summary>
+
+Share your [cogent3 ecosystem code solutions](https://github.com/cogent3/c3codeshare) for others to benefit from your awesomeness 😎. Or, just read / use the contributions from others.
+
+</details>
+
+<details>
   <summary> We now support third-party plugins for annotation databases 📚🔌 </summary>
 
 If you want to contribute a third-party backend, [get in touch](https://github.com/cogent3/cogent3/discussions)!
@@ -55,7 +62,6 @@ We have implemented the infrastructure to support alternative sequence storage p
 ### Cogent3 supports sequence format parser and writer plugins 👓✍️🔌
 
 We have implemented the infrastructure to support third-party provision of every bioinformaticians favourite game -- parsing / writing the multitude of sequence file formats.  All builtin format parsers / writers are implemented as plugins. We use third-party versions by default.
-
 
 ### Cogent3 implements plugin hooks 🔌🪝🎉
 

@@ -33,7 +33,6 @@ Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
     seqs = make_unaligned_seqs(data, moltype="dna")
     type(seqs)
 
-
 Converting a ``SequenceCollection`` to FASTA format
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -81,13 +80,11 @@ For an alignment, the result is an `Aligned` instance.
     aligned = aln.seqs["seq1"]
     aligned
 
-
 For the alignment case, you can get the ungapped sequence by accessing the ``.seq`` attribute of the aligned instance.
 
 .. jupyter-execute::
 
     aligned.seq
-
 
 .. jupyter-execute::
 
@@ -154,7 +151,6 @@ Alternatively, you can extract only the sequences which are not specified by pas
     new.names
 
 .. note:: The subset contains references to the original sequences, not copies.
-
 
 Writing sequences to file
 """""""""""""""""""""""""
@@ -272,7 +268,6 @@ Removing all columns with gaps in a named sequence
     )
     new_aln = aln.get_degapped_relative_to("seq1")
     new_aln
-
 
 .. TODO the following should be preceded by a section describing the write method and format argument
 
@@ -419,7 +414,8 @@ To detect if the alignment contains sequences not divisible by 3, use the ``stri
 
 .. jupyter-execute::
 
-    aln = make_aligned_seqs({
+    aln = make_aligned_seqs(
+        {
             "seq1": "ACGTAA---",
             "seq2": "ACGAC----",  # terminal codon incomplete
             "seq3": "ACGCAATGA",
@@ -437,7 +433,8 @@ We sometimes want to eliminate ambiguous or gap data from our alignments. We dem
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs([
+    aln = make_aligned_seqs(
+        [
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -509,7 +506,8 @@ You can use ``take_seqs_if`` to extract sequences into a new alignment object ba
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs([
+    aln = make_aligned_seqs(
+        [
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -534,13 +532,16 @@ Computing alignment statistics
 Getting motif counts
 """"""""""""""""""""
 
+Motif counts are obtained from non-overlapping k-mers. (This is distinct from k-mer counting, in which they do overlap.)
+
 We state the motif length we want and whether to allow gap or ambiguous characters. The latter only has meaning for IPUAC character sets (the DNA, RNA or PROTEIN moltypes). We illustrate this for the DNA moltype with motif lengths of 1 and 3.
 
 .. jupyter-execute::
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs([
+    aln = make_aligned_seqs(
+        [
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -564,24 +565,52 @@ We state the motif length we want and whether to allow gap or ambiguous characte
 
     Only the observed motifs are returned, rather than all defined by the alphabet.
 
-Getting motif counts per sequence
-"""""""""""""""""""""""""""""""""
+Calculating GC% for a collection
+""""""""""""""""""""""""""""""""
+
+This is just a variant of the previous example but re-expressed for unaligned sequences. Note that the returned value from the ``counts()`` method acts like a dictionary, but also has an array attribute.
 
 .. jupyter-execute::
 
-    from cogent3 import make_aligned_seqs
+    from cogent3 import make_unaligned_seqs
 
-    aln = make_aligned_seqs([
-            ("seq1", "ATGAAGGTG---"),
+    seqcoll = make_unaligned_seqs(
+        [
+            ("seq1", "ATGAAGGTG"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
         ],
         moltype="dna",
     )
-    counts = aln.counts_per_seq()
-    counts
+    counts = seqcoll.counts()
+    GC_frac = (counts["C"] + counts["G"]) / counts.array.sum()
+    GC_frac * 100
 
-.. note:: There are also ``.probs_per_seq()`` and ``.entropy_per_seq()`` methods.
+Getting k-mer counts
+""""""""""""""""""""
+
+This only applies to sequence collections. It returns the counts of k-mers per sequence as a numpy array with shape (number of sequences, number of k-mers). 
+
+.. jupyter-execute::
+
+    seqcoll = make_unaligned_seqs(
+        [
+            ("seq1", "ATGAAGGTG"),
+            ("seq2", "ATGAAGGTGATG"),
+            ("seq3", "ATGAAGGNGATG"),
+        ],
+        moltype="dna",
+    )
+    kcounts = seqcoll.count_kmers(k=2)
+    kcounts
+
+The order of elements in the numpy array corresponds to the result of
+
+.. jupyter-execute::
+
+    seqcoll.moltype.alphabet.get_kmer_alphabet(k=2)
+
+.. note:: We support third-party plugins for k-mer counting. After installing one, they can be selected by specifying the package with the ``.count_kmers(k=2, use_hook="<package name>")``.
 
 Getting motif counts per position
 """""""""""""""""""""""""""""""""
@@ -590,7 +619,8 @@ Getting motif counts per position
 
     from cogent3 import make_aligned_seqs
 
-    aln = make_aligned_seqs([
+    aln = make_aligned_seqs(
+        [
             ("seq1", "ATGAAGGTG---"),
             ("seq2", "ATGAAGGTGATG"),
             ("seq3", "ATGAAGGNGATG"),
@@ -619,7 +649,7 @@ For dinucleotides or longer, we need to pass in a ``KmerAlphabet`` with the appr
 
 .. jupyter-execute::
 
-    from cogent3 import load_aligned_seqs, get_moltype, make_table
+    from cogent3 import get_moltype, load_aligned_seqs, make_table
 
     trinuc_alphabet = get_moltype("dna").alphabet.get_kmer_alphabet(3)
     aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
@@ -665,14 +695,13 @@ Calculating the gaps per position
 
     aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
     gap_counts = aln.count_gaps_per_pos()
-    gap_counts # this is a DictArray
+    gap_counts  # this is a DictArray
 
 To turn that into grap fraction
 
 .. jupyter-execute::
 
     gap_frac = gap_counts.array / aln.num_seqs
-
 
 Filtering alignments based on gaps
 ++++++++++++++++++++++++++++++++++
@@ -681,7 +710,8 @@ If we want to remove positions from the alignment which are gaps in more than a 
 
 .. jupyter-execute::
 
-    aln = make_aligned_seqs([
+    aln = make_aligned_seqs(
+        [
             ("seq1", "ATGAA---TG-"),
             ("seq2", "ATG-AGTGATG"),
             ("seq3", "AT--AG-GATG"),
