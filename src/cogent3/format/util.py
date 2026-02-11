@@ -64,7 +64,7 @@ class _AlignmentFormatter:
 
         """
 
-        block_size = alt_block_size if alt_block_size else self.block_size
+        block_size = alt_block_size or self.block_size
 
         block_list = []
         seq_length = len(seq_string)

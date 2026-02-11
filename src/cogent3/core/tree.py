@@ -1100,7 +1100,7 @@ class PhyloNode:
             # we pick an arbitrary child to root at
             child = result_root.children[0]
             child.name = (
-                child.name if child.name else "new-root"
+                child.name or "new-root"
             )  # this is a magic value, which is not good
             result_root = result_root.rooted(child.name)
         result_root.name = "root"
@@ -1164,7 +1164,7 @@ class PhyloNode:
             else:
                 child_info = [(scores[ch], rebuilt[ch]) for ch in node.children]
                 # Sort children by score, None is treated as +infinity
-                child_info.sort(key=lambda x: (infinity if x[0] is None else x[0]))
+                child_info.sort(key=lambda x: infinity if x[0] is None else x[0])
                 children = tuple(child for _, child in child_info)
                 tree = constructor(node, children, None)
                 non_null = [s for s, _ in child_info if s is not None]

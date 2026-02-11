@@ -257,7 +257,7 @@ def convert_series(
 
     if not header:
         header = None if ncols == 1 else ncols
-    row_order = row_order if row_order else nrows
+    row_order = row_order or nrows
 
     return data, row_order, header
 

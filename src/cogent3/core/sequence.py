@@ -1055,7 +1055,7 @@ class Sequence(AnnotatableMixin):
         table.append("</table>")
         class_name = self.__class__.__name__
         if limit and limit < len(self):
-            summary = f"{class_name}, length={len(self):,} (truncated to {limit if limit else len(self)})"
+            summary = f"{class_name}, length={len(self):,} (truncated to {limit or len(self)})"
         else:
             summary = f"{class_name}, length={len(self):,}"
 
@@ -1615,7 +1615,7 @@ class Sequence(AnnotatableMixin):
 
     def __repr__(self) -> str:
         myclass = f"{self.__class__.__name__}"
-        myclass = myclass.split(".")[-1]
+        myclass = myclass.rsplit(".", maxsplit=1)[-1]
         seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
         return f"{myclass}({seq})"
 

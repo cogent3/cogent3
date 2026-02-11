@@ -22,7 +22,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def _parse_license_name(classifier: str) -> str:
     """Extract just the license name from a trove classifier"""
-    match = re.search(r"(.+?)(?:\s+License)?$", classifier.split("::")[-1])
+    match = re.search(r"(.+?)(?:\s+License)?$", classifier.rsplit("::", maxsplit=1)[-1])
     return match[1].strip() if match else classifier
 
 
