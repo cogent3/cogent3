@@ -194,7 +194,7 @@ class TrackBack:
         result = []
         for state, posn, (dx, dy) in self.tlist:
             pos = [[None, i - 1][d] for (i, d) in zip(posn, [dx, dy], strict=False)]
-            result.append((bin_map.get(int(state), None), pos))
+            result.append((bin_map.get(int(state)), pos))
         return result
 
 

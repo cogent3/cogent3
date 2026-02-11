@@ -590,7 +590,7 @@ def load_pssm(
     is_cisbp = path.endswith("cisbp")
     is_jaspar = path.endswith("jaspar")
     if not (is_cisbp or is_jaspar):
-        msg = f"Unknown format {path.split('.')[-1]}"
+        msg = f"Unknown format {path.rsplit('.', maxsplit=1)[-1]}"
         raise NotImplementedError(msg)
 
     if is_cisbp:
