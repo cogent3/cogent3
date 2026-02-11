@@ -57,7 +57,6 @@ _import_mapping = {
     "load_annotations": "core.annotation_db",
     "load_tree": "core.tree",
     "make_tree": "core.tree",
-    "PhyloNode": "core.tree",
     "TreeError": "core.tree",
     "load_table": "core.table",
     "make_table": "core.table",
@@ -78,6 +77,14 @@ _import_mapping = {
     "available_apps": "app",
     "get_app": "app",
     "open_data_store": "app.io",
+    # Core types returned by top-level functions
+    "Alignment": "core.alignment",
+    "SequenceCollection": "core.alignment",
+    "Sequence": "core.sequence",
+    "Table": "core.table",
+    "MolType": "core.moltype",
+    "GeneticCode": "core.genetic_code",
+    "PhyloNode": "core.tree",
 }
 
 
