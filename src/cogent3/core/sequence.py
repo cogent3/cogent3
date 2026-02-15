@@ -1912,7 +1912,7 @@ class Sequence(AnnotatableMixin):
         -----
         If provided, the biotype is used for plot order.
         """
-        from cogent3.draw.drawable import Drawable
+        from cogent3.draw.drawable import Drawable, stack_shapes
 
         drawables = self.get_drawables(biotype=biotype)
         if not drawables:
@@ -1921,22 +1921,7 @@ class Sequence(AnnotatableMixin):
         biotype = list(drawables) if biotype is None else biotype
         biotypes = (biotype,) if isinstance(biotype, str) else biotype
 
-        # we order by tracks
-        top: float = 0
-        space = 0.25
-        annotes: list[Shape] = []
-        annott = None
-        for feature_type in biotypes:
-            new_bottom = top + space
-            for i, annott in enumerate(drawables[feature_type]):
-                annott.shift(y=new_bottom - annott.bottom)
-                if i > 0:
-                    annott._showlegend = False
-                annotes.append(annott)
-
-            top = cast("Shape", annott).top
-
-        top += space
+        annotes, top = stack_shapes(drawables, order=biotypes)
         height = max((top / len(self)) * width, 300)
         xaxis: dict[str, Any] = {
             "range": [0, len(self)],
