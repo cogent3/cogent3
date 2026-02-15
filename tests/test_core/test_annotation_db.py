@@ -624,6 +624,55 @@ def test_matching_conditions_IN():
     assert cond == ("CDS", "mRNA", "exon")
 
 
+def test_matching_conditions_stop_only():
+    got, _ = _matching_conditions({"stop": 20000}, allow_partial=False)
+    assert got == "(stop <= 20000)"
+
+
+def test_matching_conditions_stop_only_partial():
+    got, _ = _matching_conditions({"stop": 20000}, allow_partial=True)
+    assert got == "(start < 20000)"
+
+
+def test_matching_conditions_start_only():
+    got, _ = _matching_conditions({"start": 500}, allow_partial=False)
+    assert got == "(start >= 500)"
+
+
+def test_matching_conditions_start_only_partial():
+    got, _ = _matching_conditions({"start": 500}, allow_partial=True)
+    assert got == "(stop > 500)"
+
+
+def test_get_features_stop_only():
+    """querying with stop-only should return features in [0, stop), not
+    just features that straddle the stop position"""
+    from cogent3.core.annotation_db import GenbankAnnotationDb
+
+    db = GenbankAnnotationDb()
+    db.add_feature(seqid="seq1", biotype="CDS", name="a", spans=[(100, 500)])
+    db.add_feature(seqid="seq1", biotype="CDS", name="b", spans=[(1000, 5000)])
+    db.add_feature(seqid="seq1", biotype="CDS", name="c", spans=[(10000, 15000)])
+    db.add_feature(seqid="seq1", biotype="CDS", name="d", spans=[(19000, 25000)])
+
+    # stop=20000, allow_partial=False: features fully within [0, 20000)
+    results = list(db.get_features_matching(seqid="seq1", biotype="CDS", stop=20000))
+    names = {r["name"] for r in results}
+    assert names == {"a", "b", "c"}
+
+    # stop=20000, allow_partial=True: features overlapping [0, 20000)
+    results = list(
+        db.get_features_matching(
+            seqid="seq1",
+            biotype="CDS",
+            stop=20000,
+            allow_partial=True,
+        ),
+    )
+    names = {r["name"] for r in results}
+    assert names == {"a", "b", "c", "d"}
+
+
 @pytest.mark.parametrize(
     "biotype_value_1",
     ["CDS", "mRNA", "exon", "three_prime_UTR", "intron"],

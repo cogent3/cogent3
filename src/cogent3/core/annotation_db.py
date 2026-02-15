@@ -699,12 +699,20 @@ def _matching_conditions(
             cond = f"start >= {start} AND stop <= {stop}"
         sql.append(f"({cond})")
     elif start is not None:
-        # if query has no stop, then any feature containing start
-        cond = f"(start <= {start} AND {start} < stop)"
+        if allow_partial:
+            # any feature that overlaps region [start, ∞)
+            cond = f"stop > {start}"
+        else:
+            # features fully within [start, ∞)
+            cond = f"start >= {start}"
         sql.append(f"({cond})")
     elif stop is not None:
-        # if query has no start, then any feature containing stop
-        cond = f"(start <= {stop} AND {stop} < stop)"
+        if allow_partial:
+            # any feature that overlaps region [0, stop)
+            cond = f"start < {stop}"
+        else:
+            # features fully within [0, stop)
+            cond = f"stop <= {stop}"
         sql.append(f"({cond})")
 
     return f"{' AND '.join(sql)}", vals
