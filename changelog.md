@@ -1,4 +1,17 @@
 
+<a id='changelog-2026.2.17a2'></a>
+# Changes in release "2026.2.17a2"
+
+Fixed error in README
+
+## Contributors
+
+- @GavinHuttley
+
+## Documentation
+
+- Fixed the readme
+
 <a id='changelog-2026.2.17a1'></a>
 # Changes in release "2026.2.17a1"
 

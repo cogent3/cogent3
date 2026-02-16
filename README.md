@@ -31,6 +31,7 @@ The new function `cogent3.draw_annotations()` can take an annotation database in
 
 </details>
 
+<details>
   <summary>The cogent3 code-sharing site 📚🔌</summary>
 
 Share your [cogent3 ecosystem code solutions](https://github.com/cogent3/c3codeshare) for others to benefit from your awesomeness 😎. Or, just read / use the contributions from others.
