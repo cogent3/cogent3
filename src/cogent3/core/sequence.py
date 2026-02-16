@@ -12,7 +12,6 @@ import json
 import re
 import warnings
 from collections import defaultdict
-from collections.abc import Sequence as PySeq
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -68,6 +67,7 @@ from cogent3.util.transform import for_seq, per_shortest
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Mapping
+    from collections.abc import Sequence as PySeq
 
     from cogent3.core.alignment import Aligned
     from cogent3.core.genetic_code import GeneticCode
