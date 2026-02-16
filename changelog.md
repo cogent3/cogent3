@@ -1,4 +1,35 @@
 
+<a id='changelog-2026.2.17a1'></a>
+# Changes in release "2026.2.17a1"
+
+A feature enhancement and bug fix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Made the major cogent3 data types available as top level
+  imports via our lazy loading mechanism. This should reduce
+  errors when using Gen AI to create scripts. LLMs have a
+  tendency to use type hinting and were failing because
+  our top level functions return types were not also at the top level.
+
+- The new function `cogent3.draw_annotations()` can take an annotation
+  database instance and returns a `Drawable`. This is useful for exploration
+  of genomic features without needing to load the sequence itself.
+
+## Bug fixes
+
+- Fixed an edge case where providing a single (start / stop) coordinate
+  for querying annotation features could lead to no features being
+  returned by an annotation database.
+
+## Documentation
+
+- Added a new gallery member for the display of annotation databases.
+
 <a id='changelog-2026.2.3a1'></a>
 # Changes in release "2026.2.3a1"
 
