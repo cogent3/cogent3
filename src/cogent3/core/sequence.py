@@ -12,6 +12,7 @@ import json
 import re
 import warnings
 from collections import defaultdict
+from collections.abc import Sequence as PySeq
 from functools import total_ordering
 from operator import eq, ne
 from random import shuffle
@@ -1921,7 +1922,7 @@ class Sequence(AnnotatableMixin):
         biotype = list(drawables) if biotype is None else biotype
         biotypes = (biotype,) if isinstance(biotype, str) else biotype
 
-        annotes, top = stack_shapes(drawables, order=biotypes)
+        annotes, top = stack_shapes(drawables, order=cast("PySeq[str]", biotypes))
         height = max((top / len(self)) * width, 300)
         xaxis: dict[str, Any] = {
             "range": [0, len(self)],
