@@ -85,6 +85,7 @@ _import_mapping = {
     "MolType": "core.moltype",
     "GeneticCode": "core.genetic_code",
     "PhyloNode": "core.tree",
+    "draw_annotations": "draw.annotation",
 }
 
 
