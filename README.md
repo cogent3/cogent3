@@ -20,11 +20,17 @@
 
 [![CZI's Essential Open Source Software for Science](https://img.shields.io/badge/funded%20by-EOSS-FF414B)](https://czi.co/EOSS)
 
-`cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors.
+`cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors. A plugin system enables custom extensions to expand the library capabilities.
 
 ## 📣 Feature Announcements 📣
 
 <details>
+  <summary>Drawing annotations from an annotation database</summary>
+
+The new function `cogent3.draw_annotations()` can take an annotation database instance and returns a Drawable. This is useful for exploration of genome features without needing to load sequences.
+
+</details>
+
   <summary>The cogent3 code-sharing site 📚🔌</summary>
 
 Share your [cogent3 ecosystem code solutions](https://github.com/cogent3/c3codeshare) for others to benefit from your awesomeness 😎. Or, just read / use the contributions from others.
