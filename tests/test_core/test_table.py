@@ -2079,3 +2079,206 @@ def test_to_list_empty():
     t = Table(header=["col 1", "col 2"], data=[])
     got = t.to_list()
     assert got == []
+
+
+# --- group_by tests ---
+
+
+def _make_group_table():
+    return make_table(
+        data={
+            "cat": ["a", "b", "a", "b", "a"],
+            "sub": ["x", "x", "y", "y", "x"],
+            "val": [1, 2, 3, 4, 5],
+            "extra": [10, 20, 30, 40, 50],
+        },
+    )
+
+
+def test_group_by_single_column():
+    t = _make_group_table()
+    result = t.group_by("cat").agg(("val", "sum"), ("extra", "mean"))
+    assert result.shape[1] == 3
+    assert "sum(val)" in result.header
+    assert "mean(extra)" in result.header
+    # group "a" has val=[1,3,5] sum=9, extra=[10,30,50] mean=30
+    # group "b" has val=[2,4] sum=6, extra=[20,40] mean=30
+    a_row = result.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["sum(val)"][0] == 9
+    assert a_row.columns["mean(extra)"][0] == 30.0
+    b_row = result.filtered(lambda x: x == "b", columns="cat")
+    assert b_row.columns["sum(val)"][0] == 6
+    assert b_row.columns["mean(extra)"][0] == 30.0
+
+
+def test_group_by_multiple_columns():
+    t = _make_group_table()
+    result = t.group_by(["cat", "sub"]).agg(("val", "sum"))
+    assert result.shape[1] == 3  # cat, sub, sum(val)
+    # ("a", "x") -> val=[1,5] sum=6
+    ax = result.filtered(lambda x: x[0] == "a" and x[1] == "x", columns=["cat", "sub"])
+    assert ax.columns["sum(val)"][0] == 6
+
+
+def test_group_by_agg_bare_func_raises():
+    t = _make_group_table()
+    with pytest.raises(TypeError, match="each aggregation must be"):
+        t.group_by("cat").agg("sum")
+
+
+def test_group_by_agg_callable():
+    t = _make_group_table()
+    result = t.group_by("cat").agg(("val", numpy.mean))
+    assert "mean(val)" in result.header
+    a_row = result.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["mean(val)"][0] == pytest.approx(3.0)
+
+
+def test_group_by_count():
+    t = _make_group_table()
+    result = t.group_by("cat").count()
+    assert "count" in result.header
+    a_row = result.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["count"][0] == 3
+    b_row = result.filtered(lambda x: x == "b", columns="cat")
+    assert b_row.columns["count"][0] == 2
+
+
+def test_group_by_convenience_methods():
+    t = _make_group_table()
+    s = t.group_by("cat").sum(columns="val")
+    a_row = s.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["sum(val)"][0] == 9
+
+    m = t.group_by("cat").mean(columns="val")
+    a_row = m.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["mean(val)"][0] == pytest.approx(3.0)
+
+    mn = t.group_by("cat").min(columns="val")
+    a_row = mn.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["min(val)"][0] == 1
+
+    mx = t.group_by("cat").max(columns="val")
+    a_row = mx.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["max(val)"][0] == 5
+
+
+def test_group_by_std_var():
+    t = _make_group_table()
+    # group "a" val = [1, 3, 5], unbiased std = 2.0, var = 4.0
+    s = t.group_by("cat").std(columns="val")
+    a_row = s.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["std(val)"][0] == pytest.approx(2.0)
+
+    v = t.group_by("cat").var(columns="val")
+    a_row = v.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["var(val)"][0] == pytest.approx(4.0)
+
+
+def test_group_by_iter():
+    t = _make_group_table()
+    groups = list(t.group_by("cat"))
+    assert len(groups) == 2
+    keys = [k for k, _ in groups]
+    assert keys == ["a", "b"]
+    # single column key should be scalar, not tuple
+    assert isinstance(keys[0], str)
+    # sub-table for "a" should have 3 rows
+    assert groups[0][1].shape[0] == 3
+
+    # multi-column iteration yields tuple keys
+    groups2 = list(t.group_by(["cat", "sub"]))
+    assert isinstance(groups2[0][0], tuple)
+
+
+def test_group_by_repr():
+
+    t = _make_group_table()
+    gb = t.group_by("cat")
+    r = repr(gb)
+    assert "GroupBy('cat')" in r
+    assert "5 rows" in r
+    assert "4 columns" in r
+    # repr should NOT trigger group computation
+    assert gb._cached_groups is None
+
+
+def test_group_by_lazy():
+    t = _make_group_table()
+    gb = t.group_by("cat")
+    assert gb._cached_groups is None
+    # accessing count triggers computation
+    gb.count()
+    assert gb._cached_groups is not None
+
+
+def test_group_by_empty_table():
+    t = Table(header=["cat", "val"], data=[])
+    result = t.group_by("cat").agg(("val", "sum"))
+    assert result.shape[0] == 0
+    assert list(result.header) == ["cat", "sum(val)"]
+
+
+def test_group_by_invalid_column():
+    t = _make_group_table()
+    with pytest.raises(ValueError, match="not in table"):
+        t.group_by("nonexistent")
+
+
+def test_group_by_agg_multiple_same_column():
+    t = _make_group_table()
+    result = t.group_by("cat").agg(
+        ("val", "sum"),
+        ("val", "mean"),
+        ("val", "std"),
+    )
+    assert list(result.header) == ["cat", "sum(val)", "mean(val)", "std(val)"]
+    a_row = result.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["sum(val)"][0] == 9
+    assert a_row.columns["mean(val)"][0] == pytest.approx(3.0)
+    assert a_row.columns["std(val)"][0] == pytest.approx(2.0)
+
+
+def test_group_by_agg_callable_vs_builtin():
+    """callable aggregation can differ from string-named numpy equivalent"""
+    import math
+
+    # A single group whose values trigger catastrophic cancellation
+    # in numpy.sum but not in math.fsum.
+    t = make_table(
+        data={
+            "cat": ["a", "a", "a"],
+            "val": [1e16, 1.0, -1e16],
+        },
+    )
+    result = t.group_by("cat").agg(("val", "sum"), ("val", math.fsum))
+    a_row = result.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["sum(val)"][0] == 0.0
+    assert a_row.columns["fsum(val)"][0] == 1.0
+
+
+def test_group_by_agg_group_column():
+    t = _make_group_table()
+    with pytest.raises(ValueError, match="cannot aggregate group column"):
+        t.group_by("cat").agg(("cat", "sum"))
+
+
+def test_count_unique_uses_group_indices():
+    """count_unique still returns correct CategoryCounter after refactor"""
+    data = {
+        "Project_Code": [
+            "Ovary-AdenoCA",
+            "Liver-HCC",
+            "Panc-AdenoCA",
+            "Panc-AdenoCA",
+        ],
+        "Donor_ID": ["DO46416", "DO45049", "DO51493", "DO32860"],
+        "Variant_Classification": ["IGR", "Intron", "Intron", "Intron"],
+    }
+    table = make_table(data=data)
+    co = table.count_unique(["Project_Code", "Variant_Classification"])
+    assert co["Panc-AdenoCA", "Intron"] == 2
+    assert co["Liver-HCC", "IGR"] == 0
+    co = table.count_unique("Variant_Classification")
+    assert co["Intron"] == 3
+    assert co["IGR"] == 1
