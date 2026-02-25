@@ -2081,9 +2081,6 @@ def test_to_list_empty():
     assert got == []
 
 
-# --- group_by tests ---
-
-
 def _make_group_table():
     return make_table(
         data={
