@@ -2134,6 +2134,12 @@ def test_group_by_agg_callable():
     assert a_row.columns["mean(val)"][0] == pytest.approx(3.0)
 
 
+def test_group_by_agg_unknown_string_raises():
+    t = _make_group_table()
+    with pytest.raises(ValueError, match="unknown aggregation function 'bogus'"):
+        t.group_by("cat").agg(("val", "bogus"))
+
+
 def test_group_by_count():
     t = _make_group_table()
     result = t.group_by("cat").count()
@@ -2142,6 +2148,20 @@ def test_group_by_count():
     assert a_row.columns["count"][0] == 3
     b_row = result.filtered(lambda x: x == "b", columns="cat")
     assert b_row.columns["count"][0] == 2
+
+
+def test_group_by_convenience_columns_none():
+    """columns=None should act on all non-group numeric columns."""
+    t = _make_group_table()
+    result = t.group_by("cat").sum()
+    # group column should not be aggregated
+    assert "sum(cat)" not in result.header
+    # both numeric non-group columns should be present
+    assert "sum(val)" in result.header
+    assert "sum(extra)" in result.header
+    a_row = result.filtered(lambda x: x == "a", columns="cat")
+    assert a_row.columns["sum(val)"][0] == 9
+    assert a_row.columns["sum(extra)"][0] == 90
 
 
 def test_group_by_convenience_methods():
@@ -2261,6 +2281,12 @@ def test_group_by_agg_group_column():
     t = _make_group_table()
     with pytest.raises(ValueError, match="cannot aggregate group column"):
         t.group_by("cat").agg(("cat", "sum"))
+
+
+def test_group_by_agg_missing_column():
+    t = _make_group_table()
+    with pytest.raises(ValueError, match="not in table columns"):
+        t.group_by("cat").agg(("missing", "sum"))
 
 
 def test_count_unique_uses_group_indices():

@@ -115,14 +115,23 @@ def _group_indices(table: "Table", columns: list[str]) -> dict[tuple, numpy.ndar
         keys = [(k.item() if hasattr(k, "item") else k,) for k in unique_keys]
     else:
         col_arrays = [table.columns[c] for c in columns]
-        combined = numpy.empty(table.shape[0], dtype="O")
-        for i in range(table.shape[0]):
-            combined[i] = tuple(
-                v.item() if hasattr(v, "item") else v
-                for v in (arr[i] for arr in col_arrays)
-            )
-        unique_keys, inverse = numpy.unique(combined, return_inverse=True)
-        keys = list(unique_keys)
+        if any(arr.dtype.kind == "O" for arr in col_arrays):
+            combined = numpy.empty(table.shape[0], dtype="O")
+            for i in range(table.shape[0]):
+                combined[i] = tuple(
+                    v.item() if hasattr(v, "item") else v
+                    for v in (arr[i] for arr in col_arrays)
+                )
+            unique_keys, inverse = numpy.unique(combined, return_inverse=True)
+            keys = list(unique_keys)
+        else:
+            dtypes = [(c, table.columns[c].dtype) for c in columns]
+            rec = numpy.rec.fromarrays(col_arrays, dtype=dtypes)
+            unique_keys, inverse = numpy.unique(rec, return_inverse=True)
+            keys = [
+                tuple(v.item() if hasattr(v, "item") else v for v in unique_keys[i])
+                for i in range(len(unique_keys))
+            ]
 
     groups = {}
     for idx, key in enumerate(keys):
@@ -278,7 +287,7 @@ class Columns(MutableMapping):
     def __contains__(self, key) -> bool:
         return key in self._order
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> numpy.ndarray:
         if isinstance(key, str | int):
             key = self._get_key_(key)
             return self.__dict__[key]
@@ -291,7 +300,7 @@ class Columns(MutableMapping):
             key = numpy.array(self._order)[key].tolist()
 
         if type(key) in (list, tuple):
-            result = [self.__dict__[self._get_key_(k)] for k in key]
+            result = numpy.array([self.__dict__[self._get_key_(k)] for k in key])
         else:
             msg = f"{key}"
             raise KeyError(msg)
