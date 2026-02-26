@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import TYPE_CHECKING, Any
 
 from cogent3.core.location import Strand
@@ -28,17 +29,22 @@ def _build_hover_text(feature: FeatureDataType) -> str:
     )
 
 
-def _infer_max_coord(
+def _infer_coord_range(
     features: list[FeatureDataType],
     padding_frac: float = 0.05,
-) -> int:
+) -> tuple[int, int]:
     """Determine x-axis range from feature spans with padding."""
+    min_val = float("inf")
     max_val = 0
     for feat in features:
         for span in feat["spans"]:
+            min_val = min(min_val, span[0], span[1])
             max_val = max(max_val, span[0], span[1])
-    padding = int(max_val * padding_frac)
-    return max_val + padding
+    if min_val == float("inf"):
+        return 0, 0
+    span_width = max_val - min_val
+    padding = int(span_width * padding_frac) if span_width > 0 else 0
+    return int(max(0, min_val - padding)), max_val + padding
 
 
 def _get_distinct_seqids(db: AnnotationDbABC) -> list[str]:
@@ -89,9 +95,14 @@ def _draw_single_seqid(
     Returns (traces, xaxis_config, yaxis_config, top_y).
     """
     if max_coord is None:
-        max_coord = _infer_max_coord(features)
+        min_coord, max_coord = _infer_coord_range(features)
+        axis_range = [min_coord, max_coord]
+        shape_max_coord = max_coord - min_coord
+    else:
+        axis_range = [0, max_coord]
+        shape_max_coord = max_coord
 
-    drawables = _annotations_to_shapes(features, max_coord)
+    drawables = _annotations_to_shapes(features, shape_max_coord)
     if not drawables:
         return [], {}, {}, 0.0
 
@@ -99,7 +110,7 @@ def _draw_single_seqid(
     all_traces = [t.as_trace() for t in annotes]
 
     xaxis: dict[str, Any] = {
-        "range": [0, max_coord],
+        "range": axis_range,
         "zeroline": False,
         "showline": True,
         "title": {"text": seqid},
@@ -170,7 +181,12 @@ def _make_single_seqid_drawable(
     if not traces:
         return None
 
-    effective_max = max_coord or _infer_max_coord(features)
+    if max_coord is None:
+        _, inferred_max = _infer_coord_range(features)
+        inferred_min, _ = _infer_coord_range(features)
+        effective_max = inferred_max - inferred_min
+    else:
+        effective_max = max_coord
     height = max((top / max(1, effective_max)) * width, 300)
     if show_controls:
         xaxis["rangeslider"] = {"visible": True}
@@ -245,6 +261,132 @@ def _make_multi_seqid_drawable(
     return drawer
 
 
+def _find_anchor_features(
+    db: AnnotationDbABC,
+    *,
+    name: str,
+    biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
+    seqid: str | None = None,
+    max_seqids: int | None = None,
+) -> dict[str, FeatureDataType]:
+    """Find the first feature matching ``name`` on each seqid.
+
+    Parameters
+    ----------
+    db
+        An annotation database instance.
+    name
+        Feature name to search for.
+    biotype
+        Optional biotype filter.
+    seqid
+        If provided, restrict search to this seqid only.
+    max_seqids
+        If provided, stop collecting after this many distinct seqids.
+
+    Returns
+    -------
+    dict mapping seqid to the first matching feature record.
+    """
+    kwargs: dict[str, Any] = {"name": name, "allow_partial": True}
+    if biotype is not None:
+        kwargs["biotype"] = biotype
+    if seqid is not None:
+        kwargs["seqid"] = seqid
+    anchors: dict[str, FeatureDataType] = {}
+    for feat in db.get_features_matching(**kwargs):
+        sid = feat["seqid"]
+        if sid not in anchors:
+            anchors[sid] = feat
+            if max_seqids is not None and len(anchors) >= max_seqids:
+                break
+    return anchors
+
+
+def _get_span_extent(feature: FeatureDataType) -> tuple[int, int]:
+    """Return (min_start, max_end) across all spans in a feature."""
+    spans = feature["spans"]
+    if hasattr(spans, "tolist"):
+        spans = spans.tolist()
+    all_starts = [s[0] for s in spans]
+    all_ends = [s[1] for s in spans]
+    return min(all_starts), max(all_ends)
+
+
+def _draw_centered(
+    db: AnnotationDbABC,
+    *,
+    center_on: str,
+    seqid: str | None,
+    biotype: str | tuple[str, ...] | list[str] | set[str] | None,
+    flank: int,
+    max_seqids: int | None,
+    max_features: int,
+    width: float,
+    title: str | None,
+    show_controls: bool,
+) -> Drawable | None:
+    """Build a drawable centered on a named feature across seqids."""
+    anchors = _find_anchor_features(
+        db,
+        name=center_on,
+        biotype=biotype,
+        seqid=seqid,
+        max_seqids=max_seqids,
+    )
+    if not anchors:
+        return None
+
+    selected_seqids = sorted(anchors)
+
+    # Compute uniform window width from the maximum anchor span
+    max_span = max(
+        _get_span_extent(anchors[sid])[1] - _get_span_extent(anchors[sid])[0]
+        for sid in selected_seqids
+    )
+    half = (max_span + 2 * flank) // 2
+
+    by_seqid: dict[str, list[FeatureDataType]] = {}
+    for sid in selected_seqids:
+        start, end = _get_span_extent(anchors[sid])
+        mid = (start + end) // 2
+        w_start = max(0, mid - half)
+        w_stop = mid + half
+        if feats := _query_features(
+            db,
+            seqid=sid,
+            biotype=biotype,
+            start=w_start,
+            stop=w_stop,
+        ):
+            by_seqid[sid] = feats
+
+    if not by_seqid:
+        return None
+
+    total = sum(len(v) for v in by_seqid.values())
+    _check_max_features(total, max_features)
+
+    default_title = title or f"Centered on: {center_on}"
+    seqids = sorted(by_seqid)
+    if len(seqids) == 1:
+        return _make_single_seqid_drawable(
+            by_seqid[seqids[0]],
+            seqid=seqids[0],
+            max_coord=None,
+            width=width,
+            title=default_title,
+            show_controls=show_controls,
+        )
+
+    return _make_multi_seqid_drawable(
+        by_seqid,
+        max_coord=None,
+        width=width,
+        title=default_title,
+    )
+
+
 def draw_annotations(
     db: AnnotationDbABC,
     *,
@@ -259,6 +401,9 @@ def draw_annotations(
     width: float = 600,
     title: str | None = None,
     show_controls: bool = True,
+    center_on: str | None = None,
+    flank: int = 5000,
+    max_seqids: int | None = None,
 ) -> Drawable | None:
     """Visualise annotations from an AnnotationDb
 
@@ -268,19 +413,21 @@ def draw_annotations(
         An annotation database instance.
     seqid
         Sequence identifier to display. If None, features for all seqids
-        are shown as stacked subplots.
+        are shown as stacked subplots. When used with ``center_on``,
+        restricts the anchor search to this seqid.
     biotype
         Feature type(s) to include. If None, all biotypes are shown.
     name
-        Feature name filter.
+        Feature name filter. Ignored when ``center_on`` is set.
     start
-        Start coordinate filter.
+        Start coordinate filter. Ignored when ``center_on`` is set.
     stop
-        Stop coordinate filter.
+        Stop coordinate filter. Ignored when ``center_on`` is set.
     strand
-        Strand filter.
+        Strand filter. Ignored when ``center_on`` is set.
     max_coord
         Maximum x-axis coordinate. Inferred from features if not provided.
+        Ignored when ``center_on`` is set.
     max_features
         Maximum number of features to render. Raise ValueError if exceeded.
     width
@@ -290,12 +437,49 @@ def draw_annotations(
     show_controls
         If True (default), display a range slider for navigating coordinates.
         Set to False for clean static image export.
+    center_on
+        Feature name to center on. When provided, finds features with this
+        name across all seqids and displays a window around each match.
+        Only seqids containing the feature are shown.
+    flank
+        Number of bases on each side of the anchor feature's midpoint.
+        Only used when ``center_on`` is set.
+    max_seqids
+        Maximum number of seqids to display. Applied after filtering to
+        those containing the anchor. Sorted alphabetically, first N taken.
 
     Returns
     -------
     Drawable or None
         A Drawable instance, or None if no features match.
     """
+    if center_on is not None:
+        if start is not None or stop is not None:
+            warnings.warn(
+                "start/stop are ignored when center_on is set",
+                UserWarning,
+                stacklevel=2,
+            )
+        if max_coord is not None:
+            warnings.warn(
+                "max_coord is ignored when center_on is set",
+                UserWarning,
+                stacklevel=2,
+            )
+
+        return _draw_centered(
+            db,
+            center_on=center_on,
+            seqid=seqid,
+            biotype=biotype,
+            flank=flank,
+            max_seqids=max_seqids,
+            max_features=max_features,
+            width=width,
+            title=title,
+            show_controls=show_controls,
+        )
+
     features = _query_features(
         db,
         seqid=seqid,
