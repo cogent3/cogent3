@@ -36,7 +36,6 @@ from cogent3.util.misc import extend_docstring_from, get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
-    from cogent3.util.progress_display import ProgressContext
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
@@ -2953,28 +2952,18 @@ def _db_from_genbank(
 ) -> SqliteAnnotationDbMixin:
     from cogent3.parse.genbank import minimal_parser
 
-    p = pathlib.Path(path)
-    paths = list(p.parent.glob(p.name))
+    kwargs.pop("ui", None)
 
-    ui: ProgressContext = kwargs.pop("ui")
-    one_valid_path = False
-    for path in ui.series(paths):  # noqa: PLR1704
-        rec = next(iter(minimal_parser(path)))
-        data = cast("Iterable[dict[str, Any]] | None", rec.pop("features", None))
-        locus = cast("str", rec["locus"])
-        db = GenbankAnnotationDb(
-            source=write_path,
-            data=data,
-            seqid=locus,
-            db=db,
-        )
-        one_valid_path = True
+    rec = next(iter(minimal_parser(path)))
+    data = cast("Iterable[dict[str, Any]] | None", rec.pop("features", None))
+    locus = cast("str", rec["locus"])
+    db = GenbankAnnotationDb(
+        source=write_path,
+        data=data,
+        seqid=locus,
+        db=db,
+    )
 
-    if not one_valid_path:
-        msg = f"{str(path)!r} not found"
-        raise OSError(msg)
-
-    assert db is not None
     db.make_indexes()
     return db
 
@@ -2993,39 +2982,31 @@ def _db_from_gff(
 ) -> SqliteAnnotationDbMixin:
     from cogent3.parse.gff import gff_parser, is_gff3
 
-    p = pathlib.Path(path)
-    paths = list(p.parent.glob(p.name))
+    kwargs.pop("ui", None)
 
-    ui: ProgressContext = kwargs.pop("ui")
-    one_valid_path = False
+    num_fake_ids = 0
     seen_ids: set[str] = set()
-    for path in ui.series(paths):  # noqa: PLR1704
-        num_fake_ids = 0
-        gff3 = is_gff3(path)
-        db = GffAnnotationDb(source=write_path, db=db)
-        for block in iter_line_blocks(path, num_lines=num_lines):
-            data = list(
-                gff_parser(
-                    block,
-                    seqids=seqids,
-                    attribute_parser=_leave_attributes,
-                    gff3=gff3,
-                ),
-            )
-            merged_data, num_fake_ids = merged_gff_records(data, num_fake_ids)
-            if already_seen := seen_ids & merged_data.keys():
-                for name in already_seen:
-                    db.update_record_spans(
-                        name=name,
-                        spans=cast("list[tuple[int, int]]", merged_data[name].spans),
-                    )
+    gff3 = is_gff3(path)
+    db = GffAnnotationDb(source=write_path, db=db)
+    for block in iter_line_blocks(path, num_lines=num_lines):
+        data = list(
+            gff_parser(
+                block,
+                seqids=seqids,
+                attribute_parser=_leave_attributes,
+                gff3=gff3,
+            ),
+        )
+        merged_data, num_fake_ids = merged_gff_records(data, num_fake_ids)
+        if already_seen := seen_ids & merged_data.keys():
+            for name in already_seen:
+                db.update_record_spans(
+                    name=name,
+                    spans=cast("list[tuple[int, int]]", merged_data[name].spans),
+                )
 
-            seen_ids |= merged_data.keys()
-            db.add_records(merged_data)
-        one_valid_path = True
-    if not one_valid_path:
-        msg = f"{str(path)!r} not found"
-        raise OSError(msg)
+        seen_ids |= merged_data.keys()
+        db.add_records(merged_data)
 
     assert db is not None
     db.make_indexes()
