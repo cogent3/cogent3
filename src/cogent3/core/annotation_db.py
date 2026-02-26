@@ -587,6 +587,17 @@ class AnnotationDbABC(abc.ABC):
         msg = f"{self.__class__.__name__!r} does not support union"
         raise NotImplementedError(msg)
 
+    def count_distinct(
+        self,
+        *,
+        seqid: str | bool = False,
+        biotype: str | bool = False,
+        name: str | bool = False,
+    ) -> Table | None:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support count_distinct()"
+        raise NotImplementedError(msg)
+
     @abc.abstractmethod
     def close(self) -> None: ...
 
