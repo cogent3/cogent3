@@ -9,9 +9,16 @@ if sys.version_info >= (3, 12):
     os.environ["COVERAGE_CORE"] = "sysmon"
 
 _py_versions = range(11, 15)
+_venv_params = ["--clear"]
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=False)
+def fmt(session: nox.Session) -> None:
+    session.run("ruff", "check", "--fix-only", ".", external=True)
+    session.run("ruff", "format", ".", external=True)
+
+
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_params=_venv_params)
 def test_slow(session):
     session.install("-e.[test]")
     session.chdir("tests")
@@ -22,7 +29,7 @@ def test_slow(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_params=_venv_params)
 def test(session):
     session.install("-e.[test]")
     session.run("pip", "list")
@@ -49,7 +56,7 @@ def test(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_params=_venv_params)
 def test_module_docs(session):
     """doctest examples in a module"""
     session.install("-e.[test]")
@@ -63,7 +70,7 @@ def test_module_docs(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_params=_venv_params)
 def testmpi(session):
     session.install("-e.[test]")
     session.install("mpi4py")
@@ -84,7 +91,7 @@ def testmpi(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_params=_venv_params)
 def testdocs(session):
     py = pathlib.Path(session.bin_paths[0]) / "python"
     session.install("-e.[doc]")
