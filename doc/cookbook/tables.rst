@@ -589,6 +589,108 @@ For multiple columns.
     r = unique.to_table()
     r
 
+Grouping and aggregating
+========================
+
+``Table.group_by()`` groups rows by one or more columns, returning a ``GroupBy`` object for aggregation.
+
+.. jupyter-execute::
+
+    from cogent3 import make_table
+
+    table = make_table(
+        data={
+            "category": ["a", "b", "a", "b", "a"],
+            "value": [1, 2, 3, 4, 5],
+            "extra": [10, 20, 30, 40, 50],
+        }
+    )
+    table
+
+Aggregating columns
+-------------------
+
+Each aggregation is a ``(column, function)`` tuple. Result columns are
+automatically named ``"function(column)"``. Functions can be string names
+that map to ``numpy`` functions (``"sum"``, ``"mean"``, ``"median"``,
+``"min"``, ``"max"``, ``"std"``, ``"var"``, ``"count"``, ``"first"``,
+``"last"``) or callables. ``"std"`` and ``"var"`` use ``ddof=1``
+(unbiased estimators).
+
+.. jupyter-execute::
+
+    table.group_by("category").agg(("value", "sum"), ("extra", "mean"))
+
+Multiple aggregations on the same column
+-----------------------------------------
+
+.. jupyter-execute::
+
+    table.group_by("category").agg(
+        ("value", "sum"),
+        ("value", "mean"),
+        ("value", "std"),
+    )
+
+Using a callable instead of a string name
+------------------------------------------
+
+You can pass any callable as the aggregation function. For example,
+``math.fsum`` provides a numerically stable sum that avoids catastrophic
+cancellation, unlike ``numpy.sum``.
+
+.. jupyter-execute::
+
+    import math
+
+    table = make_table(
+        data={
+            "category": ["a", "a", "a"],
+            "value": [1e16, 1.0, -1e16],
+        }
+    )
+    table.group_by("category").agg(("value", "sum"), ("value", math.fsum))
+
+Counting rows per group
+-----------------------
+
+.. jupyter-execute::
+
+    table.group_by("category").count()
+
+Convenience aggregation methods
+-------------------------------
+
+.. jupyter-execute::
+
+    table.group_by("category").sum(columns="value")
+
+.. jupyter-execute::
+
+    table.group_by("category").mean(columns="value")
+
+Grouping by multiple columns
+-----------------------------
+
+.. jupyter-execute::
+
+    table = make_table(
+        data={
+            "cat": ["a", "b", "a", "b", "a"],
+            "sub": ["x", "x", "y", "y", "x"],
+            "value": [1, 2, 3, 4, 5],
+        }
+    )
+    table.group_by(["cat", "sub"]).agg(("value", "sum"))
+
+Iterating over groups
+---------------------
+
+.. jupyter-execute::
+
+    for key, sub_table in table.group_by("cat"):
+        print(f"group {key!r}: {sub_table.shape[0]} rows")
+
 Joining or merging tables
 =========================
 
