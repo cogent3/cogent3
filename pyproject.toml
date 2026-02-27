@@ -20,6 +20,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "charset_normalizer",
+    "citeable",
     "loky!=3.5.0",
     # prevent release candidate of numpy 2.4 
     # until numba modified to handle removal
