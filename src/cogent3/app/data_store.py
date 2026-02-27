@@ -363,6 +363,17 @@ def summary_not_completeds(
     return Table(header=header, data=rows, title="not completed records")
 
 
+def _tidy_and_check_suffix(suffix: str | None) -> str:
+    """tidies suffix by removing leading wildcards and dots"""
+    suffix = suffix or ""
+    suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+    if not suffix or suffix == "*":
+        msg = "suffix is required for DataStoreDirectory and cannot be just a wildcard"
+        raise ValueError(msg)
+
+    return suffix
+
+
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
@@ -370,16 +381,12 @@ class DataStoreDirectory(DataStoreABC):
         mode: Mode | str = READONLY,
         suffix: str | None = None,
         limit: int | None = None,
-        verbose=False,
+        verbose: bool = False,
     ) -> None:
         self._mode = Mode(mode)
-        if not suffix or suffix == "*":
-            msg = "suffix is required for DataStoreDirectory and cannot be just a wildcard"
-            raise ValueError(msg)
-        suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
         self._source = source.expanduser()
-        self.suffix = suffix
+        self.suffix = _tidy_and_check_suffix(suffix)
         self._verbose = verbose
         self._source_check_create(mode)
         self._limit = limit
@@ -620,16 +627,13 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             msg = "this is a read only data store"
             raise ValueError(msg)
 
-        if not suffix or suffix == "*":
-            msg = "suffix is required for ReadOnlyDataStoreZipped and cannot be just a wildcard"
-            raise ValueError(msg)
-        suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+        self.suffix = _tidy_and_check_suffix(suffix)
         source = Path(source)
         self._source = source.expanduser()
         if not self._source.exists():
             msg = f"{self._source!s} does not exit"
             raise OSError(msg)
-        self.suffix = suffix
+
         self._verbose = verbose
         self._limit = limit
 
