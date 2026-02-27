@@ -6,6 +6,7 @@ from pickle import dumps, loads
 from unittest.mock import Mock
 
 import pytest
+from citeable import Software
 from numpy import array, ndarray
 from scitrack import CachingLogger
 
@@ -1237,3 +1238,221 @@ def test_cogent3_serialisable_compatible_with_serialisabletype(tmp_path):
     result = app("(A:0.1,B:0.2);")  # pylint: disable=not-callable
     got = loader(result)
     assert isinstance(got, PhyloNode)
+
+
+def _make_cite(**kwargs):
+    defaults = dict(
+        author=["Doe, J"],
+        title="test",
+        year=2024,
+        url="https://example.com",
+        version="1.0",
+        license="MIT",
+        doi="10.0/test",
+        publisher="test",
+    )
+    defaults.update(kwargs)
+    return Software(**defaults)
+
+
+def test_single_app_with_citation():
+    cite = _make_cite()
+
+    @define_app(cite=cite)
+    class cited_app:
+        def main(self, val: int) -> int:
+            return val
+
+    app = cited_app()
+    assert app._cite is cite
+    assert app.citations == (cite,)
+
+
+def test_single_app_without_citation():
+    @define_app
+    class uncited_app:
+        def main(self, val: int) -> int:
+            return val
+
+    app = uncited_app()
+    assert app._cite is None
+    assert app.citations == ()
+
+
+def test_composed_apps_all_with_citations():
+    cite_a = _make_cite(title="A")
+    cite_b = _make_cite(title="B")
+
+    @define_app(cite=cite_a)
+    class app_a:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite_b)
+    class app_b:
+        def main(self, val: int) -> int:
+            return val
+
+    composed = app_a() + app_b()
+    assert composed.citations == (cite_b, cite_a)
+
+
+def test_composed_apps_some_with_citations():
+    cite_a = _make_cite(title="A")
+
+    @define_app(cite=cite_a)
+    class app_c:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app
+    class app_d:
+        def main(self, val: int) -> int:
+            return val
+
+    composed = app_c() + app_d()
+    assert composed.citations == (cite_a,)
+
+
+def test_composed_apps_none_with_citations():
+    @define_app
+    class app_e:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app
+    class app_f:
+        def main(self, val: int) -> int:
+            return val
+
+    composed = app_e() + app_f()
+    assert composed.citations == ()
+
+
+def test_composed_three_app_chain():
+    cite_l = _make_cite(title="L")
+    cite_g = _make_cite(title="G")
+    cite_w = _make_cite(title="W")
+
+    @define_app(cite=cite_l)
+    class chain_l:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite_g)
+    class chain_g:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite_w)
+    class chain_w:
+        def main(self, val: int) -> int:
+            return val
+
+    composed = chain_l() + chain_g() + chain_w()
+    assert composed.citations == (cite_w, cite_g, cite_l)
+
+
+def test_duplicate_citation_deduplication():
+    cite = _make_cite()
+
+    @define_app(cite=cite)
+    class dup_a:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite)
+    class dup_b:
+        def main(self, val: int) -> int:
+            return val
+
+    composed = dup_a() + dup_b()
+    assert composed.citations == (cite,)
+
+
+def test_non_composable_app_with_citation():
+    cite = _make_cite()
+
+    @define_app(app_type=NON_COMPOSABLE, cite=cite)
+    class nc_cited:
+        def main(self, val: int) -> int:
+            return val
+
+    app = nc_cited()
+    assert app.citations == (cite,)
+
+
+def test_citations_after_disconnect():
+    cite_a = _make_cite(title="A")
+    cite_b = _make_cite(title="B")
+
+    @define_app(cite=cite_a)
+    class disc_a:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite_b)
+    class disc_b:
+        def main(self, val: int) -> int:
+            return val
+
+    a = disc_a()
+    b = disc_b()
+    composed = a + b
+    assert len(composed.citations) == 2
+    composed.disconnect()
+    assert b.citations == (cite_b,)
+    assert a.citations == (cite_a,)
+
+
+def test_cite_sets_app_attribute():
+    cite = _make_cite()
+
+    @define_app(cite=cite)
+    class my_special_app:
+        def main(self, val: int) -> int:
+            return val
+
+    assert cite.app == "my_special_app"
+
+
+def test_bib_single_app_with_citation():
+    cite = _make_cite()
+
+    @define_app(cite=cite)
+    class bib_app:
+        def main(self, val: int) -> int:
+            return val
+
+    app = bib_app()
+    assert app.bib == str(cite)
+
+
+def test_bib_app_without_citation():
+    @define_app
+    class no_bib_app:
+        def main(self, val: int) -> int:
+            return val
+
+    app = no_bib_app()
+    assert app.bib == ""
+
+
+def test_bib_composed_apps():
+    cite_a = _make_cite(title="A")
+    cite_b = _make_cite(title="B")
+
+    @define_app(cite=cite_a)
+    class bib_a:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite_b)
+    class bib_b:
+        def main(self, val: int) -> int:
+            return val
+
+    composed = bib_a() + bib_b()
+    assert str(cite_b) in composed.bib
+    assert str(cite_a) in composed.bib
+    assert "\n\n" in composed.bib

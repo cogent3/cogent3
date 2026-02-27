@@ -12,6 +12,7 @@ from enum import Enum
 from pathlib import Path
 from uuid import uuid4
 
+from citeable import Citation
 from scitrack import CachingLogger
 
 from cogent3._version import __version__
@@ -493,6 +494,7 @@ def define_app(
     *,
     app_type: AppType = GENERIC,
     skip_not_completed: bool = True,
+    cite: Citation | None = None,
 ) -> type:
     """decorator for building callable apps
 
@@ -506,6 +508,9 @@ def define_app(
     skip_not_completed
         if True (default), NotCompleted instances are returned without being
         passed to the app.
+    cite
+        a Citation instance describing the software or algorithm. If provided,
+        its ``.app`` attribute is set to the class name.
 
     Notes
     -----
@@ -675,6 +680,12 @@ def define_app(
         klass._return_types = return_hint
         klass.app_type = app_type
         klass._skip_not_completed = skip_not_completed
+
+        if cite is not None:
+            cite.app = klass.__name__
+        klass._cite = cite
+        klass.citations = property(_citations_property)
+        klass.bib = property(_bib)
 
         if app_type is not LOADER:
             klass.input = None
@@ -943,6 +954,35 @@ def _set_logger(self, logger=None) -> None:
     self.logger = logger
 
 
+def _get_citations(self) -> tuple[Citation, ...]:
+    """Return citations for this app and all composed input apps."""
+    seen: set[Citation] = set()
+    result: list[Citation] = []
+
+    if self._cite is not None:
+        seen.add(self._cite)
+        result.append(self._cite)
+
+    head = getattr(self, "input", None)
+    while head is not None:
+        if head._cite is not None and head._cite not in seen:
+            seen.add(head._cite)
+            result.append(head._cite)
+        head = getattr(head, "input", None)
+
+    return tuple(result)
+
+
+def _citations_property(self) -> tuple[Citation, ...]:
+    """Citations for this app and all composed input apps."""
+    return self._get_citations()
+
+
+def _bib(self) -> str:
+    """BibTeX formatted string of citations for this app and all composed input apps."""
+    return "\n\n".join(str(cite) for cite in self.citations)
+
+
 __mapping = {
     "__new__": _new,
     "__add__": _add,
@@ -953,6 +993,7 @@ __mapping = {
     "apply_to": _apply_to,
     "as_completed": _as_completed,
     "set_logger": _set_logger,
+    "_get_citations": _get_citations,
 }
 
 
