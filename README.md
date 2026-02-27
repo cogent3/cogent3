@@ -25,6 +25,13 @@
 ## 📣 Feature Announcements 📣
 
 <details>
+  <summary>Tracking citations of apps</summary>
+
+We have built a mechanism for defining and tracking citations for apps, making it easier for users to correctly acknowledge app developer efforts. See the announcement on the home page for more details.
+
+</details>
+
+<details>
   <summary>Drawing annotations from an annotation database</summary>
 
 The new function `cogent3.draw_annotations()` can take an annotation database instance and returns a Drawable. This is useful for exploration of genome features without needing to load sequences.

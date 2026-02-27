@@ -1,4 +1,32 @@
 
+<a id='changelog-2026.2.28a1'></a>
+# Changes in release "2026.2.28a1"
+
+This is a feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added table.group_by() method. This returns a new GroupBy class with
+  methods that are useful for computing summary statistics.
+- Composed apps now have `.citations` and `.bib` properties. These use the
+  new `citeable` package objects to represent citations of different apps
+  you have used. This information is automatically written to data stores
+  via the `apply_to()` method by cogent3 writers. The `DataStoreABC` gets
+  new methods and properties `write_citations()`, `summary_citations`,
+  `bib` for handling this data. These are implemented directly in the
+  cogent3 data store classes. `DataStoreDirectory.write_citations()` writes
+  out json into a .citations file. `DataStoreSqlite.write_citations()`
+  writes into a new table. The `<data store>.summary_citations` property
+  returns a `Table` object that shows the app and an abbreviation of the
+  citation. `<data store>.bib` is a string that can be displayed, or
+  written to a file for importing into your Bibliography manager.
+- the new draw_annotations() gets a `centered_on` argument, for centering
+  the display on a feature whose name matches `centered_on`.
+
 <a id='changelog-2026.2.17a2'></a>
 # Changes in release "2026.2.17a2"
 
