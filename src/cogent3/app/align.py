@@ -23,6 +23,7 @@ from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
 from cogent3.maths.util import safe_log
 
+from ._citations import cite_cogent3
 from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
@@ -328,7 +329,7 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     )
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class align_to_ref:
     """Aligns sequences to a nominated reference in the unaligned collection.
 
@@ -417,7 +418,7 @@ class align_to_ref:
         return self._func(seqs)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class progressive_align:
     """Progressive multiple sequence alignment via any cogent3 model."""
 
@@ -617,7 +618,7 @@ class progressive_align:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class smith_waterman:
     """Local alignment of two sequences using the Smith-Waterman algorithm
 
@@ -722,7 +723,7 @@ class smith_waterman:
         return aln.to_moltype(self.moltype)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class ic_score:
     """compute the Information Content alignment quality score
 
@@ -794,7 +795,7 @@ class ic_score:
         return i_seq.sum()
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 def cogent3_score(aln: AlignedSeqsType) -> float:
     """returns the cogent3 log-likelihood as an alignment quality score
 
@@ -870,7 +871,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     )
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class sp_score:
     """Compute a variant of Sum of Pairs alignment quality score
 

@@ -16,6 +16,7 @@ from cogent3.evolve.models import get_model
 from cogent3.maths.distance_transform import jaccard
 from cogent3.util.misc import get_true_spans
 
+from ._citations import cite_cogent3
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
 from .typing import (
@@ -47,7 +48,7 @@ JACCARD_PDIST_POLY_COEFFS = [
 ]
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class fast_slow_dist:
     """Pairwise distance calculation for aligned sequences.
 
@@ -190,7 +191,7 @@ def get_fast_slow_calc(distance, **kwargs):
     return fast_slow_dist(distance, **kwargs)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceType:
     """Calculates the pairwise Jaccard distance between the sets of kmers generated from
     sequences in the collection. A measure of distance for unaligned sequences.
@@ -244,7 +245,7 @@ def jaccard_dist(seq_coll: UnalignedSeqsType, k: int = 10) -> PairwiseDistanceTy
     return DistanceMatrix(dists, source=get_data_source(seq_coll))
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     """Calculates an approximation of the p-distance between sequences based
     on Jaccard distances (see Notes for details).
@@ -305,7 +306,7 @@ def approx_pdist(jaccard_dists: PairwiseDistanceType) -> PairwiseDistanceType:
     return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 def approx_jc69(
     pdists: PairwiseDistanceType,
     num_states: int = 4,
@@ -383,7 +384,7 @@ def get_approx_dist_calc(
     return dist_calc_app
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class gap_dist:
     """compute the pairwise difference in gaps using affine gap score"""
 

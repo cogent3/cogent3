@@ -10,6 +10,7 @@ from cogent3.evolve.models import get_model
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.util import parallel
 
+from ._citations import cite_cogent3
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
 from .result import (
@@ -54,7 +55,7 @@ def _config_rules(param_rules, lower, upper, overwrite=False):
     return param_rules
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class model:
     """Define a substitution model + tree for maximum likelihood evaluation."""
 
@@ -574,7 +575,7 @@ class _ModelCollectionBase:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class model_collection(_ModelCollectionBase):
     """Fits a collection of models."""
 
@@ -582,7 +583,7 @@ class model_collection(_ModelCollectionBase):
         return model_collection_result(source=get_data_source(aln))
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class hypothesis(_ModelCollectionBase):
     """Specify a hypothesis through defining two models."""
 
@@ -592,7 +593,7 @@ class hypothesis(_ModelCollectionBase):
         )
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class bootstrap:
     """Parametric bootstrap for a provided hypothesis."""
 
@@ -643,7 +644,7 @@ class bootstrap:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class ancestral_states:
     """Computes ancestral state probabilities from a model result."""
 
@@ -665,7 +666,7 @@ class ancestral_states:
         return tab
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class tabulate_stats:
     """Extracts all model statistics from model_result as Table."""
 
@@ -718,7 +719,7 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class natsel_neutral:
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
@@ -819,7 +820,7 @@ class natsel_neutral:
         return self._hyp(data)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class natsel_zhang:
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
@@ -1031,7 +1032,7 @@ class natsel_zhang:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class natsel_sitehet:
     """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
@@ -1189,7 +1190,7 @@ class natsel_sitehet:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class natsel_timehet:
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the

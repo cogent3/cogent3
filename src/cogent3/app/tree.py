@@ -7,6 +7,7 @@ from cogent3.phylo.nj import gnj
 from cogent3.util.io import path_exists
 from cogent3.util.misc import is_url
 
+from ._citations import cite_cogent3
 from .composable import define_app
 from .data_store import get_data_source
 from .typing import PairwiseDistanceType, SerialisableType, TreeType
@@ -14,7 +15,7 @@ from .typing import PairwiseDistanceType, SerialisableType, TreeType
 NoneType = type(None)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class scale_branches:
     """Transforms tree branch lengths from nucleotide to codon, or the
     converse. Returns a new tree with lengths divided by scalar"""
@@ -67,7 +68,7 @@ class scale_branches:
         return tree
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class uniformize_tree:
     """Standardises the orientation of unrooted trees."""
 
@@ -101,7 +102,7 @@ class uniformize_tree:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class quick_tree:
     """Computes a Neighbour Joining tree from pairwise distances."""
 
