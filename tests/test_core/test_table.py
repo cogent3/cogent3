@@ -2306,3 +2306,21 @@ def test_count_unique_uses_group_indices():
     co = table.count_unique("Variant_Classification")
     assert co["Intron"] == 3
     assert co["IGR"] == 1
+
+
+def test_sorted_reverse_mixed_columns():
+    """sorted with reverse on numeric col when table has string cols"""
+    # When a table has both string and numeric columns, sorting with
+    # reverse on a numeric column should not fail. The bug is that
+    # numpy.array(..., dtype='O').T converts floats to strings, then
+    # _reverse_num multiplies a string by -1, yielding '' (empty string),
+    # which then fails when fromarrays tries to cast back to float.
+    table = make_table(
+        data={
+            "Locus": ["NP_003077", "NP_004893", "NP_005079"],
+            "Region": ["Con", "Con", "NonCon"],
+            "Ratio": [2.5386, 121351.4264, 9516594.9789],
+        },
+    )
+    result = table.sorted(columns=["Region", "Ratio"], reverse="Ratio")
+    assert result.shape == table.shape

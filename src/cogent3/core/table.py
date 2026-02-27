@@ -1622,15 +1622,16 @@ class Table:
 
                 columns.append(c)
 
-        dtypes = [(c, self.columns[c].dtype) for c in columns]
-        data = numpy.array(self.columns[columns], dtype="O").T
-        for c in reverse:
-            index = columns.index(c)
-            func = _reverse_num if array_is_num_type(self.columns[c]) else _reverse_str
-            func = numpy.vectorize(func)
-            data[:, index] = func(data[:, index])
+        arrays = []
+        for c in columns:
+            col = self.columns[c].copy()
+            if c in reverse:
+                func = _reverse_num if array_is_num_type(col) else _reverse_str
+                col = numpy.vectorize(func)(col)
+            arrays.append(col)
 
-        data = numpy.rec.fromarrays(data.copy().T, dtype=dtypes)
+        dtypes = [(c, arr.dtype) for c, arr in zip(columns, arrays)]
+        data = numpy.rec.fromarrays(arrays, dtype=dtypes)
         indices = data.argsort()
 
         attr = self._get_persistent_attrs()
