@@ -25,6 +25,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterator
     from os import PathLike
 
+    from citeable import CitationBase
+
     from cogent3.app.typing import TabularType
     from cogent3.core.table import Table
 
@@ -34,6 +36,8 @@ _MD5_TABLE = "md5"
 
 # used for log files, not-completed results
 _special_suffixes = re.compile(r"\.(log|json)$")
+
+_CITATIONS_FILE = "bibliography.citations"
 
 StrOrBytes = str | bytes
 NoneType = type(None)
@@ -289,6 +293,52 @@ class DataStoreABC(ABC):
         -------
         md5 checksum for the member, if available, None otherwise
         """
+
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        """Write citations to the data store. Subclasses should override."""
+        if not data:
+            return
+        import warnings
+
+        warnings.warn(
+            f"{type(self).__name__} does not support saving citations",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    @property
+    def summary_citations(self) -> TabularType:
+        """Return a Table summarising stored citations."""
+        import warnings
+
+        warnings.warn(
+            f"{type(self).__name__} does not support saving citations",
+            UserWarning,
+            stacklevel=2,
+        )
+        from cogent3.core.table import Table
+
+        return Table(header=["app", "citation"], data=[], title="citations")
+
+    def write_bib(self, dest_path: str | Path) -> None:
+        """Write stored citations as a BibTeX .bib file."""
+        citations = self._load_citations()
+        if not citations:
+            import warnings
+
+            warnings.warn(
+                "No citations stored in this data store",
+                UserWarning,
+                stacklevel=2,
+            )
+            return
+        from citeable import write_bibtex
+
+        write_bibtex(citations, dest_path)
+
+    def _load_citations(self) -> list[CitationBase]:
+        """Load stored citations. Override in subclasses."""
+        return []
 
 
 class DataMember(DataMemberABC):
@@ -612,6 +662,30 @@ class DataStoreDirectory(DataStoreABC):
 
         return path.read_text() if path.exists() else None
 
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        if not data:
+            return
+        from citeable import to_jsons
+
+        path = self.source / _CITATIONS_FILE
+        path.write_text(to_jsons(data))
+
+    def _load_citations(self) -> list[CitationBase]:
+        from citeable import from_jsons
+
+        path = self.source / _CITATIONS_FILE
+        if not path.exists():
+            return []
+        return from_jsons(path.read_text())
+
+    @property
+    def summary_citations(self) -> TabularType:
+        from cogent3.core.table import Table
+
+        citations = self._load_citations()
+        rows = [list(c.summary()) for c in citations]
+        return Table(header=["app", "citation"], data=rows, title="citations")
+
 
 class ReadOnlyDataStoreZipped(DataStoreABC):
     def __init__(
@@ -743,6 +817,29 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
     def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
         msg = "zip data stores are read only"
         raise TypeError(msg)
+
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        msg = "zip data stores are read only"
+        raise TypeError(msg)
+
+    def _load_citations(self) -> list[CitationBase]:
+        from citeable import from_jsons
+
+        target = str(pathlib.Path(self.source.stem, _CITATIONS_FILE)).replace("\\", "/")
+        try:
+            with zipfile.ZipFile(self.source) as archive:
+                data = archive.read(target).decode("latin-1")
+            return from_jsons(data)
+        except KeyError:
+            return []
+
+    @property
+    def summary_citations(self) -> TabularType:
+        from cogent3.core.table import Table
+
+        citations = self._load_citations()
+        rows = [list(c.summary()) for c in citations]
+        return Table(header=["app", "citation"], data=rows, title="citations")
 
 
 def get_unique_id(name: object) -> str | None:

@@ -936,6 +936,9 @@ def _apply_to(
         if cleanup:
             log_file_path.unlink(missing_ok=True)
 
+    # write citations
+    self.data_store.write_citations(data=self.citations)
+
     return self.data_store
 
 

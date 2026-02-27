@@ -1456,3 +1456,33 @@ def test_bib_composed_apps():
     assert str(cite_b) in composed.bib
     assert str(cite_a) in composed.bib
     assert "\n\n" in composed.bib
+
+
+@pytest.mark.parametrize("klass", [DataStoreDirectory, DataStoreSqlite])
+def test_apply_to_writes_citations(DATA_DIR, tmp_dir, klass):
+    """apply_to writes citations to the data store"""
+    cite = _make_cite(title="Test Citation")
+
+    dstore = open_data_store(DATA_DIR, suffix="fasta", limit=2)
+    reader = io_app.load_aligned(format_name="fasta", moltype="dna")
+
+    @define_app(cite=cite)
+    class cited_step:
+        def main(self, val: AlignedSeqsType) -> AlignedSeqsType:
+            return val
+
+    if klass == DataStoreDirectory:
+        outpath = tmp_dir / "cite_out"
+        out_dstore = klass(outpath, mode=OVERWRITE, suffix="fasta")
+        writer = io_app.write_seqs(out_dstore)
+    else:
+        outpath = tmp_dir / "cite_out.sqlitedb"
+        out_dstore = klass(outpath, mode=OVERWRITE)
+        writer = io_app.write_db(out_dstore)
+
+    process = reader + cited_step() + writer
+    result_dstore = process.apply_to(dstore, show_progress=False)
+    loaded = result_dstore._load_citations()
+    assert len(loaded) >= 1
+    titles = [c.title for c in loaded]
+    assert "Test Citation" in titles
