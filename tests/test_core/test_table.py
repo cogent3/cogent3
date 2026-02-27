@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import pickle
+import warnings
 from collections import defaultdict
 from unittest import TestCase, skipIf
 
@@ -1596,9 +1597,9 @@ class TableTests(TestCase):
         r = cast_str_to_numeric(d)
         assert_equal(d, r)
 
-        with numpy.testing.suppress_warnings() as sup:
+        with warnings.catch_warnings():
             # we know that converting to real loses imaginary
-            sup.filter(ComplexWarning)
+            warnings.filterwarnings("ignore", category=ComplexWarning)
             for d_type in [numpy.int64, numpy.complex128, numpy.float64]:
                 d = d.astype(d_type)
                 r = cast_str_to_numeric(d)

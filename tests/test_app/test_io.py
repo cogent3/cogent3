@@ -1,7 +1,6 @@
 import bz2
 import gzip
 import json
-import os
 import pathlib
 import pickle
 import shutil
@@ -40,7 +39,7 @@ def tmp_dir(tmp_path_factory):
 
 @pytest.fixture
 def w_dir_dstore(tmp_dir):
-    return DataStoreDirectory(tmp_dir, mode="w")
+    return DataStoreDirectory(tmp_dir, mode="w", suffix="tsv")
 
 
 @pytest.fixture(autouse=True)
@@ -549,9 +548,9 @@ def test_define_data_store(fasta_dir):
     found = list(open_data_store(fasta_dir, suffix=".fasta*"))
     assert len(found) > 2
 
-    # with a wild-card suffix
-    found = list(open_data_store(fasta_dir, suffix="*"))
-    assert len(os.listdir(fasta_dir)) == len(found)
+    # wildcard and missing suffix both raise
+    with pytest.raises(ValueError):
+        open_data_store(fasta_dir, suffix="*")
 
     # raises ValueError if suffix not provided or invalid
     with pytest.raises(ValueError):
