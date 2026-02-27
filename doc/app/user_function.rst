@@ -210,8 +210,8 @@ If you will make your app available on the Python package index, we recommend pr
 
 .. _app_citations:
 
-Citing the tools your app uses
-------------------------------
+Add a citation to your app so users can acknowledge your work
+-------------------------------------------------------------
 
 Correctly attributing the authors of algorithms and software is a requirement of good scientific practice. cogent3 makes this easy by letting app authors declare citations that are automatically tracked through composed pipelines.
 
@@ -236,7 +236,7 @@ Use the ``cite`` parameter of ``define_app`` to attach a citation to your own ap
         """Remove sequences shorter than the alignment."""
         return val.omit_bad_seqs()
 
-The ``.app`` attribute on the citation is set automatically to the class name (but this can over-ridden internally if a citation is assigned to multiple apps).
+The ``.app`` attribute on the citation is set automatically to the class name (but this can be over-ridden internally if a citation is assigned to multiple apps).
 
 .. jupyter-execute::
 
@@ -257,7 +257,7 @@ You can get the BibTeX string directly via the ``.bib`` property.
 
 .. dropdown:: Citations in a composed pipeline
 
-    When apps are composed into a pipeline, ``.citations`` collects citations from all apps in the chain.
+    When apps are composed into a pipeline, ``.citations`` collects unique citations from all apps in the chain.
 
     .. jupyter-execute::
 
