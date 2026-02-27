@@ -211,7 +211,7 @@ def _make_multi_seqid_drawable(
     """Build a stacked subplot Drawable for multiple seqids."""
     seqids = sorted(by_seqid)
     n_seqids = len(seqids)
-    height_per_seqid = 200
+    height_per_seqid = 300
 
     all_traces: list[dict[str, Any]] = []
     layout_updates: dict[str, Any] = {}
@@ -230,7 +230,7 @@ def _make_multi_seqid_drawable(
             max_coord=max_coord,
         )
 
-        domain = get_domain(n_seqids, idx, is_y=True)
+        domain = get_domain(n_seqids, idx, is_y=True, space=0.12)
         yaxis_cfg["domain"] = list(domain)
         xaxis_cfg["anchor"] = yref
 

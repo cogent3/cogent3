@@ -4,7 +4,7 @@
 </p>
 
 [![PyPI version](https://badge.fury.io/py/cogent3.svg)](https://badge.fury.io/py/cogent3)
-[![Conda Downloads](https://pepy.tech/badge/cogent3/month)](https://pepy.tech/project/cogent3)
+[![PyPI Downloads](https://pepy.tech/badge/cogent3/month)](https://pepy.tech/project/cogent3)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/cogent3/badges/downloads.svg)](https://anaconda.org/bioconda/cogent3)
 
 [![Build Status](https://github.com/cogent3/cogent3/workflows/CI/badge.svg?branch=develop)](https://github.com/cogent3/cogent3/actions?workflow=CI)
