@@ -342,15 +342,13 @@ def _draw_centered(
     selected_seqids = sorted(anchors)
 
     # Compute uniform window width from the maximum anchor span
-    max_span = max(
-        _get_span_extent(anchors[sid])[1] - _get_span_extent(anchors[sid])[0]
-        for sid in selected_seqids
-    )
+    span_extents = {sid: _get_span_extent(anchors[sid]) for sid in selected_seqids}
+    max_span = max(end - start for (start, end) in span_extents.values())
     half = (max_span + 2 * flank) // 2
 
     by_seqid: dict[str, list[FeatureDataType]] = {}
     for sid in selected_seqids:
-        start, end = _get_span_extent(anchors[sid])
+        start, end = span_extents[sid]
         mid = (start + end) // 2
         w_start = max(0, mid - half)
         w_stop = mid + half
