@@ -1600,12 +1600,8 @@ class Table:
                 msg,
             )
 
-        reverse = reverse if reverse is not None else []
-        if reverse != [] and columns is None:
-            columns = reverse
-
-        if columns is None:
-            columns = list(self.columns)
+        reverse = reverse or []
+        columns = columns or reverse or list(self.columns)
 
         if isinstance(columns, str):
             columns = [columns]
@@ -1615,12 +1611,14 @@ class Table:
 
         columns = list(columns)
 
-        if reverse and not (set(columns) & set(reverse)):
-            for c in reverse:
-                if c in columns:
-                    continue
+        if reverse:
+            if invalid := set(reverse) - set(self.columns):
+                msg = f"reverse column(s) {invalid} not in table columns"
+                raise ValueError(msg)
 
-                columns.append(c)
+            for c in reverse:
+                if c not in columns:
+                    columns.append(c)
 
         arrays = []
         for c in columns:
