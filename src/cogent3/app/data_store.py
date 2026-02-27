@@ -373,9 +373,10 @@ class DataStoreDirectory(DataStoreABC):
         verbose=False,
     ) -> None:
         self._mode = Mode(mode)
-        suffix = suffix or ""
-        if suffix != "*":  # wild card search for all
-            suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+        if not suffix or suffix == "*":
+            msg = "suffix is required for DataStoreDirectory and cannot be just a wildcard"
+            raise ValueError(msg)
+        suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
         self._source = source.expanduser()
         self.suffix = suffix
@@ -461,7 +462,7 @@ class DataStoreDirectory(DataStoreABC):
     def completed(self) -> list[DataMember]:
         if not self._completed:
             self._completed = []
-            suffix = f"*.{self.suffix}" if self.suffix else "*"
+            suffix = f"*.{self.suffix}"
             for i, m in enumerate(self.source.glob(suffix)):
                 if self.limit and i == self.limit:
                     break
@@ -619,9 +620,10 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             msg = "this is a read only data store"
             raise ValueError(msg)
 
-        suffix = suffix or ""
-        if suffix != "*":  # wild card search for all
-            suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+        if not suffix or suffix == "*":
+            msg = "suffix is required for ReadOnlyDataStoreZipped and cannot be just a wildcard"
+            raise ValueError(msg)
+        suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
         self._source = source.expanduser()
         if not self._source.exists():
@@ -663,7 +665,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
     @property
     def completed(self) -> list[DataMember]:
         if not self._completed:
-            pattern = f"*.{self.suffix}" if self.suffix else "*"
+            pattern = f"*.{self.suffix}"
             self._completed = []
             num_matches = 0
             for name in self._iter_matches("", pattern):
