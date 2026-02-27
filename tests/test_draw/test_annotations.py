@@ -589,7 +589,9 @@ def test_center_on_warns_when_start_stop_set(shared_feature_db):
             start=0,
             stop=100,
         )
-        assert any("start/stop are ignored" in str(warning.message) for warning in w)
+        assert any(
+            "start/stop/strand are ignored" in str(warning.message) for warning in w
+        )
 
 
 def test_center_on_default_title(shared_feature_db):
