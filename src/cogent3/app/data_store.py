@@ -828,7 +828,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         target = str(pathlib.Path(self.source.stem, _CITATIONS_FILE)).replace("\\", "/")
         try:
             with zipfile.ZipFile(self.source) as archive:
-                data = archive.read(target).decode("latin-1")
+                data = archive.read(target).decode("utf-8")
             return from_jsons(data)
         except KeyError:
             return []
