@@ -10,6 +10,7 @@ from cogent3.draw.annotation import (
     _build_hover_text,
     _find_anchor_features,
     _get_distinct_seqids,
+    _get_span_extent,
     _infer_coord_range,
     draw_annotations,
 )
@@ -595,6 +596,14 @@ def test_center_on_default_title(shared_feature_db):
     result = draw_annotations(shared_feature_db, center_on="dnaA", biotype="gene")
     assert result is not None
     assert "dnaA" in result.layout.title.text
+
+
+@pytest.mark.parametrize("spans", [[], None], ids=["empty_list", "missing_key"])
+def test_get_span_extent_no_spans(spans):
+    """_get_span_extent raises ValueError when feature has no spans."""
+    feature = {"spans": spans} if spans is not None else {}
+    with pytest.raises(ValueError, match="empty"):
+        _get_span_extent(feature)
 
 
 def test_center_on_custom_title(shared_feature_db):

@@ -182,8 +182,7 @@ def _make_single_seqid_drawable(
         return None
 
     if max_coord is None:
-        _, inferred_max = _infer_coord_range(features)
-        inferred_min, _ = _infer_coord_range(features)
+        inferred_min, inferred_max = _infer_coord_range(features)
         effective_max = inferred_max - inferred_min
     else:
         effective_max = max_coord
@@ -305,7 +304,10 @@ def _find_anchor_features(
 
 def _get_span_extent(feature: FeatureDataType) -> tuple[int, int]:
     """Return (min_start, max_end) across all spans in a feature."""
-    spans = feature["spans"]
+    if not (spans := feature.get("spans")):
+        msg = "feature['spans'] is empty, cannot compute span extent"
+        raise ValueError(msg)
+
     if hasattr(spans, "tolist"):
         spans = spans.tolist()
     all_starts = [s[0] for s in spans]
@@ -454,9 +456,15 @@ def draw_annotations(
         A Drawable instance, or None if no features match.
     """
     if center_on is not None:
-        if start is not None or stop is not None:
+        if name is not None:
             warnings.warn(
-                "start/stop are ignored when center_on is set",
+                "name is redundant when center_on is set and thus ignored",
+                UserWarning,
+                stacklevel=2,
+            )
+        if start is not None or stop is not None or strand is not None:
+            warnings.warn(
+                "start/stop/strand are ignored when center_on is set",
                 UserWarning,
                 stacklevel=2,
             )
