@@ -26,6 +26,9 @@ from cogent3.app.data_store import (
 from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:  # pragma: no cover
+    from citeable import CitationBase
+
+    from cogent3.app.typing import TabularType
     from cogent3.core.table import Table
 
 _RESULT_TABLE = "results"
@@ -80,6 +83,7 @@ def open_sqlite_db_rw(path: str | Path):
         "state(state_id INTEGER PRIMARY KEY, record_type TEXT, lock_pid INTEGER)",
         f"{_LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
         f"{_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
+        "citations(citation_id INTEGER PRIMARY KEY, data TEXT)",
     ]
     for table in creates:
         db.execute(create_template.format(table))
@@ -108,7 +112,9 @@ def has_valid_schema(db):
     query = "SELECT name FROM sqlite_master WHERE type='table'"
     result = db.execute(query).fetchall()
     table_names = {r["name"] for r in result}
-    return table_names == {_RESULT_TABLE, _LOG_TABLE, "state"}
+    _required = {_RESULT_TABLE, _LOG_TABLE, "state"}
+    _optional = {"citations"}
+    return _required <= table_names <= (_required | _optional)
 
 
 class DataStoreSqlite(DataStoreABC):
@@ -436,6 +442,50 @@ class DataStoreSqlite(DataStoreABC):
         result = self.db.execute(cmnd, (unique_id,)).fetchone()
 
         return result["md5"] if result else None
+
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        if not data:
+            return
+        if not self._has_citations_table():
+            self.db.execute(
+                "CREATE TABLE IF NOT EXISTS citations"
+                "(citation_id INTEGER PRIMARY KEY, data TEXT)",
+            )
+        from citeable import to_jsons
+
+        json_data = to_jsons(data)
+        existing = self.db.execute("SELECT citation_id FROM citations").fetchone()
+        if existing:
+            self.db.execute(
+                "UPDATE citations SET data=? WHERE citation_id=?",
+                (json_data, existing["citation_id"]),
+            )
+        else:
+            self.db.execute("INSERT INTO citations(data) VALUES (?)", (json_data,))
+
+    def _load_citations(self) -> list[CitationBase]:
+        from citeable import from_jsons
+
+        if not self._has_citations_table():
+            return []
+        result = self.db.execute("SELECT data FROM citations").fetchone()
+        if not result:
+            return []
+        return from_jsons(result["data"])
+
+    def _has_citations_table(self) -> bool:
+        result = self.db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='citations'",
+        ).fetchone()
+        return result is not None
+
+    @property
+    def summary_citations(self) -> TabularType:
+        from cogent3.core.table import Table
+
+        citations = self._load_citations()
+        rows = [list(c.summary()) for c in citations]
+        return Table(header=["app", "citation"], data=rows, title="citations")
 
     @property
     def describe(self) -> Table:

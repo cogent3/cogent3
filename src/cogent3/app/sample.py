@@ -7,6 +7,7 @@ from numpy import random as np_random
 import cogent3
 from cogent3.core import moltype as c3_moltype
 
+from ._citations import cite_cogent3
 from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
@@ -26,7 +27,7 @@ def union(groups: list[tuple[str, ...]]) -> set[str]:
     return union.union(*map(set, groups))
 
 
-@define_app(app_type=NON_COMPOSABLE)
+@define_app(app_type=NON_COMPOSABLE, cite=cite_cogent3)
 class concat:
     """Creates a concatenated alignment from a series."""
 
@@ -146,7 +147,7 @@ class concat:
         return NotCompleted("FAIL", self, message="result is empty")
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class omit_degenerates:
     """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
@@ -238,7 +239,7 @@ class omit_degenerates:
         )
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class omit_gap_pos:
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame."""
@@ -333,7 +334,7 @@ class omit_gap_pos:
         )
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class take_codon_positions:
     """Extracts the specified codon position(s) from an alignment."""
 
@@ -485,7 +486,7 @@ class take_codon_positions:
         return self._func(aln)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class take_named_seqs:
     """Selects named sequences from a collection."""
 
@@ -535,7 +536,7 @@ class take_named_seqs:
         return data.take_seqs(self._names, negate=self._negate)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class take_n_seqs:
     """Selects n sequences from a collection. Chooses first n sequences, or
     selects randomly if specified."""
@@ -654,7 +655,7 @@ class take_n_seqs:
         return data.take_seqs(self._names)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class min_length:
     """Filters sequence collections / alignments by length."""
 
@@ -754,7 +755,7 @@ class _GetStart:
         return self.func(length)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class fixed_length:
     """Sample an alignment to a fixed length."""
 
@@ -903,7 +904,7 @@ class fixed_length:
         return self._func(data)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class omit_bad_seqs:
     """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
@@ -1007,7 +1008,7 @@ class omit_bad_seqs:
         return result
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class omit_duplicated:
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped."""
@@ -1150,7 +1151,7 @@ class omit_duplicated:
         return self._func(seqs)
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class trim_stop_codons:
     """Removes terminal stop codons."""
 

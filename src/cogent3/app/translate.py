@@ -5,6 +5,7 @@ import cogent3
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
 
+from ._citations import cite_cogent3
 from .composable import NotCompleted, define_app
 from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
@@ -164,7 +165,7 @@ def get_fourfold_degenerate_sets(
     return four_fold
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class select_translatable:
     """Selects translatable sequences by identifying the most likely reading
     frame. Sequences are truncated to modulo 3. seqs.info has a
@@ -308,7 +309,7 @@ class select_translatable:
         return translatable
 
 
-@define_app
+@define_app(cite=cite_cogent3)
 class translate_seqs:
     """Translates nucleic acid sequences into protein sequences, assumes in
     correct reading frame."""

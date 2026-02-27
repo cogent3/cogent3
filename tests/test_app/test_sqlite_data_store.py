@@ -133,12 +133,13 @@ def test_db_creation():
     db = DataStoreSqlite(":memory:", mode=OVERWRITE)
     db = db.db
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
-    assert len(result) == 3
+    assert len(result) == 4
     created_names = {r["name"] for r in result}
     assert created_names == {
         _LOG_TABLE,
         _RESULT_TABLE,
         "state",
+        "citations",
     }
     rows = db.execute(f"Select * from {_LOG_TABLE}").fetchall()
     assert len(rows) == 0
@@ -154,14 +155,15 @@ def test_db_init_log():
 
 def test_open_sqlite_db_rw():
     db = open_sqlite_db_rw(":memory:")
-    # should make tables for results, log and state
+    # should make tables for results, log, state and citations
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
-    assert len(result) == 3
+    assert len(result) == 4
     created_names = {r["name"] for r in result}
     assert created_names == {
         _LOG_TABLE,
         _RESULT_TABLE,
         "state",
+        "citations",
     }
     db.close()
 
@@ -580,3 +582,118 @@ def test_summary_not_completed(nc_objects):
     vals = summary.to_list(columns=["origin", "message", "num"])
     assert len(vals) == 1
     assert vals[0] == ["location", "'message'", 3]
+
+
+@pytest.fixture
+def sample_citations():
+    from citeable import Software
+
+    c1 = Software(author=["A Author"], title="Tool One", year=2024)
+    c1.app = "app_one"
+    c2 = Software(author=["B Author"], title="Tool Two", year=2025)
+    c2.app = "app_two"
+    return (c1, c2)
+
+
+def test_write_citations_sqlite(sample_citations):
+    dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    loaded = dstore._load_citations()
+    assert len(loaded) == 2
+    assert loaded[0].title == "Tool One"
+    assert loaded[1].title == "Tool Two"
+
+
+def test_write_citations_empty_sqlite():
+    dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
+    dstore.write_citations(data=())
+    loaded = dstore._load_citations()
+    assert loaded == []
+
+
+def test_write_citations_overwrites_sqlite(sample_citations):
+    from citeable import Software
+
+    dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    c3 = Software(author=["C Author"], title="Tool Three", year=2026)
+    c3.app = "app_three"
+    dstore.write_citations(data=(c3,))
+    loaded = dstore._load_citations()
+    assert len(loaded) == 1
+    assert loaded[0].title == "Tool Three"
+
+
+def test_summary_citations_sqlite(sample_citations):
+    dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    table = dstore.summary_citations
+    assert isinstance(table, Table)
+    assert table.shape[0] == 2
+    assert "app" in table.header
+    assert "citation" in table.header
+
+
+def test_write_bib_sqlite(sample_citations, tmp_dir):
+    dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    bib_path = Path(str(tmp_dir)) / "refs.bib"
+    dstore.write_bib(bib_path)
+    assert bib_path.exists()
+    content = bib_path.read_text()
+    assert "Tool One" in content
+    assert "Tool Two" in content
+
+
+def test_old_schema_without_citations_table(tmp_dir):
+    """Opening an old-style database without a citations table should not fail."""
+    import sqlite3
+
+    db_path = Path(str(tmp_dir)) / "old.sqlitedb"
+    # Create a database with the old schema (no citations table)
+    db = sqlite3.connect(str(db_path))
+    db.execute(
+        "CREATE TABLE state(state_id INTEGER PRIMARY KEY, record_type TEXT, lock_pid INTEGER)",
+    )
+    db.execute(
+        f"CREATE TABLE {_LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
+    )
+    db.execute(
+        f"CREATE TABLE {_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
+    )
+    db.close()
+
+    # Should open without error in read-only mode
+    dstore = DataStoreSqlite(db_path, mode=READONLY)
+    assert dstore._load_citations() == []
+
+    # summary_citations should return empty table
+    table = dstore.summary_citations
+    assert table.shape[0] == 0
+    dstore.close()
+
+
+def test_old_schema_write_citations_creates_table(tmp_dir, sample_citations):
+    """Writing citations to an old-style database should create the table."""
+    import sqlite3
+
+    db_path = Path(str(tmp_dir)) / "old_rw.sqlitedb"
+    # Create a database with the old schema (no citations table)
+    db = sqlite3.connect(str(db_path))
+    db.execute(
+        "CREATE TABLE state(state_id INTEGER PRIMARY KEY, record_type TEXT, lock_pid INTEGER)",
+    )
+    db.execute(
+        f"CREATE TABLE {_LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
+    )
+    db.execute(
+        f"CREATE TABLE {_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
+    )
+    db.close()
+
+    # Open in append mode and write citations
+    dstore = DataStoreSqlite(db_path, mode=APPEND)
+    dstore.write_citations(data=sample_citations)
+    loaded = dstore._load_citations()
+    assert len(loaded) == 2
+    dstore.close()
