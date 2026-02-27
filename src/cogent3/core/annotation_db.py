@@ -587,6 +587,17 @@ class AnnotationDbABC(abc.ABC):
         msg = f"{self.__class__.__name__!r} does not support union"
         raise NotImplementedError(msg)
 
+    def count_distinct(
+        self,
+        *,
+        seqid: str | bool = False,
+        biotype: str | bool = False,
+        name: str | bool = False,
+    ) -> Table | None:
+        # override in subclass
+        msg = f"{self.__class__.__name__!r} does not support count_distinct()"
+        raise NotImplementedError(msg)
+
     @abc.abstractmethod
     def close(self) -> None: ...
 
@@ -1092,6 +1103,7 @@ def _rename_column_if_exists(
 class SqliteAnnotationDbMixin:
     # table schema for user provided annotations
     _table_names: ClassVar[tuple[str, ...]]
+    _suffix: ClassVar[str]
 
     _user_schema: ClassVar = {
         "biotype_id": "INTEGER",
@@ -1586,7 +1598,7 @@ class SqliteAnnotationDbMixin:
             result["spans"] = [
                 cast("tuple[int, int]", tuple(c)) for c in result["spans"]
             ]
-            yield result
+            yield cast("FeatureDataType", result)
 
     def _has_hierarchy_table(self) -> bool:
         """Check if the feature_hierarchy table exists and has data."""
@@ -2148,10 +2160,11 @@ class SqliteAnnotationDbMixin:
         if not annot_db:
             return copy.deepcopy(self)
 
+        cls: type[Self]
         if self.compatible(annot_db, symmetric=False):
             cls = type(self)
         elif self.compatible(annot_db, symmetric=True):
-            cls = type(annot_db)
+            cls = type(annot_db)  # type: ignore[assignment]
         else:
             msg = f"cannot make a union between {type(self)} and {type(annot_db)}"
             raise TypeError(
@@ -2159,7 +2172,7 @@ class SqliteAnnotationDbMixin:
             )
 
         db = cls()
-        db.update(self)
+        db.update(self)  # type: ignore[arg-type]
         db.update(annot_db)
         return db
 
@@ -3078,6 +3091,9 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
             fmt = format_name.lower()
         else:
             suffix, _ = get_format_suffixes(path)
+            if suffix is None:
+                msg = f"Unknown annotation format for {path!r}"
+                raise ValueError(msg)
             suffix = (suffix if suffix.startswith(".") else f".{suffix}").lower()
             if suffix == ".json":
                 fmt = "json"
@@ -3102,6 +3118,7 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
             return deserialise_object(path)
 
         # Select parsing function and prepare kwargs before loop
+        parse_func: Callable[..., SqliteAnnotationDbMixin]
         if fmt == "genbank":
             parse_func = _db_from_genbank
             func_kwargs = {"write_path": write_path, **kwargs}
@@ -3128,13 +3145,16 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
         series = kwargs["ui"].series(paths) if "ui" in kwargs else paths
 
         # Process each file, passing db from one to the next
+        db_result: SqliteAnnotationDbMixin | None = cast(
+            "SqliteAnnotationDbMixin | None", db
+        )
         for file_path in series:
-            db = parse_func(path=file_path, db=db, **func_kwargs)
+            db_result = parse_func(path=file_path, db=db_result, **func_kwargs)
 
-        if db is None:
+        if db_result is None:
             msg = f"Failed to load annotations into database {str(path)!r}"
             raise RuntimeError(msg)
-        return db
+        return db_result
 
 
 def load_annotations(
@@ -3196,10 +3216,10 @@ def load_annotations(
     else:
         # Auto-detect from file suffix
         suffix, _ = get_format_suffixes(path)
-        suffix = (suffix if suffix.startswith(".") else f".{suffix}").lower()
-        if not suffix:
+        if suffix is None:
             msg = f"Cannot auto-detect format for {path!r}, use format_name parameter"
             raise ValueError(msg)
+        suffix = (suffix if suffix.startswith(".") else f".{suffix}").lower()
 
     # Get the loader plugin
     loader = get_annotation_loader_plugin(
