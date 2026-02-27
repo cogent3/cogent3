@@ -44,7 +44,7 @@ def get_domain(total, element, is_y, space=0.01):
         raise ValueError(msg)
 
     per_element = 1 / total
-    space = min(space / 2, per_element / 10)
+    space = min(space / 5, per_element / 6)
     bounds = [per_element * i for i in range(total + 1)]
     domains = [
         (bounds[k] + space, bounds[k + 1] - space) for k in range(len(bounds) - 1)
