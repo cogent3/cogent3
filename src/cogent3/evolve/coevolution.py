@@ -4,15 +4,17 @@ import typing
 
 import numba
 import numpy
-from numpy import (
-    nan,
-)
+from numpy import nan
 
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.util import dict_array
-from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
+from cogent3.util.warning import deprecated_callable
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from cogent3.core.alignment import Alignment
+
 
 DEFAULT_EXCLUDES = f"{IUPAC_gap}{IUPAC_missing}"
 DEFAULT_NULL_VALUE = nan
@@ -37,7 +39,7 @@ class MI_METHODS(enum.Enum):
 # methods.
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _count_states(
     state_vector: numpy.ndarray,
     num_states: int,
@@ -55,7 +57,7 @@ def _count_states(
     return counts
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _vector_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
     """computes entropy for a single vector of integers"""
     total = counts.sum()
@@ -71,7 +73,7 @@ def _vector_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
     return entropy
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _count_joint_states(
     joint_states: numpy.ndarray,
     num_states: int,
@@ -90,7 +92,7 @@ def _count_joint_states(
     return counts
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _calc_joint_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
     entropy = 0.0
     total_counts = counts.sum()
@@ -101,7 +103,7 @@ def _calc_joint_entropy(counts: numpy.ndarray) -> float:  # pragma: no cover
     return entropy
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _calc_column_entropies(
     columns: numpy.ndarray,
     num_states: int,
@@ -125,7 +127,63 @@ def _calc_column_entropies(
     return entropies
 
 
-@numba.jit
+@numba.jit(parallel=True)
+def _calc_column_stats(
+    columns: numpy.ndarray,
+    num_states: int,
+    parallel: bool = True,
+) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    """Compute per-column entropies and canonical_pos flags in parallel.
+
+    Parameters
+    ----------
+    columns
+        2D uint8 array (n_seqs, n_cols).
+    num_states
+        Number of canonical states.
+    parallel
+        Use numba thread-level parallelism if True.
+
+    Returns
+    -------
+    (entropies, canonical_pos) where entropies is float64 per column and
+    canonical_pos is bool per column (True if all values < num_states).
+    """
+    num_threads = numba.get_num_threads()
+    if not parallel:
+        numba.set_num_threads(1)
+
+    n_seqs = columns.shape[0]
+    n_cols = columns.shape[1]
+    entropies = numpy.zeros(n_cols, dtype=numpy.float64)
+    canonical_pos = numpy.ones(n_cols, dtype=numba.boolean)
+
+    # per-thread counts buffer
+    thread_counts = numpy.empty(
+        (numba.get_num_threads(), num_states),
+        dtype=numpy.int64,
+    )
+
+    for col in numba.prange(n_cols):
+        counts = thread_counts[numba.get_thread_id()]
+        counts.fill(0)
+        is_canonical = True
+        for row in range(n_seqs):
+            val = columns[row, col]
+            if val < num_states:
+                counts[val] += 1
+            else:
+                is_canonical = False
+        canonical_pos[col] = is_canonical
+        entropies[col] = _vector_entropy(counts)
+
+    if not parallel:
+        numba.set_num_threads(num_threads)
+
+    return entropies, canonical_pos
+
+
+@numba.jit(cache=True)
 def _make_weights(
     counts: numpy.ndarray,
     weights: numpy.ndarray | None = None,
@@ -151,7 +209,7 @@ def _make_weights(
     return weights
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _calc_entropy_components(
     counts: numpy.ndarray,
     total: int,
@@ -170,7 +228,7 @@ def _calc_entropy_components(
     return h, et, non_zero
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _calc_temp_entropy(
     entropy: float,
     counts: numpy.ndarray,
@@ -191,7 +249,7 @@ def _calc_temp_entropy(
     return entropy - orig_term + new_term
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _calc_updated_entropy(
     temp_entropy: float,
     counts: numpy.ndarray,
@@ -207,7 +265,7 @@ def _calc_updated_entropy(
     return temp_entropy - orig_term + new_term
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _calc_pair_scale(
     counts_12: numpy.ndarray,
     counts_1: numpy.ndarray,
@@ -304,7 +362,7 @@ def _calc_pair_scale(
     return orig_mi, pairs, scales
 
 
-@numba.jit
+@numba.jit(cache=True)
 def _count_col_joint(
     pos_12: numpy.ndarray,
     counts_12: numpy.ndarray,
@@ -323,6 +381,367 @@ def _count_col_joint(
         counts_2[pos_2] += 1
 
     return counts_12, counts_1, counts_2
+
+
+@numba.jit(cache=True)
+def _calc_all_entropies(
+    joint_states: numpy.ndarray,
+    joint_counts: numpy.ndarray,
+    counts_1: numpy.ndarray,
+    counts_2: numpy.ndarray,
+    num_states: int,
+) -> tuple[float, float, float]:  # pragma: no cover
+    joint_counts, counts_1, counts_2 = _count_col_joint(
+        joint_states,
+        joint_counts,
+        counts_1,
+        counts_2,
+        num_states,
+    )
+    entropy_1 = _vector_entropy(counts_1)
+    entropy_2 = _vector_entropy(counts_2)
+    if entropy_1 == 0.0 or entropy_2 == 0.0:
+        return entropy_1, entropy_2, 0.0
+
+    joint_entropy = _calc_joint_entropy(joint_counts)
+    return entropy_1, entropy_2, joint_entropy
+
+
+@numba.jit(parallel=True)
+def _prange_mi_matrix(
+    data: numpy.ndarray,
+    entropies: numpy.ndarray,
+    canonical_pos: numpy.ndarray,
+    num_states: int,
+    stat_id: int,
+    result: numpy.ndarray,
+    parallel: bool = True,
+) -> None:  # pragma: no cover
+    """Compute MI or NMI for all position pairs using numba.prange.
+
+    Parameters
+    ----------
+    data
+        2D uint8 array (n_seqs, n_cols).
+    entropies
+        Pre-computed per-column entropies.
+    canonical_pos
+        Boolean array, True where all column values < num_states.
+    num_states
+        Number of canonical states.
+    stat_id
+        1 for MI, 2 for NMI.
+    result
+        Output matrix (n_cols, n_cols), pre-filled with nan. Lower triangle
+        is written.
+    parallel
+        Use numba thread-level parallelism if True.
+    """
+    num_threads = numba.get_num_threads()
+    if not parallel:
+        numba.set_num_threads(1)
+
+    n_seqs = data.shape[0]
+    n_cols = data.shape[1]
+    num_pairs = n_cols * (n_cols - 1) // 2
+
+    # per-thread working arrays
+    n_threads = numba.get_num_threads()
+    thread_joint_states = numpy.empty((n_threads, n_seqs, 2), dtype=numpy.uint8)
+    thread_counts_1 = numpy.empty((n_threads, num_states), dtype=numpy.int64)
+    thread_counts_2 = numpy.empty((n_threads, num_states), dtype=numpy.int64)
+    thread_joint_counts = numpy.empty(
+        (n_threads, num_states, num_states),
+        dtype=numpy.int64,
+    )
+
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
+
+        tid = numba.get_thread_id()
+        joint_states = thread_joint_states[tid]
+        joint_states[:, 0] = data[:, i]
+        joint_states[:, 1] = data[:, j]
+
+        if canonical_pos[i] and canonical_pos[j]:
+            entropy_i = entropies[i]
+            entropy_j = entropies[j]
+            joint_counts = thread_joint_counts[tid]
+            joint_counts = _count_joint_states(joint_states, num_states, joint_counts)
+            joint_entropy = _calc_joint_entropy(joint_counts)
+        else:
+            joint_counts = thread_joint_counts[tid]
+            counts_1 = thread_counts_1[tid]
+            counts_2 = thread_counts_2[tid]
+            entropy_i, entropy_j, joint_entropy = _calc_all_entropies(
+                joint_states,
+                joint_counts,
+                counts_1,
+                counts_2,
+                num_states,
+            )
+
+        stat = entropy_i + entropy_j - joint_entropy
+        if stat_id == 2 and joint_entropy != 0.0:
+            stat /= joint_entropy
+
+        result[i, j] = stat
+
+    if not parallel:
+        numba.set_num_threads(num_threads)
+
+
+@numba.jit(parallel=True)
+def _prange_rmi_matrix(
+    data: numpy.ndarray,
+    num_states: int,
+    result: numpy.ndarray,
+    parallel: bool = True,
+) -> None:  # pragma: no cover
+    """Compute RMI for all position pairs using numba.prange.
+
+    Parameters
+    ----------
+    data
+        2D uint8 array (n_seqs, n_cols).
+    num_states
+        Number of canonical states.
+    result
+        Output matrix (n_cols, n_cols), pre-filled with nan. Lower triangle
+        is written.
+    parallel
+        Use numba thread-level parallelism if True.
+    """
+    num_threads = numba.get_num_threads()
+    if not parallel:
+        numba.set_num_threads(1)
+
+    n_seqs = data.shape[0]
+    n_cols = data.shape[1]
+    num_pairs = n_cols * (n_cols - 1) // 2
+
+    coeffs = c3_alphabet.coord_conversion_coeffs(num_states, 2, dtype=numpy.int64)
+    states_12 = numpy.arange(num_states * num_states).reshape(num_states, num_states)
+    states_1 = numpy.arange(num_states)
+    states_2 = numpy.arange(num_states)
+
+    # per-thread working arrays
+    n_threads = numba.get_num_threads()
+    thread_joint_states = numpy.empty((n_threads, n_seqs, 2), dtype=numpy.uint8)
+    thread_counts_1 = numpy.empty((n_threads, num_states), dtype=numpy.int64)
+    thread_counts_2 = numpy.empty((n_threads, num_states), dtype=numpy.int64)
+    thread_counts_12 = numpy.empty(
+        (n_threads, num_states, num_states),
+        dtype=numpy.int64,
+    )
+    thread_weights_1 = numpy.empty(
+        (n_threads, num_states, num_states),
+        dtype=numpy.float64,
+    )
+    thread_weights_2 = numpy.empty(
+        (n_threads, num_states, num_states),
+        dtype=numpy.float64,
+    )
+
+    for index in numba.prange(num_pairs):
+        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+        j = index - i * (i - 1) // 2
+
+        tid = numba.get_thread_id()
+        joint_states = thread_joint_states[tid]
+        joint_states[:, 0] = data[:, i]
+        joint_states[:, 1] = data[:, j]
+
+        counts_12 = thread_counts_12[tid]
+        counts_1 = thread_counts_1[tid]
+        counts_2 = thread_counts_2[tid]
+        counts_12, counts_1, counts_2 = _count_col_joint(
+            joint_states,
+            counts_12,
+            counts_1,
+            counts_2,
+            num_states,
+        )
+
+        weights_1 = thread_weights_1[tid]
+        weights_2 = thread_weights_2[tid]
+        weights_1 = _make_weights(counts_1, weights_1)
+        weights_2 = _make_weights(counts_2, weights_2)
+
+        entropy, pairs, scales = _calc_pair_scale(
+            counts_12,
+            counts_1,
+            counts_2,
+            weights_1,
+            weights_2,
+            states_12,
+            states_1,
+            states_2,
+            coeffs,
+        )
+
+        if entropy == 0.0:
+            result[i, j] = 0.0
+        else:
+            stat = 0.0
+            for k in range(scales.shape[0]):
+                e, w = scales[k]
+                if entropy > numpy.round(e, 10):
+                    continue
+
+                p1, p2 = pairs[k]
+                stat += w * counts_12[p1, p2]
+
+            result[i, j] = 1 - stat
+
+    if not parallel:
+        numba.set_num_threads(num_threads)
+
+
+@deprecated_callable(
+    version="2026.6",
+    reason="Use coevolution_matrix() directly; MI/NMI calculation now uses numba.prange internally.",
+    is_discontinued=True,
+)
+def _gen_combinations(
+    num_pos: int, chunk_size: int
+) -> typing.Iterator[numpy.ndarray]:  # pragma: no cover
+    combs = itertools.combinations(range(num_pos), 2)
+
+    while True:
+        if chunk := list(itertools.islice(combs, chunk_size)):
+            yield numpy.array(chunk)
+        else:
+            break
+
+
+class calc_mi:  # pragma: no cover
+    """calculator for mutual information or normalised mutual information
+
+    callable with positions to calculate the statistic for.
+    """
+
+    @deprecated_callable(
+        version="2026.6",
+        reason="Use coevolution_matrix() directly; MI/NMI calculation now uses numba.prange internally.",
+        is_discontinued=True,
+    )
+    def __init__(
+        self,
+        data: numpy.ndarray,
+        num_states: int,
+        metric_id: enum.Enum,
+    ) -> None:
+        """
+        Parameters
+        ----------
+        data
+            a 2D numpy array of uint8 values representing a multiple sequence
+            alignment where sequences are the first dimension and positions are
+            the second dimension.
+        num_states
+            the number of canonical states in the moltype. Sequence elements that
+            exceed this value are not included in the calculation.
+        metric_id
+            either 1 (for MI) or 2 (for NMI)
+        """
+        self._data = data
+        self._num_states = num_states
+        self._metric_id = metric_id
+        self._canonical_pos = numpy.all(self._data < self._num_states, axis=0)
+        self._entropies = _calc_column_entropies(self._data, self._num_states)
+
+    def __call__(self, positions: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+        return _general_mi_calc(
+            positions,
+            self._canonical_pos,
+            self._data,
+            self._entropies,
+            self._num_states,
+            metric_id=self._metric_id,
+        )
+
+
+class calc_rmi:  # pragma: no cover
+    """calculator for resampled mutual information
+
+    Callable with positions to calculate the statistic for.
+    When called, it returns the positions and their corresponding statistic.
+    """
+
+    @deprecated_callable(
+        version="2026.6",
+        reason="Use coevolution_matrix() directly; RMI calculation now uses numba.prange internally.",
+        is_discontinued=True,
+    )
+    def __init__(self, data: numpy.ndarray, num_states: int) -> None:
+        """
+        Parameters
+        ----------
+        data
+            a 2D numpy array of uint8 values representing a multiple sequence
+            alignment where sequences are the first dimension and positions are
+            the second dimension.
+        num_states
+            the number of canonical states in the moltype. Sequence elements that
+            exceed this value are not included in the calculation.
+        """
+        self._data = data
+        self._num_states = num_states
+
+    def __call__(self, positions: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+        return _rmi_calc(positions, self._data, self._num_states)
+
+
+@numba.jit
+def _general_mi_calc(
+    positions: numpy.ndarray,
+    canonical_pos: numpy.ndarray,
+    alignment: numpy.ndarray,
+    entropies: numpy.ndarray,
+    num_states: numpy.uint8,
+    metric_id: int = MI_METHODS.mi,
+) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
+    n_seqs = alignment.shape[0]
+    stats = numpy.empty(len(positions), dtype=numpy.float64)
+    stats.fill(numpy.nan)
+
+    counts_1 = numpy.empty(num_states, dtype=numpy.int64)
+    counts_2 = numpy.empty(num_states, dtype=numpy.int64)
+    joint_counts = numpy.zeros((num_states, num_states), dtype=numpy.int64)
+    joint_states = numpy.empty((n_seqs, 2), dtype=numpy.uint8)
+    for pair in range(len(positions)):
+        i, j = positions[pair]
+        joint_states[:, 0] = alignment[:, i]
+        joint_states[:, 1] = alignment[:, j]
+        if canonical_pos[i] and canonical_pos[j]:
+            entropy_i = entropies[i]
+            entropy_j = entropies[j]
+            joint_counts = _count_joint_states(joint_states, num_states, joint_counts)
+            joint_entropy = _calc_joint_entropy(
+                joint_counts,
+            )
+        else:
+            # we need to compute all entropies
+            # cases where either position has a non-canonical
+            # state are omitted
+            entropy_i, entropy_j, joint_entropy = _calc_all_entropies(
+                joint_states,
+                joint_counts,
+                counts_1,
+                counts_2,
+                num_states,
+            )
+
+        # MI
+        stat = entropy_i + entropy_j - joint_entropy
+        if metric_id == 2 and joint_entropy != 0.0:
+            # normalised MI
+            stat /= joint_entropy
+
+        stats[pair] = stat
+    return positions, stats
 
 
 @numba.jit
@@ -394,158 +813,6 @@ def _rmi_calc(
     return positions, stats
 
 
-@numba.jit
-def _calc_all_entropies(
-    joint_states: numpy.ndarray,
-    joint_counts: numpy.ndarray,
-    counts_1: numpy.ndarray,
-    counts_2: numpy.ndarray,
-    num_states: int,
-) -> tuple[float, float, float]:  # pragma: no cover
-    joint_counts, counts_1, counts_2 = _count_col_joint(
-        joint_states,
-        joint_counts,
-        counts_1,
-        counts_2,
-        num_states,
-    )
-    entropy_1 = _vector_entropy(counts_1)
-    entropy_2 = _vector_entropy(counts_2)
-    if entropy_1 == 0.0 or entropy_2 == 0.0:
-        return entropy_1, entropy_2, 0.0
-
-    joint_entropy = _calc_joint_entropy(joint_counts)
-    return entropy_1, entropy_2, joint_entropy
-
-
-@numba.jit
-def _general_mi_calc(
-    positions: numpy.ndarray,
-    canonical_pos: numpy.ndarray,
-    alignment: numpy.ndarray,
-    entropies: numpy.ndarray,
-    num_states: numpy.uint8,
-    metric_id: int = MI_METHODS.mi,
-) -> tuple[numpy.ndarray, numpy.ndarray]:  # pragma: no cover
-    n_seqs = alignment.shape[0]
-    stats = numpy.empty(len(positions), dtype=numpy.float64)
-    stats.fill(numpy.nan)
-
-    counts_1 = numpy.empty(num_states, dtype=numpy.int64)
-    counts_2 = numpy.empty(num_states, dtype=numpy.int64)
-    joint_counts = numpy.zeros((num_states, num_states), dtype=numpy.int64)
-    joint_states = numpy.empty((n_seqs, 2), dtype=numpy.uint8)
-    for pair in range(len(positions)):
-        i, j = positions[pair]
-        joint_states[:, 0] = alignment[:, i]
-        joint_states[:, 1] = alignment[:, j]
-        if canonical_pos[i] and canonical_pos[j]:
-            entropy_i = entropies[i]
-            entropy_j = entropies[j]
-            joint_counts = _count_joint_states(joint_states, num_states, joint_counts)
-            joint_entropy = _calc_joint_entropy(
-                joint_counts,
-            )
-        else:
-            # we need to compute all entropies
-            # cases where either position has a non-canonical
-            # state are omitted
-            entropy_i, entropy_j, joint_entropy = _calc_all_entropies(
-                joint_states,
-                joint_counts,
-                counts_1,
-                counts_2,
-                num_states,
-            )
-
-        # MI
-        stat = entropy_i + entropy_j - joint_entropy
-        if metric_id == 2 and joint_entropy != 0.0:
-            # normalised MI
-            stat /= joint_entropy
-
-        stats[pair] = stat
-    return positions, stats
-
-
-def _gen_combinations(num_pos: int, chunk_size: int) -> typing.Iterator[numpy.ndarray]:
-    combs = itertools.combinations(range(num_pos), 2)
-
-    while True:
-        if chunk := list(itertools.islice(combs, chunk_size)):
-            yield numpy.array(chunk)
-        else:
-            break
-
-
-class calc_mi:
-    """calculator for mutual information or normalised mutual information
-
-    callable with positions to calculate the statistic for.
-    """
-
-    def __init__(
-        self,
-        data: numpy.ndarray,
-        num_states: int,
-        metric_id: enum.Enum,
-    ) -> None:
-        """
-        Parameters
-        ----------
-        data
-            a 2D numpy array of uint8 values representing a multiple sequence
-            alignment where sequences are the first dimension and positions are
-            the second dimension.
-        num_states
-            the number of canonical states in the moltype. Sequence elements that
-            exceed this value are not included in the calculation.
-        metric_id
-            either 1 (for MI) or 2 (for NMI)
-        """
-        self._data = data
-        self._num_states = num_states
-        self._metric_id = metric_id
-        self._canonical_pos = numpy.all(self._data < self._num_states, axis=0)
-        self._entropies = _calc_column_entropies(self._data, self._num_states)
-
-    def __call__(self, positions: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
-        return _general_mi_calc(
-            positions,
-            self._canonical_pos,
-            self._data,
-            self._entropies,
-            self._num_states,
-            metric_id=self._metric_id,
-        )
-
-
-class calc_rmi:
-    """calculator for resampled mutual information
-
-    Callable with positions to calculate the statistic for.
-    When called, it returns the positions and their corresponding statistic.
-    """
-
-    def __init__(self, data: numpy.ndarray, num_states: int) -> None:
-        """
-        Parameters
-        ----------
-        data
-            a 2D numpy array of uint8 values representing a multiple sequence
-            alignment where sequences are the first dimension and positions are
-            the second dimension.
-        num_states
-            the number of canonical states in the moltype. Sequence elements that
-            exceed this value are not included in the calculation.
-        """
-        self._data = data
-        self._num_states = num_states
-
-    def __call__(self, positions: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
-        return _rmi_calc(positions, self._data, self._num_states)
-
-
 @UI.display_wrap
 def coevolution_matrix(
     *,
@@ -561,24 +828,32 @@ def coevolution_matrix(
 
     Parameters
     ----------
-    aln
+    alignment
         sequence alignment
     stat
-        either 'mi' (mutual information), 'nmi' (normalised MI) or 'rmi' (resampled MI)
+        either 'mi' (mutual information), 'nmi' (normalised MI) or 'rmi'
+        (resampled MI)
     parallel
-        run in parallel on your machine
+        run in parallel using numba thread-level parallelism (prange)
     par_kw
-        providing {'max_workers': 6} defines the number of workers to use, see
-        arguments for cogent3.util.parallel.as_completed()
+        ``max_workers`` sets the number of numba threads. ``use_mpi=True``
+        raises ``NotImplementedError``. Other keys are silently ignored.
     show_progress
         displays a progress bar
+    positions
+        list of range objects defining alignment segments to analyse
 
     Returns
     -------
-    Returns a DictArray with the pairwise coevolution values as a lower triangle. The other
-    values are nan.
+    Returns a DictArray with the pairwise coevolution values as a lower
+    triangle. The other values are nan.
     """
-    stat = {"mi": 1, "nmi": 2, "rmi": 3}[MI_METHODS(stat).name]
+    par_kw = par_kw or {}
+    if par_kw.get("use_mpi"):
+        msg = "MPI is not supported for coevolution_matrix; use parallel=True for numba thread-level parallelism."
+        raise NotImplementedError(msg)
+
+    stat_id = {"mi": 1, "nmi": 2, "rmi": 3}[MI_METHODS(stat).name]
     num_states = len(alignment.moltype.alphabet)
 
     data = numpy.array(alignment)
@@ -591,29 +866,37 @@ def coevolution_matrix(
 
     num_pos = data.shape[1]
 
-    calc = calc_rmi(data, num_states) if stat == 3 else calc_mi(data, num_states, stat)
+    # set numba thread count from par_kw if specified
+    max_workers = par_kw.get("max_workers")
+    prev_threads = None
+    if max_workers is not None and parallel:
+        prev_threads = numba.get_num_threads()
+        numba.set_num_threads(max_workers)
 
-    mutual_info = numpy.empty((num_pos, num_pos), dtype=numpy.float64)
-    mutual_info.fill(numpy.nan)
+    try:
+        mutual_info = numpy.empty((num_pos, num_pos), dtype=numpy.float64)
+        mutual_info.fill(numpy.nan)
 
-    # we generate the positions as a numpy.array of tuples
-    chunk_size = 10_000
-    num_chunks = num_pos * (num_pos - 1) // 2 // chunk_size
-
-    position_combinations = _gen_combinations(num_pos, chunk_size)
-    if parallel:
-        par_kw = par_kw or {}
-        to_do = PAR.as_completed(calc, position_combinations, **par_kw)
-    else:
-        to_do = map(calc, position_combinations)
-
-    for pos_pairs, stats in ui.series(
-        to_do,
-        noun="Sets of pairwise positions",
-        count=num_chunks + 1,
-    ):
-        indices = numpy.ravel_multi_index(pos_pairs.T[::-1], (num_pos, num_pos))
-        mutual_info.put(indices, stats)
+        if stat_id in (1, 2):  # MI or NMI
+            entropies, canonical_pos = _calc_column_stats(
+                data,
+                num_states,
+                parallel=parallel,
+            )
+            _prange_mi_matrix(
+                data,
+                entropies,
+                canonical_pos,
+                num_states,
+                stat_id,
+                mutual_info,
+                parallel=parallel,
+            )
+        else:  # RMI
+            _prange_rmi_matrix(data, num_states, mutual_info, parallel=parallel)
+    finally:
+        if prev_threads is not None:
+            numba.set_num_threads(prev_threads)
 
     positions = list(positions)
     return dict_array.DictArray.from_array_names(mutual_info, positions, positions)

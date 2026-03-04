@@ -4622,9 +4622,11 @@ class Alignment(CollectionBase[Aligned]):
         show_progress
             shows a progress bar.
         parallel
-            run in parallel, according to arguments in par_kwargs.
+            run in parallel using numba thread-level parallelism (prange).
         par_kw
-            dict of values for configuring parallel execution.
+            ``max_workers`` sets the number of numba threads.
+            ``use_mpi=True`` raises ``NotImplementedError``.
+            Other keys are silently ignored.
 
         Returns
         -------

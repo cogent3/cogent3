@@ -109,6 +109,10 @@ if warn := os.environ.get(warn_env):
 __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
 
+# suppress OpenMP deprecation warning from numba's threading layer
+# (omp_set_nested is deprecated in favour of omp_set_max_active_levels)
+os.environ.setdefault("KMP_WARNINGS", "0")
+
 
 def make_seq(
     seq,

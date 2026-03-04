@@ -360,3 +360,74 @@ def test_mi_pair_1(one_case, stat):
         show_progress=False,
     )[1, 0]
     assert_allclose(got, 1.0)
+
+
+@pytest.mark.parametrize("stat", ["mi", "nmi", "rmi"])
+@pytest.mark.parametrize("parallel", [True, False])
+def test_parallel_matches_serial(alignment, stat, parallel):
+    """parallel and serial give identical results for all metrics"""
+    serial = c3_coevo.coevolution_matrix(
+        alignment=alignment,
+        stat=stat,
+        parallel=False,
+        show_progress=False,
+    )
+    got = c3_coevo.coevolution_matrix(
+        alignment=alignment,
+        stat=stat,
+        parallel=parallel,
+        show_progress=False,
+    )
+    assert_allclose(got.array, serial.array)
+
+
+@pytest.mark.parametrize("stat", ["mi", "nmi", "rmi"])
+def test_parallel_protein(stat):
+    """parallel works with protein alignments"""
+    aln = make_aligned_seqs(
+        {"A1": "AACF", "A12": "AADF", "A123": "ADCF", "A111": "AAD-"},
+        moltype="protein",
+    )
+    serial = c3_coevo.coevolution_matrix(
+        alignment=aln,
+        stat=stat,
+        parallel=False,
+        show_progress=False,
+    )
+    got = c3_coevo.coevolution_matrix(
+        alignment=aln,
+        stat=stat,
+        parallel=True,
+        show_progress=False,
+    )
+    assert_allclose(got.array, serial.array)
+
+
+def test_par_kw_max_workers(alignment):
+    """par_kw max_workers is accepted without error"""
+    got = c3_coevo.coevolution_matrix(
+        alignment=alignment,
+        stat="nmi",
+        parallel=True,
+        par_kw={"max_workers": 2},
+        show_progress=False,
+    )
+    serial = c3_coevo.coevolution_matrix(
+        alignment=alignment,
+        stat="nmi",
+        parallel=False,
+        show_progress=False,
+    )
+    assert_allclose(got.array, serial.array)
+
+
+def test_par_kw_use_mpi_raises(alignment):
+    """use_mpi=True raises NotImplementedError"""
+    with pytest.raises(NotImplementedError):
+        c3_coevo.coevolution_matrix(
+            alignment=alignment,
+            stat="nmi",
+            parallel=True,
+            par_kw={"use_mpi": True},
+            show_progress=False,
+        )
