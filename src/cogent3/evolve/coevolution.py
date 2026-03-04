@@ -8,6 +8,7 @@ from numpy import nan
 
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
+from cogent3.evolve.pairwise_distance_numba import index_to_lower_tri
 from cogent3.util import dict_array
 from cogent3.util import progress_display as UI
 from cogent3.util.warning import deprecated_callable
@@ -456,8 +457,7 @@ def _prange_mi_matrix(
     )
 
     for index in numba.prange(num_pairs):
-        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
-        j = index - i * (i - 1) // 2
+        i, j = index_to_lower_tri(index)
 
         tid = numba.get_thread_id()
         joint_states = thread_joint_states[tid]
@@ -545,8 +545,7 @@ def _prange_rmi_matrix(
     )
 
     for index in numba.prange(num_pairs):
-        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
-        j = index - i * (i - 1) // 2
+        i, j = index_to_lower_tri(index)
 
         tid = numba.get_thread_id()
         joint_states = thread_joint_states[tid]

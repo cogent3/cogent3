@@ -23,6 +23,7 @@ from cogent3.evolve.fast_distance import (
     seq_to_indices,
 )
 from cogent3.evolve.models import F81, HKY85, JC69
+from cogent3.evolve.pairwise_distance_numba import index_to_lower_tri
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
@@ -1213,3 +1214,28 @@ def test_compare_parallel_serial(DATA_DIR, calc):
     serial = aln.distance_matrix(calc=calc, parallel=False)
     parallel = aln.distance_matrix(calc=calc, parallel=True)
     assert_allclose(serial.array, parallel.array)
+
+
+@pytest.mark.parametrize("n", [0, 1, 2, 3, 4, 5, 6, 7, 8])
+def test_index_to_lower_tri(n):
+    """index_to_lower_tri is a bijection over lower-triangular pairs."""
+    num_pairs = n * (n - 1) // 2
+    got = [index_to_lower_tri(k) for k in range(num_pairs)]
+    # must produce valid lower-triangular coordinates
+    assert all(0 <= j < i < n for i, j in got)
+    # must be a bijection: all pairs are unique and cover the lower triangle
+    expected = {(i, j) for i in range(n) for j in range(i)}
+    assert set(got) == expected
+
+
+def test_index_to_lower_tri_large_n():
+    """index_to_lower_tri is correct at boundary indices for large n."""
+    n = 10_000
+    num_pairs = n * (n - 1) // 2
+    # check first pair, last pair, and a few boundary indices
+    # where a new row starts: index = i*(i-1)//2 for each i
+    assert index_to_lower_tri(0) == (1, 0)
+    assert index_to_lower_tri(num_pairs - 1) == (n - 1, n - 2)
+    for i in range(1, n):
+        idx = i * (i - 1) // 2
+        assert index_to_lower_tri(idx) == (i, 0)
