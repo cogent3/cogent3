@@ -617,3 +617,35 @@ def test_center_on_custom_title(shared_feature_db):
     )
     assert result is not None
     assert result.layout.title.text == "Custom"
+
+
+def test_vertical_spacing_changes_yaxis_domains(multi_seqid_db):
+    """Different vertical_spacing values produce different y-axis domains."""
+    result_default = draw_annotations(multi_seqid_db)
+    result_wide = draw_annotations(multi_seqid_db, vertical_spacing=0.3)
+    assert result_default is not None
+    assert result_wide is not None
+    # Compare the yaxis domain of the first subplot
+    domain_default = list(result_default.layout.yaxis.domain)
+    domain_wide = list(result_wide.layout.yaxis.domain)
+    assert domain_default != domain_wide
+
+
+def test_vertical_spacing_center_on(shared_feature_db):
+    """vertical_spacing is accepted via the center_on path."""
+    result_default = draw_annotations(
+        shared_feature_db,
+        center_on="dnaA",
+        biotype="gene",
+    )
+    result_wide = draw_annotations(
+        shared_feature_db,
+        center_on="dnaA",
+        biotype="gene",
+        vertical_spacing=0.3,
+    )
+    assert result_default is not None
+    assert result_wide is not None
+    domain_default = list(result_default.layout.yaxis.domain)
+    domain_wide = list(result_wide.layout.yaxis.domain)
+    assert domain_default != domain_wide

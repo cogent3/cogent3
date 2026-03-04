@@ -207,6 +207,7 @@ def _make_multi_seqid_drawable(
     max_coord: int | None,
     width: float,
     title: str | None,
+    vertical_spacing: float = 0.12,
 ) -> Drawable | None:
     """Build a stacked subplot Drawable for multiple seqids."""
     seqids = sorted(by_seqid)
@@ -230,7 +231,7 @@ def _make_multi_seqid_drawable(
             max_coord=max_coord,
         )
 
-        domain = get_domain(n_seqids, idx, is_y=True, space=0.12)
+        domain = get_domain(n_seqids, idx, is_y=True, space=vertical_spacing)
         yaxis_cfg["domain"] = list(domain)
         xaxis_cfg["anchor"] = yref
 
@@ -327,6 +328,7 @@ def _draw_centered(
     width: float,
     title: str | None,
     show_controls: bool,
+    vertical_spacing: float = 0.12,
 ) -> Drawable | None:
     """Build a drawable centered on a named feature across seqids."""
     anchors = _find_anchor_features(
@@ -384,6 +386,7 @@ def _draw_centered(
         max_coord=None,
         width=width,
         title=default_title,
+        vertical_spacing=vertical_spacing,
     )
 
 
@@ -404,6 +407,7 @@ def draw_annotations(
     center_on: str | None = None,
     flank: int = 5000,
     max_seqids: int | None = None,
+    vertical_spacing: float = 0.12,
 ) -> Drawable | None:
     """Visualise annotations from an AnnotationDb
 
@@ -447,6 +451,9 @@ def draw_annotations(
     max_seqids
         Maximum number of seqids to display. Applied after filtering to
         those containing the anchor. Sorted alphabetically, first N taken.
+    vertical_spacing
+        Fractional vertical space between subplots when multiple seqids
+        are displayed. Only used for multi-seqid plots. Default is 0.12.
 
     Returns
     -------
@@ -484,6 +491,7 @@ def draw_annotations(
             width=width,
             title=title,
             show_controls=show_controls,
+            vertical_spacing=vertical_spacing,
         )
 
     features = _query_features(
@@ -532,4 +540,5 @@ def draw_annotations(
         max_coord=max_coord,
         width=width,
         title=title,
+        vertical_spacing=vertical_spacing,
     )
