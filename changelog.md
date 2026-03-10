@@ -1,4 +1,26 @@
 
+<a id='changelog-2026.3.10a0'></a>
+# Changes in release "2026.3.10a0"
+
+A minor feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added draw_annotations(vertical_spacing) argument to control
+  space between the vertically stacked subplots resulting from
+  using centered_on when max_seqids>1.
+- Refactored the coevolution statistics to using numba.prange for
+  parallel execution. The main reason for this is to improve the
+  load balancing across CPUs and to avoid pickling overhead.
+
+## Deprecations
+
+- Deleted functions marked for deprecation by this release.
+
 <a id='changelog-2026.2.28a1'></a>
 # Changes in release "2026.2.28a1"
 
