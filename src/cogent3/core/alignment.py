@@ -51,7 +51,6 @@ from cogent3.core.seq_storage import (
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
@@ -986,17 +985,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             source=self.source,
             annotation_db=self._annotation_db,
         )
-
-    @c3warn.deprecated_callable(
-        version="2026.3",
-        reason="incorrectly implies modifies instance",
-        new="renamed_seqs",
-    )
-    def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
-        """.. deprecated:: 2026.3
-        Use ``renamed_seqs`` instead.
-        """
-        return self.renamed_seqs(renamer)
 
     def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new collection with renamed sequences.
@@ -2732,17 +2720,6 @@ class Alignment(CollectionBase[Aligned]):
         """Returns a numpy array of positions, axis 0 is alignment positions
         columns in order corresponding to names."""
         return self.array_seqs.T
-
-    @c3warn.deprecated_callable(
-        version="2026.3",
-        reason="incorrectly implies modifies instance",
-        new="renamed_seqs",
-    )
-    def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
-        """.. deprecated:: 2026.3
-        Use ``renamed_seqs`` instead.
-        """
-        return self.renamed_seqs(renamer)
 
     def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new alignment with renamed sequences."""

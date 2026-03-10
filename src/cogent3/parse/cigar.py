@@ -5,7 +5,6 @@ import numpy
 
 import cogent3
 from cogent3.core.location import IndelMap
-from cogent3.util import warning as c3warn
 
 if typing.TYPE_CHECKING:
     from cogent3.core.alignment import Alignment
@@ -68,11 +67,8 @@ def cigar_to_map(cigar_text: str) -> IndelMap:
     )
 
 
-@c3warn.deprecated_args(
-    version="2026.3", reason="return type now string", discontinued=["moltype"]
-)
 def aligned_from_cigar(cigar_text: str, seq: str) -> str:
-    """returns an Aligned sequence from a cigar string, sequence and moltype"""
+    """returns an aligned sequence from a cigar string"""
     seq = str(seq)
     imap = cigar_to_map(cigar_text)
     pos_length = imap.get_gap_coordinates()
@@ -108,11 +104,6 @@ def slice_cigar(
     return new_map, location
 
 
-@c3warn.deprecated_args(
-    version="2026.3",
-    reason="no effect",
-    discontinued=["sliced", "start", "end", "ref_seqname"],
-)
 def cigar_to_alignment(
     seqs: dict[str, str],
     cigars: dict[str, str],
@@ -139,13 +130,3 @@ def cigar_to_alignment(
         )
         data[seqname] = aligned_seq
     return cogent3.make_aligned_seqs(data, moltype=moltype)
-
-
-@c3warn.deprecated_callable(
-    version="2026.3",
-    reason="better name",
-    new="cigar_to_alignment",
-)
-def CigarParser(*args, **kwargs) -> "Alignment":  # pragma: no cover
-    """deprecated alias for cigar_to_alignment"""
-    return cigar_to_alignment(*args, **kwargs)
