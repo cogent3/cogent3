@@ -10,7 +10,7 @@ import json
 import pathlib
 import sqlite3
 import warnings
-from collections.abc import Callable, Iterable, Iterator, Sized
+from collections.abc import Callable, Iterable, Iterator
 from collections.abc import Sequence as PySeq
 from typing import (
     TYPE_CHECKING,
@@ -26,10 +26,10 @@ from typing import (
 import numpy
 import numpy.typing as npt
 
-import cogent3.util.warning as c3warn
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
+from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
 from cogent3.util.io import PathType, get_format_suffixes, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -298,6 +298,11 @@ class SerialisableType(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsQueryFeatures(Protocol):  # pragma: no cover
+    @c3warn.deprecated_callable(
+        version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
+    )
+    def __init_subclass__(cls): ...
+
     # should be defined centrally
     def get_features_matching(
         self,
@@ -354,6 +359,11 @@ class SupportsQueryFeatures(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsWriteFeatures(Protocol):  # pragma: no cover
+    @c3warn.deprecated_callable(
+        version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
+    )
+    def __init_subclass__(cls): ...
+
     def add_feature(
         self,
         *,
@@ -385,32 +395,6 @@ class SupportsWriteFeatures(Protocol):  # pragma: no cover
     def union(self, annot_db: AnnotationDbABC) -> AnnotationDbABC:
         # returns a new instance of the more complex class
         ...
-
-
-@runtime_checkable
-class SupportsFeatures(
-    SupportsQueryFeatures,
-    SupportsWriteFeatures,
-    Sized,
-    Protocol,
-):  # pragma: no cover
-    @c3warn.deprecated_callable(
-        version="2026.3", reason="use AnnotationDbABC instead", is_discontinued=True
-    )
-    def __init_subclass__(cls): ...
-
-    # should be defined centrally
-    def __len__(self) -> int:
-        # the number of records
-        ...
-
-    def __eq__(self, other: object) -> bool:
-        # equality based on class and identity of the bound db
-        ...
-
-    def compatible(self, other_db: AnnotationDbABC, symmetric: bool = True) -> bool: ...
-
-    def to_rich_dict(self) -> dict[str, Any]: ...
 
 
 class AnnotationDbLoaderBase(abc.ABC):
@@ -3262,86 +3246,6 @@ def _update_array_format(data: bytes) -> bytes:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         return array_to_sqlite(sqlite_to_array(data))
-
-
-@c3warn.deprecated_callable(
-    version="2026.31",
-    reason="Removing support for migrating old format",
-    is_discontinued=True,
-)
-def update_file_format(
-    source_path: PathType,
-    db_class: type[BasicAnnotationDb | GenbankAnnotationDb | GffAnnotationDb],
-    backup: bool = True,
-) -> None:  # pragma: no cover
-    """Update the database file to the latest format.
-
-    Fixes an OS dependent issue under the previous representation.
-
-    Ensure update_file_format is run on the same OS used to generate the
-    database file.
-
-    By default performs a backup of the database to another file before
-    updating the given file to the new format. This is in case the function
-    is run on a different OS than the one used to generate the file where
-    the spans column may become corrupted. The backup file is saved as the
-    original file path appended with ".bak".
-
-    See https://github.com/cogent3/cogent3/issues/1776 for more details.
-
-    Parameters
-    ----------
-    source_path
-        The database file to reformat.
-    db_class[GenbankAnnotationDb], type[GffAnnotationDb], ]
-        The type of database the file is.
-    backup
-        If True (default), performs a backup of the database before updating.
-        Otherwise does not perform a backup prior to update (not recommended).
-    """
-    source_path = pathlib.Path(source_path).expanduser()
-
-    if not source_path.exists():
-        msg = f"File {source_path} does not exist."
-        raise OSError(msg)
-
-    anno_db = db_class(source=source_path)
-
-    if backup:
-        backup_path = source_path.parent / f"{source_path.name}.bak"
-        if backup_path.exists():
-            msg = (
-                f"Backup file already exists for {source_path}. "
-                f"If there was a problem with the conversion process, "
-                f"update_file_format should be run on the backed up file. "
-                f"Ensure update_file_format is run on the same OS used to generate the file."
-            )
-            raise FileExistsError(
-                msg,
-            )
-        anno_db.write(backup_path)
-
-    conn = anno_db.db
-    table_names = anno_db.table_names
-    del anno_db
-    conn.create_function("update_array_format", 1, _update_array_format)
-    cursor = None
-    for table_name in table_names:
-        with conn:
-            cursor = conn.cursor()
-            array_columns = [
-                r["name"]
-                for r in cursor.execute(f"PRAGMA table_info({table_name});").fetchall()
-                if r["type"] == "array"
-            ]
-
-            for column in array_columns:
-                cursor.execute(
-                    f"UPDATE {table_name} SET {column}=update_array_format({column});",
-                )
-            conn.commit()
-            cursor.close()
-    conn.close()
 
 
 def upgrade_annotation_db(
