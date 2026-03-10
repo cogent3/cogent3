@@ -68,7 +68,7 @@ def cigar_to_map(cigar_text: str) -> IndelMap:
 
 
 def aligned_from_cigar(cigar_text: str, seq: str) -> str:
-    """returns an Aligned sequence from a cigar string, sequence and moltype"""
+    """returns an aligned sequence from a cigar string"""
     seq = str(seq)
     imap = cigar_to_map(cigar_text)
     pos_length = imap.get_gap_coordinates()
