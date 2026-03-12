@@ -681,8 +681,6 @@ def define_app(
         klass.app_type = app_type
         klass._skip_not_completed = skip_not_completed
 
-        if cite is not None:
-            cite.app = klass.__name__
         klass._cite = cite
         klass.citations = property(_citations_property)
         klass.bib = property(_bib)
@@ -963,12 +961,14 @@ def _get_citations(self) -> tuple[Citation, ...]:
     result: list[Citation] = []
 
     if self._cite is not None:
+        self._cite.app = self.__class__.__name__
         seen.add(self._cite)
         result.append(self._cite)
 
     head = getattr(self, "input", None)
     while head is not None:
         if head._cite is not None and head._cite not in seen:
+            head._cite.app = head.__class__.__name__
             seen.add(head._cite)
             result.append(head._cite)
         head = getattr(head, "input", None)

@@ -756,6 +756,18 @@ def test_write_bib_directory(write_dir, sample_citations):
     assert "Tool Two" in content
 
 
+def test_write_bib_tilde_path(write_dir, sample_citations, HOME_TMP_DIR):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    bib_path = f"~/{HOME_TMP_DIR.name}/refs.bib"
+    dstore.write_bib(bib_path)
+    expected = pathlib.Path(bib_path).expanduser()
+    assert expected.exists()
+    content = expected.read_text()
+    assert "Tool One" in content
+    assert "Tool Two" in content
+
+
 def test_write_bib_no_citations(write_dir):
     dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
     bib_path = write_dir / "refs.bib"
