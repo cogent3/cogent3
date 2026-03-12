@@ -334,6 +334,7 @@ class DataStoreABC(ABC):
             return
         from citeable import write_bibtex
 
+        dest_path = Path(dest_path).expanduser().absolute()
         write_bibtex(citations, dest_path)
 
     def _load_citations(self) -> list[CitationBase]:
