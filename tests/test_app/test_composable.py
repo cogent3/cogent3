@@ -1413,7 +1413,27 @@ def test_cite_sets_app_attribute():
         def main(self, val: int) -> int:
             return val
 
-    assert cite.app == "my_special_app"
+    app = my_special_app()
+    assert app.citations[0].app == "my_special_app"
+
+
+def test_cite_shared_across_apps():
+    cite = _make_cite()
+
+    @define_app(cite=cite)
+    class app_one:
+        def main(self, val: int) -> int:
+            return val
+
+    @define_app(cite=cite)
+    class app_two:
+        def main(self, val: int) -> int:
+            return val
+
+    a = app_one()
+    b = app_two()
+    assert a.citations[0].app == "app_one"
+    assert b.citations[0].app == "app_two"
 
 
 def test_bib_single_app_with_citation():
