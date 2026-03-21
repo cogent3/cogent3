@@ -280,10 +280,10 @@ def resolve_type_hint(hint, module_globals=None):
         to resolve forward references from user code
     """
     # Protocol classes (like SerialisableType) — return as-is
-    if isinstance(hint, type) and issubclass(hint, Protocol) and hint is not Protocol:
+    if getattr(hint, "_is_protocol", False) and hint is not Protocol:
         return hint
 
-    # TypeVar with __bound__ → resolve bound class
+    # TypeVar with __bound__ -> resolve bound class
     if isinstance(hint, TypeVar):
         if hint.__bound__:
             bound = hint.__bound__
@@ -300,7 +300,7 @@ def resolve_type_hint(hint, module_globals=None):
         msg = f"unconstrained TypeVar {hint!r} cannot be resolved"
         raise TypeError(msg)
 
-    # Union / UnionType → recurse
+    # Union / UnionType -> recurse
     origin = get_origin(hint)
     if origin is Union or isinstance(hint, UnionType):
         args = tuple(resolve_type_hint(a, module_globals) for a in get_args(hint))
@@ -316,11 +316,7 @@ def resolve_type_hint(hint, module_globals=None):
         return _resolve_name(hint.__forward_arg__, module_globals)
 
     # plain str
-    if isinstance(hint, str):
-        return _resolve_name(hint, module_globals)
-
-    # concrete class or type alias — return as-is
-    return hint
+    return _resolve_name(hint, module_globals) if isinstance(hint, str) else hint
 
 
 def get_type_display_names(hint) -> frozenset[str]:
@@ -362,7 +358,7 @@ def _get_concrete_classes(hint) -> set[type]:
 
 def _is_protocol(hint) -> bool:
     """checks if a type hint is or contains a runtime-checkable Protocol"""
-    if isinstance(hint, type) and issubclass(hint, Protocol) and hint is not Protocol:
+    if getattr(hint, "_is_protocol", False) and hint is not Protocol:
         return True
 
     origin = get_origin(hint)
