@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import TypeVar, Union
 
 import pytest
 
@@ -14,8 +14,6 @@ from cogent3.app.typing import (
     get_type_display_names,
     resolve_type_hint,
 )
-
-# --- Tests for resolve_type_hint ---
 
 
 def test_resolve_type_hint_typevar_bound():
@@ -69,6 +67,22 @@ def test_resolve_type_hint_container():
     assert resolved == list[Alignment]
 
 
+def test_resolve_type_hint_typevar_str_bound():
+    """TypeVar with a plain str bound resolves via _resolve_name"""
+    from cogent3.core.alignment import Alignment
+
+    T = TypeVar("T", bound="Alignment")
+    resolved = resolve_type_hint(T)
+    assert resolved is Alignment
+
+
+def test_resolve_type_hint_unconstrained_typevar():
+    """unconstrained TypeVar raises TypeError"""
+    T = TypeVar("T")
+    with pytest.raises(TypeError, match="unconstrained TypeVar"):
+        resolve_type_hint(T)
+
+
 def test_resolve_type_hint_unresolvable():
     """Unresolvable string raises TypeError"""
     with pytest.raises(TypeError, match="cannot resolve"):
@@ -83,9 +97,6 @@ def test_resolve_type_hint_user_module_globals():
 
     resolved = resolve_type_hint("MyCustomType", {"MyCustomType": MyCustomType})
     assert resolved is MyCustomType
-
-
-# --- Tests for SerialisableType Protocol ---
 
 
 def test_serialisable_type_isinstance():
@@ -110,9 +121,6 @@ def test_serialisable_type_custom_class():
             return {}
 
     assert isinstance(MyObj(), SerialisableType)
-
-
-# --- Tests for get_type_display_names ---
 
 
 def test_get_type_display_names_concrete():
@@ -141,7 +149,11 @@ def test_get_type_display_names_resolved_typevar():
     assert names == frozenset({"Alignment"})
 
 
-# --- Tests for check_type_compatibility ---
+def test_get_type_display_names_typevar_fallback():
+    """unresolved TypeVar returns its __name__"""
+    T = TypeVar("T")
+    names = get_type_display_names(T)
+    assert names == frozenset({"T"})
 
 
 def test_check_type_compatibility_same_type():
@@ -173,7 +185,28 @@ def test_check_type_compatibility_incompatible():
     assert check_type_compatibility(int, str) is False
 
 
-# --- Tests for defined_types ---
+@pytest.fixture
+def broken_subclasscheck():
+    """a class whose metaclass makes issubclass() raise TypeError"""
+
+    class BadMeta(type):
+        def __subclasscheck__(cls, subclass):
+            raise TypeError("broken")
+
+    class Weird(metaclass=BadMeta):
+        pass
+
+    return Weird
+
+
+def test_check_type_compatibility_issubclass_typeerror_same(broken_subclasscheck):
+    """issubclass TypeError with identity match returns True"""
+    assert check_type_compatibility(broken_subclasscheck, broken_subclasscheck) is True
+
+
+def test_check_type_compatibility_issubclass_typeerror_diff(broken_subclasscheck):
+    """issubclass TypeError with different classes returns False"""
+    assert check_type_compatibility(int, broken_subclasscheck) is False
 
 
 def test_defined_types():
@@ -181,3 +214,16 @@ def test_defined_types():
     # TabularType should resolve to Table, DictArray, DistanceMatrix
     includes = types["TabularType"][0, "includes"]
     assert len(includes.split(",")) == 3
+
+
+def test_defined_types_resolve_failure(monkeypatch):
+    """unresolvable type in _all_types falls back to name"""
+    import cogent3.app.typing as typing_mod
+
+    bad = TypeVar("BrokenType")
+    patched = {**typing_mod._all_types, "BrokenType": bad}
+    monkeypatch.setattr(typing_mod, "_all_types", patched)
+
+    table = defined_types()
+    includes = table["BrokenType"][0, "includes"]
+    assert includes == "BrokenType"
