@@ -1111,24 +1111,20 @@ def test_validate_data_type_not_completed_pass_through():
     [(tuple[set[str]], int), (int, tuple[set[str]])],
 )
 def test_complex_type(first, ret):
-    # disallow >2-deep nesting of types for first arg and return type
-    with pytest.raises(TypeError):
-
-        @define_app
-        class x:
-            def main(self, data: first) -> ret:
-                return data
+    # deep nesting now allowed (typeguard handles arbitrary nesting)
+    @define_app
+    class x:
+        def main(self, data: first) -> ret:
+            return data
 
 
 @pytest.mark.parametrize("hint", [tuple[set[str]], tuple[tuple[set[str]]]])
 def test_complex_type_depths(hint):
-    # disallow >2-deep nesting of types for first arg and return type
-    with pytest.raises(TypeError):
-
-        @define_app
-        class x:
-            def main(self, data: hint) -> bool:
-                return True
+    # deep nesting now allowed (typeguard handles arbitrary nesting)
+    @define_app
+    class x:
+        def main(self, data: hint) -> bool:
+            return True
 
 
 @pytest.mark.parametrize("hint", [int, set[str]])

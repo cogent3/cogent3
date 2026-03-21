@@ -1,6 +1,7 @@
 import inspect
 import json
 import re
+import sys
 import textwrap
 import time
 import traceback
@@ -14,9 +15,15 @@ from uuid import uuid4
 
 from citeable import Citation
 from scitrack import CachingLogger
+from typeguard import TypeCheckError, check_type
 
 from cogent3._version import __version__
 from cogent3.app import typing as c3_typing
+from cogent3.app.typing import (
+    check_type_compatibility,
+    get_type_display_names,
+    resolve_type_hint,
+)
 from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.deserialise import register_deserialiser
@@ -151,20 +158,6 @@ def _get_raw_hints(main_func, min_params):
         msg = "NoneType invalid type for return value"
         raise TypeError(msg)
 
-    # we disallow type hints with too many levels of testing,
-    # e.g set[int] is ok but tuple[set[int]] is not
-    msg = (
-        "{} type {} nesting level exceeds 2 for {}"
-        "we suggest using a custom type, e.g. a dataclass"
-    )
-    depth, _ = c3_typing.type_tree(first_param_type)
-    if depth > 2:
-        raise TypeError(msg.format("first_param", first_param_type, depth))
-
-    depth, _ = c3_typing.type_tree(return_type)
-    if depth > 2:
-        raise TypeError(msg.format("return_type", return_type, depth))
-
     if isinstance(first_param_type, str):
         msg = (
             "Apps do not yet support string type hints "
@@ -183,11 +176,12 @@ def _get_raw_hints(main_func, min_params):
     return first_param_type, return_type
 
 
-def _get_main_hints(klass: type) -> tuple[frozenset, frozenset]:
-    """return type hints for main method
+def _get_main_hints(klass: type) -> tuple:
+    """return raw type hints for main method
+
     Returns
     -------
-    {arg1hints}, {return type hint}
+    (first_param_type_hint, return_type_hint)
     """
     # Check klass.main exists and is type method
     main_func = getattr(klass, "main", None)
@@ -200,10 +194,7 @@ def _get_main_hints(klass: type) -> tuple[frozenset, frozenset]:
         raise ValueError(msg)
 
     first_param_type, return_type = _get_raw_hints(main_func, 2)
-    first_param_type = c3_typing.get_constraint_names(first_param_type)
-    return_type = c3_typing.get_constraint_names(return_type)
-
-    return frozenset(first_param_type), frozenset(return_type)
+    return first_param_type, return_type
 
 
 def _set_hints(main_meth, first_param_type, return_type):
@@ -248,26 +239,15 @@ def _add(self, other):
         msg = "Right hand side of add operator must not be of type loader"
         raise TypeError(msg)
 
-    if self._return_types & {"SerialisableType", "IdentifierType"}:
-        pass
-    # validate that self._return_types ia a non-empty set.
-    elif not self._return_types:
-        msg = f"return type not defined for {self.__class__.__name__!r}"
-        raise TypeError(msg)
-    # validate that other._data_types a non-empty set.
-    elif not other._data_types:
-        msg = f"input type not defined for {other.__class__.__name__!r}"
-        raise TypeError(msg)
-    # Check if self._return_types & other._data_types is incompatible.
-    elif not (self._return_types & other._data_types):
+    if not check_type_compatibility(self._return_type, other._input_type):
+        self_names = get_type_display_names(self._return_type)
+        other_names = get_type_display_names(other._input_type)
         msg = (
-            f"{self.__class__.__name__!r} return_type {self._return_types} "
+            f"{self.__class__.__name__!r} return_type {self_names} "
             f"incompatible with {other.__class__.__name__!r} input "
-            f"type {other._data_types}"
+            f"type {other_names}"
         )
-        raise TypeError(
-            msg,
-        )
+        raise TypeError(msg)
     other.input = self
     return other
 
@@ -415,32 +395,27 @@ def _call(self, val, *args, **kwargs):
 
 
 def _validate_data_type(self, data):
-    """checks data class name matches defined compatible types"""
-    # TODO when move to python 3.8 define protocol checks for the two singular types
-    if isinstance(data, NotCompleted) and self._skip_not_completed:
-        return data
-
-    if not self._data_types or self._data_types & {
-        "SerialisableType",
-        "IdentifierType",
-    }:
+    """checks data type matches defined compatible types using typeguard"""
+    if isinstance(data, NotCompleted):
+        if self._skip_not_completed:
+            return data
+        # skip_not_completed=False means the app handles NotCompleted itself
         return True
 
     if isinstance(data, source_proxy):
         data = data.obj
 
-    if isinstance(data, _builtin_seqs):
-        if len(data):
-            data = next(iter(data))
-        else:
-            return NotCompleted("ERROR", self, message="empty data", source=data)
+    if isinstance(data, _builtin_seqs) and len(data) == 0:
+        return NotCompleted("ERROR", self, message="empty data", source=data)
 
-    class_name = data.__class__.__name__
-    valid = class_name in self._data_types
-    if not valid:
-        msg = f"invalid data type, '{class_name}' not in {', '.join(list(self._data_types))}"
-        valid = NotCompleted("ERROR", self, message=msg, source=data)
-    return valid
+    try:
+        check_type(data, self._input_type)
+        return True
+    except TypeCheckError:
+        class_name = data.__class__.__name__
+        expected = get_type_display_names(self._input_type)
+        msg = f"invalid data type, '{class_name}' not in {', '.join(sorted(expected))}"
+        return NotCompleted("ERROR", self, message=msg, source=data)
 
 
 def _class_from_func(func):
@@ -674,10 +649,12 @@ def define_app(
             func.__name__ = meth
             setattr(klass, meth, func)
 
-        # Get type hints of main function in klass
-        arg_hints, return_hint = _get_main_hints(klass)
-        klass._data_types = arg_hints
-        klass._return_types = return_hint
+        # Resolve type hints at decoration time
+        raw_input, raw_return = _get_main_hints(klass)
+        mod = sys.modules.get(klass.__module__) if klass.__module__ else None
+        module_globals = vars(mod) if mod else {}
+        klass._input_type = resolve_type_hint(raw_input, module_globals)
+        klass._return_type = resolve_type_hint(raw_return, module_globals)
         klass.app_type = app_type
         klass._skip_not_completed = skip_not_completed
 

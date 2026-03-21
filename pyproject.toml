@@ -34,6 +34,7 @@ dependencies = [
     "scitrack",
     "stevedore",
     "tqdm",
+    "typeguard>=4.0,<5",
     "typing_extensions",
 ]
 # remember to update version in requires-python and classifiers
@@ -155,7 +156,7 @@ new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
 
 [[tool.mypy.overrides]]
-module = ["numba", "loky", "mpi4py", "stevedore"]
+module = ["numba", "loky", "mpi4py", "stevedore", "typeguard"]
 ignore_missing_imports = true
 
 

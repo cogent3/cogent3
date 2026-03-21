@@ -367,7 +367,7 @@ def test_summary_not_completed_func(nc_objects, use_dser):
     dstore = io_app.open_data_store(":memory:", mode="w")
     writer = io_app.write_db(dstore)
     deser = io_app.load_db().deserialiser if use_dser else None
-    for nc in nc_objects:
+    for nc in nc_objects.values():
         writer(nc)
 
     got = summary_not_completeds(dstore, deserialise=deser)

@@ -67,6 +67,8 @@ def test_available_apps():
 
 def _get_incompat_app_pairs(tmp_path):
     """Generate all incompatible application pairs"""
+    from cogent3.app.typing import check_type_compatibility
+
     applications = _get_all_composables(tmp_path / "delme")
     return [
         (app1, app2)
@@ -76,24 +78,22 @@ def _get_incompat_app_pairs(tmp_path):
         or (
             app2.app_type is LOADER
             and app1 != app2
-            and not app1._return_types & app2._data_types
-            and not app1._return_types & {"SerialisableType", "IdentifierType"}
+            and not check_type_compatibility(app1._return_type, app2._input_type)
         )
     ]
 
 
 def _get_compat_app_pairs(tmp_path):
-    """Generate all incompatible application pairs"""
+    """Generate all compatible application pairs"""
+    from cogent3.app.typing import check_type_compatibility
+
     applications = _get_all_composables(tmp_path / "delme")
     return [
         (app1, app2)
         for app1 in applications
         for app2 in applications
         if app1 != app2
-        and (
-            app1._return_types & app2._data_types
-            or app1._return_types & {"SerialisableType", "IdentifierType"}
-        )
+        and check_type_compatibility(app1._return_type, app2._input_type)
         and app1.app_type is not WRITER
         and app2.app_type is not LOADER
     ]
