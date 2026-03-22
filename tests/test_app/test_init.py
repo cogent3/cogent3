@@ -228,3 +228,42 @@ def test_available_apps_license_col():
     available = available_apps()
     assert "licenses" in available.columns
     assert "BSD" in available.columns["licenses"]
+
+
+def test_app_module_lazy_import_open_data_store(monkeypatch):
+    """accessing cogent3.app.open_data_store triggers lazy import"""
+    import cogent3.app as app_mod
+
+    monkeypatch.delattr(app_mod, "open_data_store", raising=False)
+
+    result = app_mod.open_data_store
+    from cogent3.app.io import open_data_store as ods
+
+    assert result is ods
+    assert "open_data_store" in vars(app_mod)
+
+
+def test_app_module_getattr_unknown():
+    """accessing unknown attribute on cogent3.app raises AttributeError"""
+    import cogent3.app as app_mod
+
+    with pytest.raises(AttributeError, match="has no attribute"):
+        app_mod.nonexistent_attr_xyz
+
+
+def test_make_signature_callable_default_without_app_type():
+    """_make_signature handles callable defaults that lack app_type"""
+    from cogent3.app import _get_app_matching_name, _make_signature
+
+    app = _get_app_matching_name("write_tabular")
+    got = _make_signature(app)
+    assert "'write_tabular'" in got
+    assert "get_unique_id" in got
+
+
+def test_clean_params_docs_trailing_empty_line():
+    """_clean_params_docs removes trailing empty lines"""
+    from cogent3.app import _clean_params_docs
+
+    result = _clean_params_docs("        Parameters\n        ----------\n\n")
+    assert result == "Parameters\n----------"
