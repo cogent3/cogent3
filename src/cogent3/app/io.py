@@ -162,13 +162,13 @@ def open_data_store(
 
 
 @define_app(skip_not_completed=False)
-def pickle_it(data: SerialisableType) -> bytes:
+def pickle_it(data: typing.Any) -> bytes:
     """Serialises data using pickle."""
     return pickle.dumps(data)
 
 
 @define_app(skip_not_completed=False)
-def unpickle_it(data: bytes) -> SerialisableType:
+def unpickle_it(data: bytes) -> typing.Any:
     "Deserialises pickle data."
     return pickle.loads(data)
 
@@ -222,7 +222,7 @@ class to_primitive:
     def __init__(self, convertor: callable = as_dict) -> None:
         self.convertor = convertor
 
-    def main(self, data: SerialisableType) -> SerialisableType:
+    def main(self, data: typing.Any) -> typing.Any:
         """returns dict from a cogent3 object"""
         return self.convertor(data)
 
@@ -234,19 +234,19 @@ class from_primitive:
     def __init__(self, deserialiser: callable = deserialise_object) -> None:
         self.deserialiser = deserialiser
 
-    def main(self, data: SerialisableType) -> SerialisableType:
+    def main(self, data: typing.Any) -> typing.Any:
         """either json or a dict from a cogent3 object"""
         return self.deserialiser(data)
 
 
 @define_app
-def to_json(data: SerialisableType) -> str:
+def to_json(data: dict) -> str:
     """Convert primitive python types to json string."""
     return json.dumps(data)
 
 
 @define_app
-def from_json(data: str) -> SerialisableType:
+def from_json(data: str) -> dict:
     """Convert json string to primitive python types."""
     return json.loads(data)
 

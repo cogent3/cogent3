@@ -104,6 +104,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "src/cogent3/parse/cogent3_json.py" = [
     "ANN401" # Allow use of Any
 ]
+"src/cogent3/app/io.py" = [
+    "ANN401" # Allow use of Any for generic serialisation apps
+]
 
 [format]
 # Like Black, use double quotes for strings.
