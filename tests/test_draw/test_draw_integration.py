@@ -96,14 +96,14 @@ class UtilDrawablesTests(unittest.TestCase):
         """space argument shifts boundaries"""
         sep = 0.1
         x = get_domain(2, 0, is_y=False, space=sep)
-        assert_allclose(x, [0 + sep / 2, 0.5 - sep / 2])
+        assert_allclose(x, [0 + sep / 5, 0.5 - sep / 5])
         x = get_domain(2, 1, is_y=False, space=sep)
-        assert_allclose(x, [0.5 + sep / 2, 1 - sep / 2])
+        assert_allclose(x, [0.5 + sep / 5, 1 - sep / 5])
         # if space too big relative to the span of each domain, it's reduced
-        # to 1/10th the domain span
+        # to 1/3rd the domain span
         sep = 0.6
         x = get_domain(2, 0, is_y=False, space=sep)
-        exp_sep = 0.5 / 10
+        exp_sep = 0.5 / 6
         assert_allclose(x, [0 + exp_sep, 0.5 - exp_sep])
 
     def test_domain_element_size(self):

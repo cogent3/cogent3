@@ -280,6 +280,9 @@ class atomic_write:
             else "".join(self._path.suffixes[:-1])
         )
         parent = self._in_zip.parent if self._in_zip else self._path.parent
+        if not parent.exists():
+            raise OSError(f"Parent dir '{parent}' of provided path does not exist")
+
         name = f"{uuid.uuid4()}{suffixes}"
         tmpdir = Path(mkdtemp(dir=parent)) if tmpdir is None else Path(tmpdir)
 

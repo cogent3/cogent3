@@ -22,6 +22,7 @@ from cogent3.core.profile import (
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.util.deserialise import deserialise_object
 
+from ._citations import cite_cogent3
 from .composable import LOADER, WRITER, NotCompleted, define_app
 from .data_store import (
     READONLY,
@@ -161,13 +162,13 @@ def open_data_store(
 
 
 @define_app(skip_not_completed=False)
-def pickle_it(data: SerialisableType) -> bytes:
+def pickle_it(data: typing.Any) -> bytes:
     """Serialises data using pickle."""
     return pickle.dumps(data)
 
 
 @define_app(skip_not_completed=False)
-def unpickle_it(data: bytes) -> SerialisableType:
+def unpickle_it(data: bytes) -> typing.Any:
     "Deserialises pickle data."
     return pickle.loads(data)
 
@@ -221,7 +222,7 @@ class to_primitive:
     def __init__(self, convertor: callable = as_dict) -> None:
         self.convertor = convertor
 
-    def main(self, data: SerialisableType) -> SerialisableType:
+    def main(self, data: typing.Any) -> typing.Any:
         """returns dict from a cogent3 object"""
         return self.convertor(data)
 
@@ -233,19 +234,19 @@ class from_primitive:
     def __init__(self, deserialiser: callable = deserialise_object) -> None:
         self.deserialiser = deserialiser
 
-    def main(self, data: SerialisableType) -> SerialisableType:
+    def main(self, data: typing.Any) -> typing.Any:
         """either json or a dict from a cogent3 object"""
         return self.deserialiser(data)
 
 
 @define_app
-def to_json(data: SerialisableType) -> str:
+def to_json(data: dict) -> str:
     """Convert primitive python types to json string."""
     return json.dumps(data)
 
 
 @define_app
-def from_json(data: str) -> SerialisableType:
+def from_json(data: str) -> dict:
     """Convert json string to primitive python types."""
     return json.loads(data)
 
@@ -295,7 +296,7 @@ def _load_seqs(
     return coll_maker(data, moltype=moltype, source=unique_id)
 
 
-@define_app(app_type=LOADER)
+@define_app(app_type=LOADER, cite=cite_cogent3)
 class load_aligned:
     """Loads aligned sequences. Returns an Alignment object."""
 
@@ -330,7 +331,7 @@ class load_aligned:
         return _load_seqs(path, cogent3.make_aligned_seqs, self._parser, self.moltype)
 
 
-@define_app(app_type=LOADER)
+@define_app(app_type=LOADER, cite=cite_cogent3)
 class load_unaligned:
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
@@ -367,7 +368,7 @@ class load_unaligned:
         return seqs.degap()
 
 
-@define_app(app_type=LOADER)
+@define_app(app_type=LOADER, cite=cite_cogent3)
 class load_tabular:
     """Loads delimited data. Returns a Table."""
 
@@ -472,7 +473,7 @@ class load_tabular:
         return func[self.as_type](data)
 
 
-@define_app(app_type=LOADER)
+@define_app(app_type=LOADER, cite=cite_cogent3)
 class load_json:
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
@@ -504,7 +505,7 @@ class load_json:
 DEFAULT_DESERIALISER = unpickle_it() + from_primitive()
 
 
-@define_app(app_type=LOADER)
+@define_app(app_type=LOADER, cite=cite_cogent3)
 class load_db:
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
@@ -532,7 +533,7 @@ class load_db:
         return result
 
 
-@define_app(app_type=WRITER)
+@define_app(app_type=WRITER, cite=cite_cogent3)
 class write_json:
     """Writes data in json format."""
 
@@ -587,7 +588,7 @@ class write_json:
         return self.data_store.write(unique_id=identifier, data=data)
 
 
-@define_app(app_type=WRITER)
+@define_app(app_type=WRITER, cite=cite_cogent3)
 class write_seqs:
     """Write sequences in standard formats."""
 
@@ -647,7 +648,7 @@ class write_seqs:
         return self.data_store.write(unique_id=identifier, data=data)
 
 
-@define_app(app_type=WRITER)
+@define_app(app_type=WRITER, cite=cite_cogent3)
 class write_tabular:
     """Writes tabular data in text format supported by the cogent3 Table object."""
 
@@ -706,7 +707,7 @@ class write_tabular:
 DEFAULT_SERIALISER = to_primitive() + pickle_it()
 
 
-@define_app(app_type=WRITER, skip_not_completed=False)
+@define_app(app_type=WRITER, skip_not_completed=False, cite=cite_cogent3)
 class write_db:
     """Write serialised objects to a database instance."""
 

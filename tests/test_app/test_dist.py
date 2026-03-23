@@ -154,8 +154,8 @@ class FastSlowDistTests(TestCase):
             got = app + calc_dist
             assert isinstance(got, type(calc_dist))
             assert got.input is app
-            assert isinstance(got._data_types, frozenset)
-            assert isinstance(got._return_types, frozenset)
+            assert got._input_type is not None
+            assert got._return_type is not None
             assert got.input is app
             app.disconnect()
             calc_dist.disconnect()

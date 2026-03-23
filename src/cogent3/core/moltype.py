@@ -20,7 +20,6 @@ import numpy
 import numpy.typing as npt
 
 from cogent3.core import alphabet as c3_alphabet
-from cogent3.core import sequence as c3_sequence
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.misc import get_object_provenance
@@ -29,6 +28,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Generator, Mapping
     from collections.abc import Sequence as PySeq
 
+    from cogent3.core import sequence as c3_sequence
     from cogent3.core.seqview import SeqViewABC
     from cogent3.core.table import Table
 
@@ -430,7 +430,7 @@ class MolType(Generic[TStrOrBytes]):
         self,
         name: str,
         monomers: TStrOrBytes,
-        make_seq: type[c3_sequence.Sequence],
+        make_seq: type[c3_sequence.Sequence] | str,
         gap: str | None = IUPAC_gap,
         missing: str | None = IUPAC_missing,
         complements: dict[str, str] | None = None,
@@ -453,12 +453,17 @@ class MolType(Generic[TStrOrBytes]):
     def __post_init__(
         self,
         monomers: TStrOrBytes,
-        make_seq: type[c3_sequence.Sequence],
+        make_seq: type[c3_sequence.Sequence] | str,
         complements: dict[str, str] | None,
         colors: dict[str, str] | None,
     ) -> None:
         self._colors = colors or defaultdict(_DefaultValue("black"))
-        self._make_seq = make_seq
+        if isinstance(make_seq, str):
+            self._make_seq_name: str | None = make_seq
+            self._make_seq: type[c3_sequence.Sequence] | None = None
+        else:
+            self._make_seq_name = None
+            self._make_seq = make_seq
         gap = c3_alphabet._coerce_to_type(monomers, self.gap or "")
         missing = c3_alphabet._coerce_to_type(monomers, self.missing or "")
         ambigs = c3_alphabet._coerce_to_type(monomers, "".join(self.ambiguities or ""))
@@ -681,7 +686,13 @@ class MolType(Generic[TStrOrBytes]):
             msg = f"{values} not valid for moltype {self.name!r} alphabet {alpha}"
             raise c3_alphabet.AlphabetError(msg)
 
-        return self._make_seq(moltype=self, seq=seq, name=name, **kwargs)
+        make_seq_cls = self._make_seq
+        if make_seq_cls is None:
+            from cogent3.core import sequence as _seq
+
+            make_seq_cls = getattr(_seq, cast("str", self._make_seq_name))
+            self._make_seq = make_seq_cls
+        return make_seq_cls(moltype=self, seq=seq, name=name, **kwargs)
 
     @overload
     def complement(self, seq: str, validate: bool = True) -> str: ...
@@ -1654,7 +1665,7 @@ ASCII = MolType(
     # characters that could be present in any of those files.
     monomers="".join(ascii_letters),
     name="text",
-    make_seq=c3_sequence.Sequence,
+    make_seq="Sequence",
 )
 
 DNA = MolType(
@@ -1663,7 +1674,7 @@ DNA = MolType(
     name="dna",
     complements=IUPAC_DNA_ambiguities_complements,
     colors=NT_COLORS,
-    make_seq=c3_sequence.DnaSequence,
+    make_seq="DnaSequence",
     pairing_rules=DNA_STANDARD_PAIRS,
     mw_calculator=DnaMW,
     coerce_to=coerce_to_dna,
@@ -1675,7 +1686,7 @@ RNA = MolType(
     name="rna",
     complements=IUPAC_RNA_ambiguities_complements,
     colors=NT_COLORS,
-    make_seq=c3_sequence.RnaSequence,
+    make_seq="RnaSequence",
     pairing_rules=RNA_STANDARD_PAIRS,
     mw_calculator=RnaMW,
     coerce_to=coerce_to_rna,
@@ -1685,7 +1696,7 @@ PROTEIN = MolType(
     ambiguities=IUPAC_PROTEIN_ambiguities,
     name="protein",
     colors=AA_COLORS,
-    make_seq=c3_sequence.ProteinSequence,
+    make_seq="ProteinSequence",
     mw_calculator=ProteinMW,
     coerce_to=coerce_to_protein,
 )
@@ -1695,7 +1706,7 @@ PROTEIN_WITH_STOP = MolType(
     ambiguities=PROTEIN_WITH_STOP_ambiguities,
     name="protein_with_stop",
     colors=AA_COLORS,
-    make_seq=c3_sequence.ProteinWithStopSequence,
+    make_seq="ProteinWithStopSequence",
     mw_calculator=ProteinMW,
     coerce_to=coerce_to_protein,
 )
@@ -1704,7 +1715,7 @@ BYTES = MolType(
     # want to prematurely assume _anything_ about the data.
     monomers=bytes(bytearray(range(2**8))),
     name="bytes",
-    make_seq=c3_sequence.ByteSequence,
+    make_seq="ByteSequence",
     gap=None,
     missing=None,
 )

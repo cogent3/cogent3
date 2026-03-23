@@ -97,7 +97,7 @@ class NcbiTaxon:
             line_pieces[-1] = last[:-1]
         self.__dict__ = dict(list(zip(self.Fields, line_pieces, strict=False)))
         self.Name = ""  # will get name field from names.dmp; fillNames
-        self.RankId = RanksToNumbers.get(self.Rank, None)
+        self.RankId = RanksToNumbers.get(self.Rank)
 
     def __str__(self) -> str:
         """Writes data out in format we got it."""

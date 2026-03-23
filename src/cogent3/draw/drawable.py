@@ -44,7 +44,7 @@ def get_domain(total, element, is_y, space=0.01):
         raise ValueError(msg)
 
     per_element = 1 / total
-    space = min(space / 2, per_element / 10)
+    space = min(space / 5, per_element / 6)
     bounds = [per_element * i for i in range(total + 1)]
     domains = [
         (bounds[k] + space, bounds[k + 1] - space) for k in range(len(bounds) - 1)
@@ -659,6 +659,7 @@ class Shape:
             legendgroup=self._legendgroup,
             showlegend=self._showlegend,
             hoverinfo="text",
+            hoveron="fills+points",
         )
 
 
@@ -917,7 +918,8 @@ class _MakeShape:
             if coords is None:
                 msg = "No coordinates defined"
                 raise ValueError(msg)
-        kwargs |= {"reverse": reverse}
+        if "reverse" not in kwargs:
+            kwargs["reverse"] = reverse
 
         klass = self._shapes.get(type_.lower(), Rectangle)
         color = self.get_colour(type_)
@@ -959,3 +961,39 @@ class _MakeShape:
 
 
 make_shape = _MakeShape()
+
+
+def stack_shapes(
+    drawables: dict[str, list[Shape]],
+    order: PySeq[str] | None = None,
+) -> tuple[list[Shape], float]:
+    """Stack shapes by biotype and return (shapes, top_y).
+
+    Parameters
+    ----------
+    drawables
+        Mapping of biotype to list of Shape instances.
+    order
+        Optional sequence of biotype keys controlling iteration order.
+        When None, iterates ``drawables.values()`` in dict order.
+    """
+    top: float = 0
+    space = 0.25
+    annotes: list[Shape] = []
+    annott = None
+    groups = (
+        (drawables[k] for k in order if k in drawables)
+        if order is not None
+        else drawables.values()
+    )
+    for shapes in groups:
+        new_bottom = top + space
+        for i, annott in enumerate(shapes):
+            annott.shift(y=new_bottom - annott.bottom)
+            if i > 0:
+                annott._showlegend = False  # noqa: SLF001
+            annotes.append(annott)
+        top = cast("Shape", annott).top
+
+    top += space
+    return annotes, top

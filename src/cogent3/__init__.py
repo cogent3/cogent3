@@ -57,7 +57,6 @@ _import_mapping = {
     "load_annotations": "core.annotation_db",
     "load_tree": "core.tree",
     "make_tree": "core.tree",
-    "PhyloNode": "core.tree",
     "TreeError": "core.tree",
     "load_table": "core.table",
     "make_table": "core.table",
@@ -78,6 +77,15 @@ _import_mapping = {
     "available_apps": "app",
     "get_app": "app",
     "open_data_store": "app.io",
+    # Core types returned by top-level functions
+    "Alignment": "core.alignment",
+    "SequenceCollection": "core.alignment",
+    "Sequence": "core.sequence",
+    "Table": "core.table",
+    "MolType": "core.moltype",
+    "GeneticCode": "core.genetic_code",
+    "PhyloNode": "core.tree",
+    "draw_annotations": "draw.annotation",
 }
 
 
@@ -100,6 +108,10 @@ if warn := os.environ.get(warn_env):
 # suppress numba warnings
 __numba_logger = logging.getLogger("numba")
 __numba_logger.setLevel(logging.WARNING)
+
+# suppress OpenMP deprecation warning from numba's threading layer
+# (omp_set_nested is deprecated in favour of omp_set_max_active_levels)
+os.environ.setdefault("KMP_WARNINGS", "0")
 
 
 def make_seq(
@@ -325,8 +337,9 @@ def load_unaligned_seqs(
     Parameters
     ----------
     filename
-        path to sequence file or glob pattern. If a glob we assume a single
-        sequence per file. All seqs returned in one SequenceCollection.
+        path to sequence file or wildcard / glob pattern (e.g.
+        'path/to/dir/*.fasta'). If a wildcard, we load one sequence per
+        file. All seqs returned in one SequenceCollection.
     format_name
         sequence file format, if not specified tries to guess from the path suffix
     moltype

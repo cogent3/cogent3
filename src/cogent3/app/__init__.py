@@ -12,7 +12,17 @@ import cogent3
 from cogent3._plugin import get_app_manager
 
 from .composable import is_app, is_app_composable
-from .io import open_data_store  # noqa
+
+
+def __getattr__(name):
+    if name == "open_data_store":
+        from .io import open_data_store
+
+        globals()["open_data_store"] = open_data_store
+        return open_data_store
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)
+
 
 if TYPE_CHECKING:  # pragma: no cover
     from stevedore.extension import Extension
@@ -22,7 +32,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 def _parse_license_name(classifier: str) -> str:
     """Extract just the license name from a trove classifier"""
-    match = re.search(r"(.+?)(?:\s+License)?$", classifier.split("::")[-1])
+    match = re.search(r"(.+?)(?:\s+License)?$", classifier.rsplit("::", maxsplit=1)[-1])
     return match[1].strip() if match else classifier
 
 
@@ -74,11 +84,15 @@ def _get_extension_attr(extension: Extension) -> list[str]:
 
 def _make_types(app: type) -> dict:
     """returns type hints for the input and output"""
+    from cogent3.app.typing import get_type_display_names
+
     _types = {"_data_types": [], "_return_types": []}
-    for tys in _types:
-        types = getattr(app, tys, None) or []
-        types = [types] if isinstance(types, str) else types
-        _types[tys] = [{None: ""}.get(e, e) for e in types]
+    input_type = getattr(app, "_input_type", None)
+    return_type = getattr(app, "_return_type", None)
+    if input_type is not None:
+        _types["_data_types"] = sorted(get_type_display_names(input_type))
+    if return_type is not None:
+        _types["_return_types"] = sorted(get_type_display_names(return_type))
     return _types
 
 

@@ -4,7 +4,7 @@
 </p>
 
 [![PyPI version](https://badge.fury.io/py/cogent3.svg)](https://badge.fury.io/py/cogent3)
-[![Conda Downloads](https://pepy.tech/badge/cogent3/month)](https://pepy.tech/project/cogent3)
+[![PyPI Downloads](https://pepy.tech/badge/cogent3/month)](https://pepy.tech/project/cogent3)
 [![Anaconda-Server Badge](https://anaconda.org/bioconda/cogent3/badges/downloads.svg)](https://anaconda.org/bioconda/cogent3)
 
 [![Build Status](https://github.com/cogent3/cogent3/workflows/CI/badge.svg?branch=develop)](https://github.com/cogent3/cogent3/actions?workflow=CI)
@@ -20,21 +20,49 @@
 
 [![CZI's Essential Open Source Software for Science](https://img.shields.io/badge/funded%20by-EOSS-FF414B)](https://czi.co/EOSS)
 
-`cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors.
+`cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors. A plugin system enables custom extensions to expand the library capabilities.
 
 ## 📣 Feature Announcements 📣
+
+<details>
+  <summary>Tracking citations of apps</summary>
+
+We have built a mechanism for defining and tracking citations for apps, making it easier for users to correctly acknowledge app developer efforts. See the announcement on the home page for more details.
+
+</details>
+
+<details>
+  <summary>Drawing annotations from an annotation database</summary>
+
+The new function `cogent3.draw_annotations()` can take an annotation database instance and returns a Drawable. This is useful for exploration of genome features without needing to load sequences.
+
+</details>
+
+<details>
+  <summary>The cogent3 code-sharing site 📚🔌</summary>
+
+Share your [cogent3 ecosystem code solutions](https://github.com/cogent3/c3codeshare) for others to benefit from your awesomeness 😎. Or, just read / use the contributions from others.
+
+</details>
+
+<details>
+  <summary> We now support third-party plugins for annotation databases 📚🔌 </summary>
+
+If you want to contribute a third-party backend, [get in touch](https://github.com/cogent3/cogent3/discussions)!
+
+</details>
+
+<details>
+  <summary> diverse-seq has been rewritten in rust 🚀! </summary>
+
+The sequence sampling tool [diverse-seq](diverse-seq.readthedocs.io), which provides multiple apps for sampling representative sequences, just got faster! The performance critical code has been rewritten in Rust. Give it a try 😀.
+
+</details>
 
 <details>
   <summary> A new rust-based plugin for k-mer counting </summary>
 
 We recently added a new `count_kmers()` method to the `SequenceCollection` and `Sequence` classes. Then, the developers of [Pykmertools](https://github.com/anuradhawick/kmertools) (with a bit of help from us) have released a `cogent3-pykmertools` app which makes their rust-based python module for counting k-mers available as `seqs.count_kmers(k=k, use_hook="cogent3_pykmertools")`. Install it with `pip install cogent3-pykmertools` and give it a try. And add a star to the [Pykmertools](https://github.com/anuradhawick/kmertools) repo!
-
-</details>
-
-<details>
-  <summary> Third-party integration demo for iplotx </summary>
-
-The [iplotx](https://iplotx.readthedocs.io/) team have contributed a demonstration of their tool's ability to produce images from `cogent3` tree objects. See the [cogent3 image gallery](https://cogent3.org/doc/draw/index.html) to read it.
 
 </details>
 
@@ -48,7 +76,6 @@ We have implemented the infrastructure to support alternative sequence storage p
 ### Cogent3 supports sequence format parser and writer plugins 👓✍️🔌
 
 We have implemented the infrastructure to support third-party provision of every bioinformaticians favourite game -- parsing / writing the multitude of sequence file formats.  All builtin format parsers / writers are implemented as plugins. We use third-party versions by default.
-
 
 ### Cogent3 implements plugin hooks 🔌🪝🎉
 
@@ -108,7 +135,11 @@ For most users we recommend
 $ pip install "cogent3[extra]"
 ```
 
-which installs support for data visualisation and jupyter notebooks.
+which installs support for data visualisation (which requires [Plotly](https://pypi.org/project/plotly/)) and extensions for jupyter notebooks.
+
+> **Note:** In order to write Plotly figures to static image files you will need to [install Chrome](https://plotly.com/python/static-image-export/#install-dependencies).
+
+### Minimal installation
 
 If you're running on a high-performance computing system we recommend
 
@@ -118,10 +149,30 @@ $ pip install cogent3
 
 which skips the data visualisation and notebook support.
 
-To install the development version directly from GitHub
+### Install with developer tools
+
+Everything we use for `cogent3` development.
+
+```bash
+$ pip install "cogent3[dev]"
+```
+
+> **Note:** Installs all dependencies that can be installed using `pip`.
+
+### Installing the development version
 
 ```bash
 $ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
+```
+
+> **Warning:** The interface can change without warning on the development branch.
+
+### Installing using conda / mamba
+
+Activate your [conda](https://docs.conda.io/en/latest/miniconda.html) environment, then
+
+```bash
+(myenv) $ conda install bioconda::cogent3
 ```
 
 ## Project Information

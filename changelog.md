@@ -1,4 +1,205 @@
 
+<a id='changelog-2026.3.23a0'></a>
+# Changes in release "2026.3.23a0"
+
+Feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- data store `write_bib()` now resolves the user home
+  directory.
+- We now use typeguard for resolving app type hints
+  during composition and data type checking at runtime.
+  This means users can go-to-town on how complex their
+  types are!
+- Hardened against circular imports due to the relationships
+  between moltype and sequences.
+
+<a id='changelog-2026.3.10a0'></a>
+# Changes in release "2026.3.10a0"
+
+A minor feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added draw_annotations(vertical_spacing) argument to control
+  space between the vertically stacked subplots resulting from
+  using centered_on when max_seqids>1.
+- Refactored the coevolution statistics to using numba.prange for
+  parallel execution. The main reason for this is to improve the
+  load balancing across CPUs and to avoid pickling overhead.
+
+## Deprecations
+
+- Deleted functions marked for deprecation by this release.
+
+<a id='changelog-2026.2.28a1'></a>
+# Changes in release "2026.2.28a1"
+
+This is a feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added table.group_by() method. This returns a new GroupBy class with
+  methods that are useful for computing summary statistics.
+- Composed apps now have `.citations` and `.bib` properties. These use the
+  new `citeable` package objects to represent citations of different apps
+  you have used. This information is automatically written to data stores
+  via the `apply_to()` method by cogent3 writers. The `DataStoreABC` gets
+  new methods and properties `write_citations()`, `summary_citations`,
+  `bib` for handling this data. These are implemented directly in the
+  cogent3 data store classes. `DataStoreDirectory.write_citations()` writes
+  out json into a .citations file. `DataStoreSqlite.write_citations()`
+  writes into a new table. The `<data store>.summary_citations` property
+  returns a `Table` object that shows the app and an abbreviation of the
+  citation. `<data store>.bib` is a string that can be displayed, or
+  written to a file for importing into your Bibliography manager.
+- the new draw_annotations() gets a `centered_on` argument, for centering
+  the display on a feature whose name matches `centered_on`.
+
+<a id='changelog-2026.2.17a2'></a>
+# Changes in release "2026.2.17a2"
+
+Fixed error in README
+
+## Contributors
+
+- @GavinHuttley
+
+## Documentation
+
+- Fixed the readme
+
+<a id='changelog-2026.2.17a1'></a>
+# Changes in release "2026.2.17a1"
+
+A feature enhancement and bug fix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Made the major cogent3 data types available as top level
+  imports via our lazy loading mechanism. This should reduce
+  errors when using Gen AI to create scripts. LLMs have a
+  tendency to use type hinting and were failing because
+  our top level functions return types were not also at the top level.
+
+- The new function `cogent3.draw_annotations()` can take an annotation
+  database instance and returns a `Drawable`. This is useful for exploration
+  of genomic features without needing to load the sequence itself.
+
+## Bug fixes
+
+- Fixed an edge case where providing a single (start / stop) coordinate
+  for querying annotation features could lead to no features being
+  returned by an annotation database.
+
+## Documentation
+
+- Added a new gallery member for the display of annotation databases.
+
+<a id='changelog-2026.2.3a1'></a>
+# Changes in release "2026.2.3a1"
+
+A minor feature enhancement and bug fix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Update the CIGAR parsing capabilities. Now handles all valid
+  characters.
+- Major rewrite of the schema of the annotation db's. This will
+  greatly improve performance for looking for hierarchical features,
+  e.g. get transcripts of a specific gene.
+- The annotation db's schema is now versioned and users should apply
+  `cogent3.core.annotation_db.upgrade_annotation_db()` to upgrade
+  existing db's.
+- `load_annotations()` should now be used to load directly saved
+  db's.
+- Now specify filename suffixes for the different flavours of
+  annotation db's: genbank (.c3gbdb), gff (.c3gffdb) and
+  the basic ann db (.c3andb). Writing now enforces the correct suffix
+  is used.
+
+## Bug fixes
+
+- load_annotations() now correctly handles files with compression suffixes
+
+## Deprecations
+
+- The construction of alignments from CIGAR and sequence strings
+  no longer supports slicing. We need a clearer use case for this
+  to be provided by a user!
+
+<a id='changelog-2026.1.20a1'></a>
+# Changes in release "2026.1.20a1"
+
+A feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- We now support third-party plugins for annotation handling 🎉
+  third-party annotation dbs should inherit from AnnotationDbABC,
+  to ensure integratiojn with sequence collection classes.
+  The plugin should inherit from AnnotationDbLoaderBase.
+  Plugins register in pyproject.toml under
+  `[project.entry-points."cogent3.load.annotations"]`.
+  Users can specify the plugin they want to use to load_annotations`
+  with `storage_backend='plugin name'.
+
+## Documentation
+
+- Added a cookbook snippet showing how to load sequences from
+  multiple files using wildcards.
+- Added a cookbook snippet showing how to load annotations from
+  multiple files using wildcards.
+
+<a id='changelog-2026.1.12a1'></a>
+# Changes in release "2026.1.12a1"
+
+Minor feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added `<sequence>.write()` and `<sequence>.to_dict()` methods and a cookbook example
+  for the former. These match the API of the sequence collection classes.
+- The likelihood function `get_scaled_lengths()` method is now updated to support
+  non-stationary models.
+- Provided repr for location GenBank feature objects. Makes it much easier to
+  understand the "raw content" coming from a record feature table.
+
+## Documentation
+
+- Updated the api docs to reflect the core restructure. So the classes that were split
+  out from alignment.py and sequence.py into seqview, slice_record, and seq_storage
+  modules now get their own API docs.
+
 <a id='changelog-2026.1.6a1'></a>
 # Changes in release "2026.1.6a1"
 

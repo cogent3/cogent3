@@ -4,6 +4,19 @@ Image Gallery
 
 We use `Plotly <https://plotly.com/python/>`_ as our backend for visualisation. It provides excellent graph interactivity in Jupyter notebooks.
 
+.. _annotations-gallery:
+
+***********
+Annotations
+***********
+
+.. nbgallery::
+    :name: rst-annotations-gallery
+    :glob:
+    :reversed:
+
+    annotations/*
+
 **********************
 Alignments & Sequences
 **********************
@@ -27,4 +40,3 @@ Phylogenetic Trees
     :reversed:
 
     tree/*
-

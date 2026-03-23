@@ -17,7 +17,7 @@ import pickle
 import re
 import typing
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Mapping, MutableMapping
+from collections.abc import Callable, Iterable, Iterator, Mapping, MutableMapping
 from collections.abc import Sequence as PySeq
 from itertools import product
 from typing import Self
@@ -92,6 +92,51 @@ def _callback(callback, row, num_columns=None):
 
 
 _num_type = re.compile("^(float|int|complex)").search
+
+
+def _group_indices(table: "Table", columns: list[str]) -> dict[tuple, numpy.ndarray]:
+    """Return {group_key: row_indices} for the given columns.
+
+    Parameters
+    ----------
+    table
+        a Table instance
+    columns
+        list of column name strings
+
+    Returns
+    -------
+    dict mapping tuple keys to numpy arrays of row indices.
+    Keys are tuples even for single-column grouping.
+    """
+    if len(columns) == 1:
+        col_data = table.columns[columns[0]]
+        unique_keys, inverse = numpy.unique(col_data, return_inverse=True)
+        keys = [(k.item() if hasattr(k, "item") else k,) for k in unique_keys]
+    else:
+        col_arrays = [table.columns[c] for c in columns]
+        if any(arr.dtype.kind == "O" for arr in col_arrays):
+            combined = numpy.empty(table.shape[0], dtype="O")
+            for i in range(table.shape[0]):
+                combined[i] = tuple(
+                    v.item() if hasattr(v, "item") else v
+                    for v in (arr[i] for arr in col_arrays)
+                )
+            unique_keys, inverse = numpy.unique(combined, return_inverse=True)
+            keys = list(unique_keys)
+        else:
+            dtypes = [(c, table.columns[c].dtype) for c in columns]
+            rec = numpy.rec.fromarrays(col_arrays, dtype=dtypes)
+            unique_keys, inverse = numpy.unique(rec, return_inverse=True)
+            keys = [
+                tuple(v.item() if hasattr(v, "item") else v for v in unique_keys[i])
+                for i in range(len(unique_keys))
+            ]
+
+    groups = {}
+    for idx, key in enumerate(keys):
+        groups[key] = numpy.where(inverse == idx)[0]
+    return groups
 
 
 def array_is_num_type(data):
@@ -242,7 +287,7 @@ class Columns(MutableMapping):
     def __contains__(self, key) -> bool:
         return key in self._order
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> numpy.ndarray:
         if isinstance(key, str | int):
             key = self._get_key_(key)
             return self.__dict__[key]
@@ -255,7 +300,7 @@ class Columns(MutableMapping):
             key = numpy.array(self._order)[key].tolist()
 
         if type(key) in (list, tuple):
-            result = [self.__dict__[self._get_key_(k)] for k in key]
+            result = numpy.array([self.__dict__[self._get_key_(k)] for k in key])
         else:
             msg = f"{key}"
             raise KeyError(msg)
@@ -1242,14 +1287,30 @@ class Table:
         if columns is None:
             columns = self.columns.order
 
-        subset = self.columns.take_columns(columns)
-        if len(subset) == 1:
-            data = subset[0].tolist()
-        else:
-            data = subset.array
-            data = [tuple(e) for e in data]
+        if isinstance(columns, str):
+            columns = [columns]
 
-        return CategoryCounter(data=data)
+        groups = _group_indices(self, columns)
+        if len(columns) == 1:
+            data = {key[0]: len(indices) for key, indices in groups.items()}
+        else:
+            data = {key: len(indices) for key, indices in groups.items()}
+        return CategoryCounter(data)
+
+    def group_by(self, columns: str | list[str]) -> "GroupBy":
+        """Group table rows by one or more columns.
+
+        Parameters
+        ----------
+        columns
+            column name or list of column names to group by
+
+        Returns
+        -------
+        GroupBy instance supporting aggregation via ``.agg()``,
+        ``.count()``, ``.sum()``, etc.
+        """
+        return GroupBy(self, columns)
 
     def distinct_values(self, columns):
         """returns the set of distinct values for the named column(s)"""
@@ -1539,12 +1600,8 @@ class Table:
                 msg,
             )
 
-        reverse = reverse if reverse is not None else []
-        if reverse != [] and columns is None:
-            columns = reverse
-
-        if columns is None:
-            columns = list(self.columns)
+        reverse = reverse or []
+        columns = columns or reverse or list(self.columns)
 
         if isinstance(columns, str):
             columns = [columns]
@@ -1554,22 +1611,25 @@ class Table:
 
         columns = list(columns)
 
-        if reverse and not (set(columns) & set(reverse)):
+        if reverse:
+            if invalid := set(reverse) - set(self.columns):
+                msg = f"reverse column(s) {invalid} not in table columns"
+                raise ValueError(msg)
+
             for c in reverse:
-                if c in columns:
-                    continue
+                if c not in columns:
+                    columns.append(c)
 
-                columns.append(c)
+        arrays = []
+        for c in columns:
+            col = self.columns[c].copy()
+            if c in reverse:
+                func = _reverse_num if array_is_num_type(col) else _reverse_str
+                col = numpy.vectorize(func)(col)
+            arrays.append(col)
 
-        dtypes = [(c, self.columns[c].dtype) for c in columns]
-        data = numpy.array(self.columns[columns], dtype="O").T
-        for c in reverse:
-            index = columns.index(c)
-            func = _reverse_num if array_is_num_type(self.columns[c]) else _reverse_str
-            func = numpy.vectorize(func)
-            data[:, index] = func(data[:, index])
-
-        data = numpy.rec.fromarrays(data.copy().T, dtype=dtypes)
+        dtypes = [(c, arr.dtype) for c, arr in zip(columns, arrays)]
+        data = numpy.rec.fromarrays(arrays, dtype=dtypes)
         indices = data.argsort()
 
         attr = self._get_persistent_attrs()
@@ -2269,6 +2329,252 @@ class Table:
             outfile.write(table + "\n")
 
         outfile.close()
+
+
+_AGG_FUNCS = {
+    "sum": numpy.sum,
+    "mean": numpy.mean,
+    "median": numpy.median,
+    "min": numpy.min,
+    "max": numpy.max,
+    "std": lambda x: numpy.std(x, ddof=1),
+    "var": lambda x: numpy.var(x, ddof=1),
+    "count": len,
+    "first": lambda x: x[0],
+    "last": lambda x: x[-1],
+}
+
+
+class GroupBy:
+    """Groups a Table by one or more columns for aggregation.
+
+    Returned by ``Table.group_by()``. Group computation is deferred
+    until a terminal method (``agg``, ``count``, iteration, etc.) is
+    called.
+    """
+
+    def __init__(self, table: Table, columns: str | list[str]) -> None:
+        if isinstance(columns, str):
+            columns = [columns]
+        for c in columns:
+            if c not in table.columns:
+                msg = f"'{c}' not in table columns"
+                raise ValueError(msg)
+        self._table = table
+        self._columns = list(columns)
+        self._cached_groups: dict[tuple, numpy.ndarray] | None = None
+
+    @property
+    def _groups(self) -> dict[tuple, numpy.ndarray]:
+        if self._cached_groups is None:
+            self._cached_groups = _group_indices(self._table, self._columns)
+        return self._cached_groups
+
+    def __repr__(self) -> str:
+        cols = ", ".join(f"'{c}'" for c in self._columns)
+        rows, ncols = self._table.shape
+        return f"GroupBy({cols}) from {rows} rows x {ncols} columns"
+
+    def __iter__(self) -> Iterator[tuple[typing.Any, Table]]:
+        single = len(self._columns) == 1
+        for key in sorted(self._groups):
+            indices = self._groups[key]
+            sub = self._table[indices.tolist(), :]
+            yield (key[0] if single else key, sub)
+
+    def agg(self, *args: tuple[str, str | Callable]) -> Table:
+        """Apply aggregation functions to grouped data.
+
+        Parameters
+        ----------
+        *args
+            Each argument is a ``(column, function)`` tuple specifying
+            one result column.  The same source column may appear in
+            multiple tuples with different functions.
+
+            Functions can be string names that map to numpy functions
+            (``"sum"``, ``"mean"``, ``"median"``, ``"min"``, ``"max"``,
+            ``"std"``, ``"var"``, ``"count"``, ``"first"``, ``"last"``)
+            or callables. ``"std"`` and ``"var"`` use ``ddof=1``
+            (unbiased estimators).
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+        >>> table.group_by("cat").agg(("val", "sum"), ("val", "mean"))
+        """
+        if not args:
+            msg = "at least one aggregation is required"
+            raise ValueError(msg)
+
+        pairs = []
+        for arg in args:
+            if not isinstance(arg, tuple) or len(arg) != 2:
+                msg = "each aggregation must be a (column, function) tuple"
+                raise TypeError(msg)
+            pairs.append(arg)
+
+        # Validate and resolve functions.
+        resolved = []  # list of (source_col, func, result_name)
+        for col, func in pairs:
+            if col in self._columns:
+                msg = f"cannot aggregate group column '{col}'"
+                raise ValueError(msg)
+            if col not in self._table.columns:
+                msg = f"'{col}' not in table columns"
+                raise ValueError(msg)
+            if isinstance(func, str):
+                if func not in _AGG_FUNCS:
+                    msg = f"unknown aggregation function '{func}'"
+                    raise ValueError(msg)
+                func_name = func
+                func = _AGG_FUNCS[func_name]
+            else:
+                func_name = getattr(func, "__name__", "func")
+            result_name = f"{func_name}({col})"
+            resolved.append((col, func, result_name))
+
+        sorted_keys = sorted(self._groups)
+        result_names = [r for *_, r in resolved]
+
+        result_data = {c: [] for c in self._columns}
+        for name in result_names:
+            result_data[name] = []
+
+        for key in sorted_keys:
+            indices = self._groups[key]
+            for i, c in enumerate(self._columns):
+                result_data[c].append(key[i])
+            for col, func, name in resolved:
+                col_data = self._table.columns[col][indices]
+                try:
+                    result_data[name].append(func(col_data))
+                except (TypeError, ValueError):
+                    result_data[name].append(numpy.nan)
+
+        header = list(self._columns) + result_names
+        data = {c: cast_to_array(result_data[c]) for c in header}
+        return Table(header=header, data=data)
+
+    def count(self) -> Table:
+        """Count rows per group.
+
+        Returns
+        -------
+        Table
+        """
+        sorted_keys = sorted(self._groups)
+        result_data = {c: [] for c in self._columns}
+        result_data["count"] = []
+
+        for key in sorted_keys:
+            for i, c in enumerate(self._columns):
+                result_data[c].append(key[i])
+            result_data["count"].append(len(self._groups[key]))
+
+        header = list(self._columns) + ["count"]
+        data = {c: cast_to_array(result_data[c]) for c in header}
+        return Table(header=header, data=data)
+
+    def _apply_convenience(
+        self,
+        func_name: str,
+        columns: str | list[str] | None = None,
+    ) -> Table:
+        if columns is None:
+            non_group = [c for c in self._table.columns.order if c not in self._columns]
+        elif isinstance(columns, str):
+            non_group = [columns]
+        else:
+            non_group = list(columns)
+        return self.agg(*((c, func_name) for c in non_group))
+
+    def sum(self, columns: str | list[str] | None = None) -> Table:
+        """Sum of values per group.
+
+        Parameters
+        ----------
+        columns
+            column name(s) to aggregate. If None, all non-group columns.
+
+        Returns
+        -------
+        Table
+        """
+        return self._apply_convenience("sum", columns)
+
+    def mean(self, columns: str | list[str] | None = None) -> Table:
+        """Mean of values per group.
+
+        Parameters
+        ----------
+        columns
+            column name(s) to aggregate. If None, all non-group columns.
+
+        Returns
+        -------
+        Table
+        """
+        return self._apply_convenience("mean", columns)
+
+    def min(self, columns: str | list[str] | None = None) -> Table:
+        """Minimum value per group.
+
+        Parameters
+        ----------
+        columns
+            column name(s) to aggregate. If None, all non-group columns.
+
+        Returns
+        -------
+        Table
+        """
+        return self._apply_convenience("min", columns)
+
+    def max(self, columns: str | list[str] | None = None) -> Table:
+        """Maximum value per group.
+
+        Parameters
+        ----------
+        columns
+            column name(s) to aggregate. If None, all non-group columns.
+
+        Returns
+        -------
+        Table
+        """
+        return self._apply_convenience("max", columns)
+
+    def std(self, columns: str | list[str] | None = None) -> Table:
+        """Unbiased standard deviation per group (ddof=1).
+
+        Parameters
+        ----------
+        columns
+            column name(s) to aggregate. If None, all non-group columns.
+
+        Returns
+        -------
+        Table
+        """
+        return self._apply_convenience("std", columns)
+
+    def var(self, columns: str | list[str] | None = None) -> Table:
+        """Unbiased variance per group (ddof=1).
+
+        Parameters
+        ----------
+        columns
+            column name(s) to aggregate. If None, all non-group columns.
+
+        Returns
+        -------
+        Table
+        """
+        return self._apply_convenience("var", columns)
 
 
 def make_table(

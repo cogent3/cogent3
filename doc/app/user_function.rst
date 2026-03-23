@@ -207,3 +207,74 @@ App naming conventions
 Use words in lower case separated by underscores (e.g. ``lower_case``) to name your apps. Apps are callable, just like functions, and the `PEP8 guidelines <https://peps.python.org/pep-0008/#function-and-variable-names>`_ specify this naming style.
 
 If you will make your app available on the Python package index, we recommend prefixing each app with your package name. For example, the `piqtree2 <https://pypi.org/project/piqtree2>`_ library distributes apps with names such as ``piqtree_phylo``.
+
+.. _app_citations:
+
+Add a citation to your app so users can acknowledge your work
+-------------------------------------------------------------
+
+Correctly attributing the authors of algorithms and software is a requirement of good scientific practice. cogent3 makes this easy by letting app authors declare citations that are automatically tracked through composed pipelines.
+
+Use the ``cite`` parameter of ``define_app`` to attach a citation to your own app. The ``citeable`` library provides several classes for this purpose.
+
+.. jupyter-execute::
+
+    from citeable import Software
+    from cogent3.app.composable import define_app
+    from cogent3.app.typing import AlignedSeqsType
+
+    my_cite = Software(
+        author=["Doe, J", "Smith, A"],
+        title="My Sequence Filter",
+        year=2025,
+        url="https://example.com/my-filter",
+        version="0.1.0",
+    )
+
+    @define_app(cite=my_cite)
+    def strict_filter(val: AlignedSeqsType) -> AlignedSeqsType:
+        """Remove sequences shorter than the alignment."""
+        return val.omit_bad_seqs()
+
+The ``.app`` attribute on the citation is set automatically to the class name (but this can be over-ridden internally if a citation is assigned to multiple apps).
+
+.. jupyter-execute::
+
+    my_cite.app
+
+The ``.citations`` property on an app instance returns its citations as a tuple.
+
+.. jupyter-execute::
+
+    app = strict_filter()
+    app.citations
+
+You can get the BibTeX string directly via the ``.bib`` property.
+
+.. jupyter-execute::
+
+    print(app.bib)
+
+.. dropdown:: Citations in a composed pipeline
+
+    When apps are composed into a pipeline, ``.citations`` collects unique citations from all apps in the chain.
+
+    .. jupyter-execute::
+
+        from cogent3 import get_app
+
+        loader = get_app("load_aligned", moltype="dna", format_name="fasta")
+        pipeline = loader + strict_filter()
+        pipeline.citations
+
+    The ``.bib`` property gives the combined BibTeX for the whole pipeline.
+
+    .. jupyter-execute::
+
+        print(pipeline.bib)
+
+.. note::
+
+    When a composed pipeline is run via ``apply_to()``, citations are
+    automatically saved in the output data store. See
+    :ref:`data_store_citations` for how to inspect and export them.

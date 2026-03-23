@@ -12,6 +12,7 @@ from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
 from cogent3.app.composable import NotCompleted
 from cogent3.app.data_store import (
+    _CITATIONS_FILE,
     _MD5_TABLE,
     _NOT_COMPLETED_TABLE,
     APPEND,
@@ -366,7 +367,7 @@ def test_summary_not_completed_func(nc_objects, use_dser):
     dstore = io_app.open_data_store(":memory:", mode="w")
     writer = io_app.write_db(dstore)
     deser = io_app.load_db().deserialiser if use_dser else None
-    for nc in nc_objects:
+    for nc in nc_objects.values():
         writer(nc)
 
     got = summary_not_completeds(dstore, deserialise=deser)
@@ -703,3 +704,140 @@ def test_apply_to_not_completed(nc_dstore, tmp_path):
     app = loader + num_seqs + writer
     fini = app.apply_to(nc_dstore)
     assert 0 < len(fini.completed) <= len(nc_dstore.completed)
+
+
+@pytest.fixture
+def sample_citations():
+    from citeable import Software
+
+    c1 = Software(author=["A Author"], title="Tool One", year=2024)
+    c1.app = "app_one"
+    c2 = Software(author=["B Author"], title="Tool Two", year=2025)
+    c2.app = "app_two"
+    return (c1, c2)
+
+
+def test_write_citations_directory(write_dir, sample_citations):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    path = write_dir / _CITATIONS_FILE
+    assert path.exists()
+    loaded = dstore._load_citations()
+    assert len(loaded) == 2
+    assert loaded[0].title == "Tool One"
+    assert loaded[1].title == "Tool Two"
+
+
+def test_write_citations_empty_directory(write_dir):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=())
+    path = write_dir / _CITATIONS_FILE
+    assert not path.exists()
+
+
+def test_summary_citations_directory(write_dir, sample_citations):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    table = dstore.summary_citations
+    assert isinstance(table, Table)
+    assert table.shape[0] == 2
+    assert "app" in table.header
+    assert "citation" in table.header
+
+
+def test_write_bib_directory(write_dir, sample_citations):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    bib_path = write_dir / "refs.bib"
+    dstore.write_bib(bib_path)
+    assert bib_path.exists()
+    content = bib_path.read_text()
+    assert "Tool One" in content
+    assert "Tool Two" in content
+
+
+def test_write_bib_tilde_path(write_dir, sample_citations, HOME_TMP_DIR):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    bib_path = f"~/{HOME_TMP_DIR.name}/refs.bib"
+    dstore.write_bib(bib_path)
+    expected = pathlib.Path(bib_path).expanduser()
+    assert expected.exists()
+    content = expected.read_text()
+    assert "Tool One" in content
+    assert "Tool Two" in content
+
+
+def test_write_bib_no_citations(write_dir):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    bib_path = write_dir / "refs.bib"
+    with pytest.warns(UserWarning, match="No citations stored"):
+        dstore.write_bib(bib_path)
+    assert not bib_path.exists()
+
+
+def test_load_citations_no_file(write_dir):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    assert dstore._load_citations() == []
+
+
+def test_load_citations_zipped(write_dir, sample_citations):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    source = pathlib.Path(dstore.source)
+    path = shutil.make_archive(
+        base_name=source.name,
+        format="zip",
+        base_dir=source.name,
+        root_dir=source.parent,
+    )
+    zipped = ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
+    loaded = zipped._load_citations()
+    assert len(loaded) == 2
+    assert loaded[0].title == "Tool One"
+
+
+def test_summary_citations_zipped(write_dir, sample_citations):
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    dstore.write_citations(data=sample_citations)
+    source = pathlib.Path(dstore.source)
+    path = shutil.make_archive(
+        base_name=source.name,
+        format="zip",
+        base_dir=source.name,
+        root_dir=source.parent,
+    )
+    zipped = ReadOnlyDataStoreZipped(pathlib.Path(path), suffix="fasta")
+    table = zipped.summary_citations
+    assert isinstance(table, Table)
+    assert table.shape[0] == 2
+
+
+def test_write_citations_zipped_raises(zipped_basic):
+    zipped = ReadOnlyDataStoreZipped(zipped_basic, suffix="fasta")
+    with pytest.raises(TypeError, match="read only"):
+        zipped.write_citations(data=(None,))
+
+
+def test_old_directory_store_without_citations(fasta_dir):
+    """Opening a directory store created before citations were added works."""
+    # fasta_dir has .fasta files but no .citations file
+    dstore = DataStoreDirectory(fasta_dir, suffix="fasta", mode=READONLY)
+    assert dstore._load_citations() == []
+    table = dstore.summary_citations
+    assert isinstance(table, Table)
+    assert table.shape[0] == 0
+
+
+def test_citations_file_not_in_completed(write_dir, sample_citations):
+    """The bibliography.citations file must not appear in the completed members list."""
+    dstore = DataStoreDirectory(write_dir, suffix="fasta", mode=OVERWRITE)
+    # write a data file and citations
+    dstore.write(unique_id="sample.fasta", data=">s1\nACGT\n")
+    dstore.write_citations(data=sample_citations)
+    assert (write_dir / _CITATIONS_FILE).exists()
+    # reset cached completed list
+    dstore._completed = []
+    member_ids = {m.unique_id for m in dstore.completed}
+    assert _CITATIONS_FILE not in member_ids
+    assert "sample.fasta" in member_ids

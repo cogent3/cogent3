@@ -160,6 +160,68 @@ Each element in that list is a ``DataMember`` which you can use to get the data 
 
     print(dstore.logs[0].read()[:225]) # truncated for clarity
 
+.. _data_store_citations:
+
+Citations -- attributing the tools that produced your results
+-------------------------------------------------------------
+
+When apps declare citations (see :ref:`app_citations`), those citations are automatically saved alongside your results when you use ``apply_to()``.
+
+.. jupyter-execute::
+
+    from citeable import Software
+    from cogent3 import get_app, open_data_store
+    from cogent3.app.composable import define_app
+    from cogent3.app.typing import AlignedSeqsType
+
+    my_cite = Software(
+        author=["Doe, J"],
+        title="My Sequence Filter",
+        year=2025,
+    )
+
+    @define_app(cite=my_cite)
+    def strict_filter(val: AlignedSeqsType) -> AlignedSeqsType:
+        return val.omit_bad_seqs()
+
+    in_dstore = open_data_store("data/raw.zip", suffix="fa", limit=5)
+    out_dstore = open_data_store("cited_results", suffix="fa", mode="w")
+
+    loader = get_app("load_aligned", moltype="dna", format_name="fasta")
+    writer = get_app("write_seqs", data_store=out_dstore, format_name="fasta")
+    process = loader + strict_filter() + writer
+    result = process.apply_to(in_dstore)
+
+The ``summary_citations`` property returns a table of all citations stored in the data store.
+
+.. jupyter-execute::
+
+    result.summary_citations
+
+You can export the citations to a BibTeX file with ``write_bib()``.
+
+.. jupyter-execute::
+
+    result.write_bib("my_analysis.bib")
+
+.. jupyter-execute::
+    :hide-code:
+
+    import pathlib
+    print(pathlib.Path("my_analysis.bib").read_text())
+
+.. jupyter-execute::
+    :hide-code:
+
+    import shutil
+    pathlib.Path("my_analysis.bib").unlink()
+    shutil.rmtree("cited_results")
+
+.. note::
+
+    ``ReadOnlyDataStoreZipped`` supports reading stored citations but
+    not writing them.
+
 Pulling it all together
 =======================
 

@@ -20,6 +20,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "charset_normalizer",
+    "citeable",
     "loky!=3.5.0",
     # prevent release candidate of numpy 2.4 
     # until numba modified to handle removal
@@ -33,6 +34,7 @@ dependencies = [
     "scitrack",
     "stevedore",
     "tqdm",
+    "typeguard>=4.0,<5",
     "typing_extensions",
 ]
 # remember to update version in requires-python and classifiers
@@ -58,9 +60,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "cogent3-h5seqs>=0.7.2",
-    "piqtree>=0.6; python_version >= '3.11' and python_version < '3.14'",
-    "ruff==0.14.10",
+    "cogent3-h5seqs>=0.7.3",
+    "piqtree>=0.8.0; python_version > '3.11'",
+    "ruff==0.15.6",
     "kaleido",
     "pandas",
     "plotly",
@@ -74,7 +76,7 @@ typing = ["mypy==1.19.1"]
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs>=0.7.2",
+    "cogent3-h5seqs>=0.7.3",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
@@ -82,7 +84,7 @@ doc = [
     "nbformat",
     "nbsphinx",
     "numpydoc",
-    "piqtree>=0.6; python_version >= '3.11' and python_version < '3.14'",
+    "piqtree>=0.8.0; python_version > '3.11'",
     "sphinx",
     "sphinx-autobuild",
     "pydata_sphinx_theme",
@@ -154,7 +156,7 @@ new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
 
 [[tool.mypy.overrides]]
-module = ["numba", "loky", "mpi4py", "stevedore"]
+module = ["numba", "loky", "mpi4py", "stevedore", "typeguard"]
 ignore_missing_imports = true
 
 
@@ -223,3 +225,10 @@ fasta = "cogent3.format.sequence:FastaWriter"
 paml = "cogent3.format.sequence:PamlWriter"
 gde = "cogent3.format.sequence:GdeWriter"
 phylip = "cogent3.format.sequence:PhylipWriter"
+
+[project.entry-points."cogent3.load.annotations"]
+c3anndb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
+# basic, genbank and gff specific annotation db suffixes
+c3andb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
+c3gbdb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"
+c3gffdb = "cogent3.core.annotation_db:SqliteAnnotationDbLoader"

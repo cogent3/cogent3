@@ -51,7 +51,6 @@ from cogent3.core.seq_storage import (
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
@@ -986,17 +985,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             source=self.source,
             annotation_db=self._annotation_db,
         )
-
-    @c3warn.deprecated_callable(
-        version="2026.3",
-        reason="incorrectly implies modifies instance",
-        new="renamed_seqs",
-    )
-    def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
-        """.. deprecated:: 2026.3
-        Use ``renamed_seqs`` instead.
-        """
-        return self.renamed_seqs(renamer)
 
     def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new collection with renamed sequences.
@@ -2732,17 +2720,6 @@ class Alignment(CollectionBase[Aligned]):
         """Returns a numpy array of positions, axis 0 is alignment positions
         columns in order corresponding to names."""
         return self.array_seqs.T
-
-    @c3warn.deprecated_callable(
-        version="2026.3",
-        reason="incorrectly implies modifies instance",
-        new="renamed_seqs",
-    )
-    def rename_seqs(self, renamer: Callable[[str], str]) -> Self:
-        """.. deprecated:: 2026.3
-        Use ``renamed_seqs`` instead.
-        """
-        return self.renamed_seqs(renamer)
 
     def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new alignment with renamed sequences."""
@@ -4523,30 +4500,13 @@ class Alignment(CollectionBase[Aligned]):
         # TODO gah I think this needs to be modified to make row-blocks
         # for each sequence in the alignment, or are we displaying the
         # sequence name in the feature label?
-        from cogent3.draw.drawable import Drawable
+        from cogent3.draw.drawable import Drawable, stack_shapes
 
         drawables = self.get_drawables(biotype=biotype)
         if not drawables:
             return None
-        # we order by tracks
-        top: float = 0
-        space = 0.25
-        annotes: list[Shape] = []
-        annott = None
-        for feature_type in drawables:
-            new_bottom = top + space
-            for i, annott in enumerate(drawables[feature_type]):
-                annott.shift(y=new_bottom - annott.bottom)
-                if i > 0:
-                    # refactor: design
-                    # modify the api on annott, we should not be using
-                    # a private attribute!
-                    annott._showlegend = False
-                annotes.append(annott)
 
-            top = cast("Shape", annott).top
-
-        top += space
+        annotes, top = stack_shapes(drawables)
         height = max((top / len(self)) * width, 300)
         xaxis: dict[str, Any] = {
             "range": [0, len(self)],
@@ -4639,9 +4599,11 @@ class Alignment(CollectionBase[Aligned]):
         show_progress
             shows a progress bar.
         parallel
-            run in parallel, according to arguments in par_kwargs.
+            run in parallel using numba thread-level parallelism (prange).
         par_kw
-            dict of values for configuring parallel execution.
+            ``max_workers`` sets the number of numba threads.
+            ``use_mpi=True`` raises ``NotImplementedError``.
+            Other keys are silently ignored.
 
         Returns
         -------

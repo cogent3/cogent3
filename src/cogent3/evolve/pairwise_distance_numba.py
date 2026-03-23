@@ -16,6 +16,18 @@ if TYPE_CHECKING:  # pragma: no cover
 # turn off code coverage as jit-ted code not accessible to coverage
 
 
+@numba.jit(cache=True)
+def index_to_lower_tri(index):  # pragma: no cover
+    """Convert linear index to lower-triangular (i, j) coordinates.
+
+    Maps a flat index over unique pairs 0..n*(n-1)/2-1 to the
+    corresponding (row, col) in the lower triangle of an n x n matrix.
+    """
+    i = int((1 + (1 + 8 * index) ** 0.5) / 2)
+    j = index - i * (i - 1) // 2
+    return i, j
+
+
 # fills in a diversity matrix from sequences of integers
 
 
@@ -101,8 +113,7 @@ def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
-        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
-        j = index - i * (i - 1) // 2
+        i, j = index_to_lower_tri(index)
         num_diffs, num_valid = num_diffs_and_valid(
             array_seqs[i],
             array_seqs[j],
@@ -209,8 +220,7 @@ def tn93_dist_matrix(
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
-        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
-        j = index - i * (i - 1) // 2
+        i, j = index_to_lower_tri(index)
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
         div_matrix.fill(0)
@@ -402,8 +412,7 @@ def paralinear_distance_matrix(
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
-        i = int((1 + (1 + 8 * index) ** 0.5) / 2)
-        j = index - i * (i - 1) // 2
+        i, j = index_to_lower_tri(index)
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
         div_matrix.fill(0)

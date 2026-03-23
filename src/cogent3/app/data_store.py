@@ -25,6 +25,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterator
     from os import PathLike
 
+    from citeable import CitationBase
+
     from cogent3.app.typing import TabularType
     from cogent3.core.table import Table
 
@@ -34,6 +36,8 @@ _MD5_TABLE = "md5"
 
 # used for log files, not-completed results
 _special_suffixes = re.compile(r"\.(log|json)$")
+
+_CITATIONS_FILE = "bibliography.citations"
 
 StrOrBytes = str | bytes
 NoneType = type(None)
@@ -290,6 +294,53 @@ class DataStoreABC(ABC):
         md5 checksum for the member, if available, None otherwise
         """
 
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        """Write citations to the data store. Subclasses should override."""
+        if not data:
+            return
+        import warnings
+
+        warnings.warn(
+            f"{type(self).__name__} does not support saving citations",
+            UserWarning,
+            stacklevel=2,
+        )
+
+    @property
+    def summary_citations(self) -> TabularType:
+        """Return a Table summarising stored citations."""
+        import warnings
+
+        warnings.warn(
+            f"{type(self).__name__} does not support saving citations",
+            UserWarning,
+            stacklevel=2,
+        )
+        from cogent3.core.table import Table
+
+        return Table(header=["app", "citation"], data=[], title="citations")
+
+    def write_bib(self, dest_path: str | Path) -> None:
+        """Write stored citations as a BibTeX .bib file."""
+        citations = self._load_citations()
+        if not citations:
+            import warnings
+
+            warnings.warn(
+                "No citations stored in this data store",
+                UserWarning,
+                stacklevel=2,
+            )
+            return
+        from citeable import write_bibtex
+
+        dest_path = Path(dest_path).expanduser().absolute()
+        write_bibtex(citations, dest_path)
+
+    def _load_citations(self) -> list[CitationBase]:
+        """Load stored citations. Override in subclasses."""
+        return []
+
 
 class DataMember(DataMemberABC):
     """Generic DataMember class, bound to a data store. All read operations
@@ -363,6 +414,17 @@ def summary_not_completeds(
     return Table(header=header, data=rows, title="not completed records")
 
 
+def _tidy_and_check_suffix(suffix: str | None) -> str:
+    """tidies suffix by removing leading wildcards and dots"""
+    suffix = suffix or ""
+    suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+    if not suffix or suffix == "*":
+        msg = "suffix is required for DataStoreDirectory and cannot be just a wildcard"
+        raise ValueError(msg)
+
+    return suffix
+
+
 class DataStoreDirectory(DataStoreABC):
     def __init__(
         self,
@@ -370,15 +432,12 @@ class DataStoreDirectory(DataStoreABC):
         mode: Mode | str = READONLY,
         suffix: str | None = None,
         limit: int | None = None,
-        verbose=False,
+        verbose: bool = False,
     ) -> None:
         self._mode = Mode(mode)
-        suffix = suffix or ""
-        if suffix != "*":  # wild card search for all
-            suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
         source = Path(source)
         self._source = source.expanduser()
-        self.suffix = suffix
+        self.suffix = _tidy_and_check_suffix(suffix)
         self._verbose = verbose
         self._source_check_create(mode)
         self._limit = limit
@@ -461,7 +520,7 @@ class DataStoreDirectory(DataStoreABC):
     def completed(self) -> list[DataMember]:
         if not self._completed:
             self._completed = []
-            suffix = f"*.{self.suffix}" if self.suffix else "*"
+            suffix = f"*.{self.suffix}"
             for i, m in enumerate(self.source.glob(suffix)):
                 if self.limit and i == self.limit:
                     break
@@ -604,6 +663,30 @@ class DataStoreDirectory(DataStoreABC):
 
         return path.read_text() if path.exists() else None
 
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        if not data:
+            return
+        from citeable import to_jsons
+
+        path = self.source / _CITATIONS_FILE
+        path.write_text(to_jsons(data))
+
+    def _load_citations(self) -> list[CitationBase]:
+        from citeable import from_jsons
+
+        path = self.source / _CITATIONS_FILE
+        if not path.exists():
+            return []
+        return from_jsons(path.read_text())
+
+    @property
+    def summary_citations(self) -> TabularType:
+        from cogent3.core.table import Table
+
+        citations = self._load_citations()
+        rows = [list(c.summary()) for c in citations]
+        return Table(header=["app", "citation"], data=rows, title="citations")
+
 
 class ReadOnlyDataStoreZipped(DataStoreABC):
     def __init__(
@@ -619,15 +702,13 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
             msg = "this is a read only data store"
             raise ValueError(msg)
 
-        suffix = suffix or ""
-        if suffix != "*":  # wild card search for all
-            suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
+        self.suffix = _tidy_and_check_suffix(suffix)
         source = Path(source)
         self._source = source.expanduser()
         if not self._source.exists():
             msg = f"{self._source!s} does not exit"
             raise OSError(msg)
-        self.suffix = suffix
+
         self._verbose = verbose
         self._limit = limit
 
@@ -663,7 +744,7 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
     @property
     def completed(self) -> list[DataMember]:
         if not self._completed:
-            pattern = f"*.{self.suffix}" if self.suffix else "*"
+            pattern = f"*.{self.suffix}"
             self._completed = []
             num_matches = 0
             for name in self._iter_matches("", pattern):
@@ -737,6 +818,29 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
     def write_log(self, *, unique_id: str, data: StrOrBytes) -> None:
         msg = "zip data stores are read only"
         raise TypeError(msg)
+
+    def write_citations(self, *, data: tuple[CitationBase, ...]) -> None:
+        msg = "zip data stores are read only"
+        raise TypeError(msg)
+
+    def _load_citations(self) -> list[CitationBase]:
+        from citeable import from_jsons
+
+        target = str(pathlib.Path(self.source.stem, _CITATIONS_FILE)).replace("\\", "/")
+        try:
+            with zipfile.ZipFile(self.source) as archive:
+                data = archive.read(target).decode("utf-8")
+            return from_jsons(data)
+        except KeyError:
+            return []
+
+    @property
+    def summary_citations(self) -> TabularType:
+        from cogent3.core.table import Table
+
+        citations = self._load_citations()
+        rows = [list(c.summary()) for c in citations]
+        return Table(header=["app", "citation"], data=rows, title="citations")
 
 
 def get_unique_id(name: object) -> str | None:

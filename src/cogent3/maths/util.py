@@ -4,9 +4,7 @@ from collections.abc import Sequence as PySeq
 
 import numpy
 import numpy.typing as npt
-from numpy import array, clip, cumsum, searchsorted, sort, sum
-
-from cogent3.util import warning as c3warn
+from numpy import sum
 
 NumpyArrayType = npt.NDArray[numpy.number]
 NumpyIntArrayType = npt.NDArray[numpy.integer]
@@ -50,124 +48,6 @@ def safe_log(data: NumpyArrayType) -> NumpyFloatArrayType:
     with numpy.errstate(invalid="raise"):
         result[non_zero] = numpy.log2(data[non_zero])
     return result
-
-
-@c3warn.deprecated_callable(version="2026.3", reason="unused", is_discontinued=True)
-def row_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
-    """Returns uncertainty (Shannon's entropy) for each row in a IN BITS
-
-    a: numpy array (has to be 2-dimensional!)
-
-    The uncertainty is calculated in BITS not NATS!!!
-
-    Will return 0 for every empty row, but an empty array for every empty column,
-    thanks to this sum behavior:
-    >>> sum(array([[]]), 1)
-    array([0])
-    >>> sum(array([[]]))
-    zeros((0,), 'l')
-    """
-    try:
-        return sum(safe_p_log_p(a), 1)
-    except ValueError:
-        msg = "Array has to be two-dimensional"
-        raise ValueError(msg)
-
-
-@c3warn.deprecated_callable(version="2026.3", reason="unused", is_discontinued=True)
-def column_uncertainty(a: NumpyArrayType) -> NumpyFloatArrayType:
-    """Returns uncertainty (Shannon's entropy) for each column in a in BITS
-
-    a: numpy array (has to be 2-dimensional)
-
-    The uncertainty is calculated in BITS not NATS!!!
-
-    Will return 0 for every empty row, but an empty array for every empty column,
-    thanks to this sum behavior:
-    >>> sum(array([[]]), 1)
-    array([0])
-    >>> sum(array([[]]))
-    zeros((0,), 'l')
-
-    """
-    if len(a.shape) < 2:
-        msg = "Array has to be two-dimensional"
-        raise ValueError(msg)
-    return sum(safe_p_log_p(a), axis=0)
-
-
-@c3warn.deprecated_callable(version="2026.3", reason="unused", is_discontinued=True)
-def row_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
-    """Returns the number of characters that's needed to cover >= cutoff
-
-    a: numpy array
-    cutoff: number that should be covered in the array
-
-    Example:
-    [   [.1 .3  .4  .2],
-        [.5 .3  0   .2],
-        [.8 0   .1  .1]]
-    if cutoff = .75: row_degeneracy -> [3,2,1]
-    if cutoff = .95: row_degeneracy -> [4,3,3]
-
-    WARNING: watch out with floating point numbers.
-    if the cutoff= 0.9 and in the array is also 0.9, it might not be found
-    >>> searchsorted(cumsum(array([0.6, 0.3, 0.1])), 0.9)
-    2
-    >>> searchsorted(cumsum(array([0.5, 0.4, 0.1])), 0.9)
-    1
-
-    If the cutoff value is not found, the result is clipped to the
-    number of columns in the array.
-    """
-    if not a.any():
-        return array([])
-    try:
-        b = cumsum(sort(a)[:, ::-1], 1)
-    except IndexError:
-        msg = "Array has to be two dimensional"
-        raise ValueError(msg)
-    degen = [searchsorted(aln_pos, cutoff) for aln_pos in b]
-    # degen contains now the indices at which the cutoff was hit
-    # to change to the number of characters, add 1
-    return clip(array(degen) + 1, 0, a.shape[1])
-
-
-@c3warn.deprecated_callable(version="2026.3", reason="unused", is_discontinued=True)
-def column_degeneracy(a: NumpyFloatArrayType, cutoff: float = 0.5) -> NumpyIntArrayType:
-    """Returns the number of characters that's needed to cover >= cutoff
-
-    a: numpy array
-    cutoff: number that should be covered in the array
-
-    Example:
-    [   [.1 .8  .3],
-        [.3 .2  .3],
-        [.6 0   .4]]
-    if cutoff = .75: column_degeneracy -> [2,1,3]
-    if cutoff = .45: column_degeneracy -> [1,1,2]
-
-    WARNING: watch out with floating point numbers.
-    if the cutoff= 0.9 and in the array is also 0.9, it might not be found
-    >>> searchsorted(cumsum(array([0.6, 0.3, 0.1])), 0.9)
-    2
-    >>> searchsorted(cumsum(array([0.5, 0.4, 0.1])), 0.9)
-    1
-
-    If the cutoff value is not found, the result is clipped to the
-    number of rows in the array.
-    """
-    if not a.any():
-        return array([])
-    b = cumsum(sort(a, 0)[::-1], axis=0)
-    try:
-        degen = [searchsorted(b[:, idx], cutoff) for idx in range(len(b[0]))]
-    except TypeError:
-        msg = "Array has to be two dimensional"
-        raise ValueError(msg)
-    # degen contains now the indices at which the cutoff was hit
-    # to change to the number of characters, add 1
-    return clip(array(degen) + 1, 0, a.shape[0])
 
 
 def validate_freqs_array(data: NumpyFloatArrayType, axis: int | None = None) -> None:
