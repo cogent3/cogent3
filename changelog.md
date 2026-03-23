@@ -1,4 +1,24 @@
 
+<a id='changelog-2026.3.23a0'></a>
+# Changes in release "2026.3.23a0"
+
+Feature enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- data store `write_bib()` now resolves the user home
+  directory.
+- We now use typeguard for resolving app type hints
+  during composition and data type checking at runtime.
+  This means users can go-to-town on how complex their
+  types are!
+- Hardened against circular imports due to the relationships
+  between moltype and sequences.
+
 <a id='changelog-2026.3.10a0'></a>
 # Changes in release "2026.3.10a0"
 
