@@ -16,7 +16,7 @@ Feature enhancement release.
   during composition and data type checking at runtime.
   This means users can go-to-town on how complex their
   types are!
-- Hardended against circular imports due to the relationships
+- Hardened against circular imports due to the relationships
   between moltype and sequences.
 
 <a id='changelog-2026.3.10a0'></a>
