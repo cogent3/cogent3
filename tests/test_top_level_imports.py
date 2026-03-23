@@ -1,4 +1,6 @@
 import importlib
+import subprocess
+import sys
 
 import pytest
 
@@ -33,3 +35,36 @@ def test_toplevel_types(name, expected_type):
     """core return types are accessible as cogent3.<Type>"""
     attr = getattr(cogent3, name)
     assert isinstance(attr, expected_type), f"cogent3.{name} is not a {expected_type}"
+
+
+def test_profile_first_import_no_circular_error():
+    """Importing cogent3.core.profile first must not trigger a circular import."""
+    result = subprocess.run(
+        [sys.executable, "-c", "import cogent3.core.profile"],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, (
+        f"Importing cogent3.core.profile failed:\n{result.stderr}"
+    )
+
+
+def test_profile_import_then_make_seq():
+    """After importing profile first, MolType.make_seq must still work."""
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import cogent3.core.profile\n"
+            "from cogent3.core.moltype import DNA\n"
+            "seq = DNA.make_seq(seq='ACGT', name='t')\n"
+            "assert str(seq) == 'ACGT'\n",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, (
+        f"make_seq after profile-first import failed:\n{result.stderr}"
+    )

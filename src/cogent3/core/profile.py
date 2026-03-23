@@ -1,15 +1,20 @@
+from __future__ import annotations
+
 from collections.abc import Iterable
 from collections.abc import Sequence as PySeq
+from typing import TYPE_CHECKING
 
 import numpy
 import numpy.typing as npt
 from numpy import array, digitize
 from numpy.random import random
 
-import cogent3.core.sequence as c3_sequence
 from cogent3.maths.util import safe_log, safe_p_log_p, validate_freqs_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import extend_docstring_from
+
+if TYPE_CHECKING:
+    import cogent3.core.sequence as c3_sequence
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 NumpyFloatArrayType = npt.NDArray[numpy.floating]
@@ -206,14 +211,14 @@ def make_motif_counts_from_tabular(tab_data):
 
 
 @extend_docstring_from(make_motif_counts_from_tabular)
-def make_motif_freqs_from_tabular(tab_data: numpy.ndarray) -> "MotifFreqsArray":
+def make_motif_freqs_from_tabular(tab_data: numpy.ndarray) -> MotifFreqsArray:
     motif = _get_ordered_motifs_from_tabular(tab_data)
     data = _get_data_from_tabular(tab_data, motif, "float")
     return MotifFreqsArray(data, motif)
 
 
 @extend_docstring_from(make_motif_counts_from_tabular)
-def make_pssm_from_tabular(tab_data: numpy.ndarray) -> "PSSM":
+def make_pssm_from_tabular(tab_data: numpy.ndarray) -> PSSM:
     motif = _get_ordered_motifs_from_tabular(tab_data)
     data = _get_data_from_tabular(tab_data, motif, "float")
     return PSSM(data, motif)
@@ -238,7 +243,7 @@ class MotifCountsArray(_MotifNumberArray):
         row_sum = data.sum(axis=axis)
         return data / numpy.vstack(row_sum) if axis is not None else data / row_sum
 
-    def to_freq_array(self, pseudocount: int = 0) -> "MotifFreqsArray":
+    def to_freq_array(self, pseudocount: int = 0) -> MotifFreqsArray:
         """
         Parameters
         ----------
