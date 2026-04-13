@@ -350,6 +350,8 @@ def _get_concrete_classes(hint) -> set[type]:
     if origin is Union or isinstance(hint, UnionType):
         for arg in get_args(hint):
             classes |= _get_concrete_classes(arg)
+    elif origin in (list, tuple, set):
+        classes.add(origin)
     elif isinstance(hint, type):
         classes.add(hint)
 
