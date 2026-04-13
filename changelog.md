@@ -1,4 +1,19 @@
 
+<a id='changelog-2026.4.13a0'></a>
+# Changes in release "2026.4.13a0"
+
+This is a minor bug-fix release.
+
+## Contributors
+
+- @GavinHuttley
+- @rmcar17
+
+## Bug fixes
+
+- Fixed a bug reported by @rmca17 where adding two apps that
+  involved composite types was broken. Now fixed!
+
 <a id='changelog-2026.3.23a0'></a>
 # Changes in release "2026.3.23a0"
 
