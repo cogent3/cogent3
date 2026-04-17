@@ -6,7 +6,6 @@ from scinexus.io_util import open_
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
     atomic_write,
-    get_format_suffixes,
     iter_line_blocks,
     iter_splitlines,
 )
@@ -100,54 +99,6 @@ def test_path_relative_to_zip_parent():
     for member in ("data/member.txt", "member.txt", "a/b/c/member.txt"):
         got = _path_relative_to_zip_parent(zip_path, pathlib.Path(member))
         assert got.parts[0] == "data"
-
-
-@pytest.mark.parametrize(
-    ("name", "expect"),
-    [
-        ("suffixes.GZ", (None, "gz")),
-        ("suffixes.ABCD", ("abcd", None)),
-        ("suffixes.ABCD.BZ2", ("abcd", "bz2")),
-        ("suffixes.abcd.BZ2", ("abcd", "bz2")),
-        ("suffixes.ABCD.bz2", ("abcd", "bz2")),
-    ],
-)
-def test_get_format_suffixes_returns_lower_case(name, expect):
-    """should always return lower case"""
-    suffixes = get_format_suffixes(name)
-    assert suffixes == expect
-
-
-@pytest.mark.parametrize(
-    ("name", "expect"),
-    [
-        ("no_suffixes", (None, None)),
-        ("suffixes.gz", (None, "gz")),
-        ("suffixes.abcd", ("abcd", None)),
-        ("suffixes.abcd.bz2", ("abcd", "bz2")),
-        ("suffixes.zip", (None, "zip")),
-    ],
-)
-def test_get_format_suffixes(name, expect):
-    """correctly return suffixes for compressed etc.. formats"""
-    suffixes = get_format_suffixes(name)
-    assert suffixes == expect
-
-
-@pytest.mark.parametrize(
-    ("name", "expect"),
-    [
-        ("no_suffixes", (None, None)),
-        ("suffixes.gz", (None, "gz")),
-        ("suffixes.abcd", ("abcd", None)),
-        ("suffixes.abcd.bz2", ("abcd", "bz2")),
-        ("suffixes.zip", (None, "zip")),
-    ],
-)
-def test_get_format_suffixes_pathlib(name, expect):
-    """correctly return suffixes for compressed etc.. formats from pathlib"""
-    suffixes = get_format_suffixes(pathlib.Path(name))
-    assert suffixes == expect
 
 
 def test_iter_splitlines_one(tmp_path):

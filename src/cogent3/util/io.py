@@ -367,7 +367,15 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-def get_format_suffixes(filename: PathType) -> tuple[str | None, str | None]:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.get_format_suffixes",
+    new="scinexus.io_util.get_format_suffixes",
+    is_discontinued=True,
+)
+def get_format_suffixes(
+    filename: PathType,
+) -> tuple[str | None, str | None]:  # pragma: no cover
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:

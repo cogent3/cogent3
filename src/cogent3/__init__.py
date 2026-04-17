@@ -261,13 +261,12 @@ def load_seq(
     -------
     ``Sequence``
     """
-    from scinexus.io_util import is_url
+    from scinexus.io_util import get_format_suffixes, is_url
 
     from cogent3._plugin import get_seq_format_parser_plugin
     from cogent3.core.annotation_db import load_annotations
     from cogent3.parse.cogent3_json import load_from_json
     from cogent3.parse.sequence import is_genbank
-    from cogent3.util.io import get_format_suffixes
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
@@ -362,12 +361,11 @@ def load_unaligned_seqs(
     -------
     ``SequenceCollection``
     """
-    from scinexus.io_util import is_url
+    from scinexus.io_util import get_format_suffixes, is_url
 
     from cogent3._plugin import get_seq_format_parser_plugin
     from cogent3.core.alignment import SequenceCollection, make_unaligned_seqs
     from cogent3.parse.cogent3_json import load_from_json
-    from cogent3.util.io import get_format_suffixes
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
@@ -446,12 +444,11 @@ def load_aligned_seqs(
     -------
     ``Alignment`` instance
     """
-    from scinexus.io_util import is_url
+    from scinexus.io_util import get_format_suffixes, is_url
 
     from cogent3._plugin import get_seq_format_parser_plugin
     from cogent3.core.alignment import Alignment, make_aligned_seqs
     from cogent3.parse.cogent3_json import load_from_json
-    from cogent3.util.io import get_format_suffixes
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
