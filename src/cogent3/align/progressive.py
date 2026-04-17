@@ -117,7 +117,7 @@ def tree_align(
             param_vals,
             seqs,
         )
-        tree = NJ.nj(dists.to_dict())
+        tree = NJ.nj(dists.to_dict(), show_progress=show_progress)
 
     tree = tree.bifurcating(name_unnamed=True)
     # makes sure all edges have non-zero length and whether we need to scale

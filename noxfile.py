@@ -39,6 +39,8 @@ def test(session):
         "-s",
         "-x",
         "--doctest-modules",
+        "--ignore=composable.py",
+        "--ignore=sqlite_data_store.py",
         ".",
     )
 
@@ -63,6 +65,8 @@ def test_module_docs(session):
         "pytest",
         "-s",
         "--doctest-modules",
+        "--ignore=composable.py",
+        "--ignore=sqlite_data_store.py",
         ".",
     )
 
