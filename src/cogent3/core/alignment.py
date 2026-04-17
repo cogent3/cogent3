@@ -29,6 +29,7 @@ import numpy.typing as npt
 from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes
 from scinexus.misc import extend_docstring_from, get_object_provenance
+from scinexus.progress import get_progress
 from typing_extensions import override
 
 import cogent3
@@ -53,7 +54,6 @@ from cogent3.core.seq_storage import (
 )
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util import progress_display as UI
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import (
     get_setting_from_environ,
@@ -2125,7 +2125,6 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         init_kwargs["is_reversed"] = not self._is_reversed
         return self.__class__(**init_kwargs)
 
-    @UI.display_wrap
     def apply_pssm(
         self,
         pssm: PSSM | None = None,
@@ -2133,8 +2132,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         background: NumpyFloatArrayType | None = None,
         pseudocount: int = 0,
         names: list[str] | str | None = None,
-        ui: UI.ProgressContext | None = None,
-    ) -> NumpyFloatArrayType:  # refactor: design: move to rich for progress bars?
+        show_progress: bool = False,
+    ) -> NumpyFloatArrayType:
         """scores sequences using the specified pssm
 
         Parameters
@@ -2150,6 +2149,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             adjustment for zero in matrix
         names
             returns only scores for these sequences and in the name order
+        show_progress
+            whether to display a progress bar
 
         Returns
         -------
@@ -2169,9 +2170,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         assert set(pssm.motifs) == set(self.moltype)
 
         seqs = [self.seqs[n] for n in names] if names else self.seqs
-        result = [
-            pssm.score_seq(seq) for seq in cast("UI.ProgressContext", ui).series(seqs)
-        ]
+        progress = get_progress(show_progress)
+        result = [pssm.score_seq(seq) for seq in progress(seqs, msg="Scoring")]
 
         return numpy.array(result)
 

@@ -27,7 +27,6 @@ from cogent3.app.typing import (
     get_type_display_names,
     resolve_type_hint,
 )
-from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest
 
 from .data_store import (
@@ -723,14 +722,13 @@ class propagate_source:
         return value
 
 
-@UI.display_wrap
 def _as_completed(
     self: type,
     dstore,
     parallel: bool = False,
     par_kw: dict | None = None,
     id_from_source: GetIdFuncType = get_unique_id,
-    **kwargs,
+    show_progress: bool = False,
 ) -> Generator:
     """invokes self composable function on the provided data store
 
@@ -746,10 +744,8 @@ def _as_completed(
         member of dstore.
     par_kw
         dict of values for configuring parallel execution.
-    kwargs
-        setting a show_progress boolean keyword value here
-        affects progress display code, other arguments are passed to
-        the cogent3.util.progress_bar.display_wrap decorator
+    show_progress : bool
+        controls progress bar display
 
     Notes
     -----
@@ -757,6 +753,8 @@ def _as_completed(
     aggregates results. If run in serial, results are returned in the
     same order as provided.
     """
+    from scinexus.progress import get_progress
+
     if self._source_wrapped is None:
         app = propagate_source(
             self.input if self.app_type is WRITER else self, id_from_source
@@ -767,8 +765,6 @@ def _as_completed(
             if self.app_type is WRITER
             else self._source_wrapped
         )
-
-    ui = kwargs.pop("ui")
 
     if isinstance(dstore, str):
         dstore = [dstore]
@@ -784,7 +780,8 @@ def _as_completed(
     else:
         to_do = map(app, mapped)
 
-    return ui.series(to_do, count=len(mapped), **kwargs)
+    progress = get_progress(show_progress)
+    return progress(to_do, total=len(mapped))
 
 
 def is_app_composable(obj) -> bool:

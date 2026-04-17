@@ -4,11 +4,12 @@ import os
 from itertools import combinations
 from warnings import warn
 
+from scinexus.progress import get_progress
+
 from cogent3 import make_tree
 from cogent3.core import table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.stats.number import NumberCounter
-from cogent3.util import progress_display as UI
 
 
 def get_name_combinations(names, group_size):
@@ -137,18 +138,13 @@ class EstimateDistances:
         lnL = lf.get_log_likelihood()
         return lnL.edge.get_viterbi_path().get_alignment()
 
-    @UI.display_wrap
-    def _doset(self, sequence_names, dist_opt_args, aln_opt_args, ui):
+    def _doset(self, sequence_names, dist_opt_args, aln_opt_args):
         # slice the alignment
         seqs = self._seq_collection.take_seqs(sequence_names)
         if self._do_pair_align:
-            ui.display("Aligning", progress=0.0)
             align = self._make_pair_alignment(seqs, aln_opt_args)
-            ui.display("", progress=0.5)
-
         else:
             align = seqs
-            ui.display("", progress=0.0)
         # note that we may want to consider removing the redundant gaps
 
         # create the tree object
@@ -188,8 +184,9 @@ class EstimateDistances:
 
         return result
 
-    @UI.display_wrap
-    def run(self, dist_opt_args=None, aln_opt_args=None, ui=None, **kwargs) -> None:
+    def run(
+        self, dist_opt_args=None, aln_opt_args=None, show_progress=False, **kwargs
+    ) -> None:
         """Start estimating the distances between sequences. Distance estimation
         is done using the Powell local optimiser. This can be changed using the
         dist_opt_args and aln_opt_args.
@@ -213,7 +210,6 @@ class EstimateDistances:
                 stacklevel=2,
             )
 
-        ui.display("Distances")
         dist_opt_args = dist_opt_args or {}
         aln_opt_args = aln_opt_args or {}
         # set the optimiser defaults
@@ -223,17 +219,17 @@ class EstimateDistances:
         # analysed
         if self._threeway:
             combination_aligns = get_name_combinations(self._seq_collection.names, 3)
-            desc = "triplet "
         else:
             combination_aligns = get_name_combinations(self._seq_collection.names, 2)
-            desc = "pair "
-        labels = [desc + ",".join(names) for names in combination_aligns]
 
-        def _one_alignment(comp):
-            result = self._doset(comp, dist_opt_args, aln_opt_args)
-            return (comp, result)
-
-        for comp, value in ui.imap(_one_alignment, combination_aligns, labels=labels):
+        progress = get_progress(show_progress)
+        results = (
+            (comp, self._doset(comp, dist_opt_args, aln_opt_args))
+            for comp in combination_aligns
+        )
+        for comp, value in progress(
+            results, total=len(combination_aligns), msg="Distances"
+        ):
             self._param_ests[comp] = value
 
     def get_pairwise_param(self, param, summary_function="mean"):

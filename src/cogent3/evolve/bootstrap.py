@@ -24,7 +24,7 @@ the EstimateProbability class.
 
 import random
 
-from cogent3.util import progress_display as UI
+from scinexus.progress import get_progress
 
 
 class ParametricBootstrapCore:
@@ -42,8 +42,7 @@ class ParametricBootstrapCore:
     def set_seed(self, seed) -> None:
         self.seed = seed
 
-    @UI.display_wrap
-    def run(self, ui, **opt_args) -> None:
+    def run(self, show_progress=False, **opt_args) -> None:
         # Sets self.observed and self.results (a list _numreplicates long) to
         # whatever is returned from self.simplify([LF result from each PC]).
         # self.simplify() is used as the entire LF result might not be picklable
@@ -53,32 +52,28 @@ class ParametricBootstrapCore:
             opt_args["random_series"] = random.Random()
 
         null_pc = self.parameter_controllers[0]
-        pcs = len(self.parameter_controllers)
-        if pcs == 1:
-            model_label = [""]
-        elif pcs == 2:
-            model_label = ["null", "alt "]
-        else:
-            model_label = ["null"] + [f"alt{i}" for i in range(1, pcs)]
 
-        @UI.display_wrap
-        def each_model(alignment, ui):
+        def each_model(alignment):
             def one_model(pc):
                 pc.set_alignment(alignment)
                 return pc.optimise(return_calculator=True, **opt_args)
 
             # This is not done in parallel because we depend on the side-
             # effect of changing the parameter_controller current values
-            memos = ui.map(one_model, self.parameter_controllers, labels=model_label)
+            memos = [one_model(pc) for pc in self.parameter_controllers]
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
 
-        # optimisations = pcs * (self._numreplicates + 1)
-        init_work = pcs / (self._numreplicates + pcs)
-        ui.display("Original data", 0.0)
+        progress = get_progress(show_progress)
+        ctx = progress.context(msg="Bootstrap")
+
+        ctx.update(progress=0.0, msg="Original data")
         (starting_points, self.observed) = each_model(self.alignment)
 
-        ui.display("Randomness", init_work)
+        init_work = len(self.parameter_controllers) / (
+            self._numreplicates + len(self.parameter_controllers)
+        )
+        ctx.update(progress=init_work, msg="Randomness")
         alignment_random_state = random.Random(self.seed).getstate()
 
         def one_replicate(i):
@@ -99,13 +94,13 @@ class ParametricBootstrapCore:
             (dummy, result) = each_model(simalign)
             return result
 
-        ui.display("Bootstrap", init_work)
-        self.results = ui.map(
-            one_replicate,
-            list(range(self._numreplicates)),
-            noun="replicate",
-            start=init_work,
-        )
+        ctx.update(progress=init_work, msg="Bootstrap")
+        replicates = range(self._numreplicates)
+        self.results = [
+            one_replicate(i)
+            for i in progress(replicates, total=self._numreplicates, msg="replicates")
+        ]
+        ctx.close()
 
 
 class EstimateProbability(ParametricBootstrapCore):

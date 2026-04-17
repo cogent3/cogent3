@@ -3,9 +3,17 @@ import io
 import sys
 import threading
 import time
+import warnings
 from collections.abc import Callable, Collection, Generator, Iterable, Sized
 from collections.abc import Sequence as PySeq
 from typing import TYPE_CHECKING, Any, ParamSpec, Self, TypeVar
+
+warnings.warn(
+    "cogent3.util.progress_display is discontinued and will be removed in version 2026.9, "
+    "use scinexus.progress instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from tqdm import notebook, tqdm

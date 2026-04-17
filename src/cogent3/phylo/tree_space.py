@@ -3,11 +3,11 @@
 import itertools
 
 import numpy
+from scinexus.progress import get_progress
 
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
 from cogent3.util import checkpointing
-from cogent3.util import progress_display as UI
 
 
 def ismallest(data, size):
@@ -144,7 +144,6 @@ class TreeEvaluator:
             n for n in ordered_names if n not in fixed_names_set
         ]
 
-    @UI.display_wrap
     def trex(
         self,
         a=8,
@@ -155,7 +154,6 @@ class TreeEvaluator:
         filename=None,
         interval=None,
         show_progress=False,
-        ui=None,
     ):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
@@ -240,12 +238,10 @@ class TreeEvaluator:
                 for edge in range(n * 2 - 5)
             ]
 
-            candidates = ui.imap(
-                grown_tree,
-                specs,
-                noun=f"{n} leaf tree",
-                start=work_done[n - 1] / total_work,
-                end=work_done[n] / total_work,
+            progress = get_progress(show_progress)
+            candidates = (
+                grown_tree(spec)
+                for spec in progress(specs, total=len(specs), msg=f"{n} leaf tree")
             )
 
             best = ismallest(candidates, k)

@@ -164,12 +164,15 @@ def _load_files_to_unaligned_seqs(
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
+    show_progress: bool = False,
     **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
+    from scinexus.progress import get_progress
+
     from cogent3.core.alignment import make_unaligned_seqs
 
-    ui = kwargs.pop("ui")
+    progress = get_progress(show_progress)
     file_names = list(path.parent.glob(path.name))
     seqs = [
         load_seq(
@@ -179,7 +182,7 @@ def _load_files_to_unaligned_seqs(
             label_to_name=label_to_name,
             parser_kw=parser_kw,
         )
-        for fn in ui.series(file_names)
+        for fn in progress(file_names, msg="Loading sequences")
     ]
 
     return make_unaligned_seqs(
@@ -372,10 +375,7 @@ def load_unaligned_seqs(
 
     file_suffix, _ = get_format_suffixes(filename)
     if "*" in filename.name:
-        from cogent3.util.progress_display import display_wrap
-
-        func = display_wrap(_load_files_to_unaligned_seqs)
-        return func(
+        return _load_files_to_unaligned_seqs(
             path=filename,
             format_name=format_name or file_suffix,
             moltype=moltype,

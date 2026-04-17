@@ -6,8 +6,7 @@ import warnings
 from functools import singledispatch
 
 import numpy
-
-from cogent3.util import progress_display as UI
+from scinexus.progress import get_progress
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
@@ -32,7 +31,7 @@ def _(val: float) -> tuple[float]:
     return (val,)
 
 
-def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
+def unsteady_progress_indicator(ctx, label="", start=0.0, end=1.0):
     template = "f = % #10.6g  ±  % 9.3e   evals = %6i "
     label = label.rjust(5)
     goal = [1.0e-20]
@@ -46,7 +45,7 @@ def unsteadyProgressIndicator(display_progress, label="", start=0.0, end=1.0):
         goal[0] = max(remaining, goal[0])
         progress = (goal[0] - remaining) / goal[0] * (end - start) + start
         msg = template % args + label
-        return display_progress(msg, progress=progress)
+        ctx.update(progress=progress, msg=msg)
 
     return _display_progress
 
@@ -132,7 +131,6 @@ def minimise(f, *args, **kw):
     return maximise(nf, *args, **kw)
 
 
-@UI.display_wrap
 def maximise(
     f,
     xinit,
@@ -144,7 +142,7 @@ def maximise(
     max_evaluations=None,
     tolerance=1e-6,
     global_tolerance=1e-1,
-    ui=None,
+    show_progress=False,
     return_eval_count=False,
     warn=False,
     **kw,
@@ -227,35 +225,38 @@ def maximise(
 
     f = bounds_exception_catching_function(f)
 
-    try:
-        # Global optimisation
-        if do_global:
-            gend = 0.9
-            callback = unsteadyProgressIndicator(ui.display, "Global", 0.0, gend)
-            gtol = [tolerance, global_tolerance][do_local]
-            opt = GlobalOptimiser(filename=filename, interval=interval)
-            x = opt.maximise(f, x, tolerance=gtol, show_remaining=callback, **kw)
-        else:
-            gend = 0.0
-            if warn:
-                warnings.warn(f"Unused args for local optimisation: {kw}", stacklevel=2)
+    progress = get_progress(show_progress)
+    with progress.context(msg="Optimising") as ctx:
+        try:
+            # Global optimisation
+            if do_global:
+                gend = 0.9
+                callback = unsteady_progress_indicator(ctx, "Global", 0.0, gend)
+                gtol = [tolerance, global_tolerance][do_local]
+                opt = GlobalOptimiser(filename=filename, interval=interval)
+                x = opt.maximise(f, x, tolerance=gtol, show_remaining=callback, **kw)
+            else:
+                gend = 0.0
+                if warn:
+                    warnings.warn(
+                        f"Unused args for local optimisation: {kw}", stacklevel=2
+                    )
 
-        # Local optimisation
-        if do_local:
-            callback = unsteadyProgressIndicator(ui.display, "Local", gend, 1.0)
-            # ui.display('local opt', 1.0-per_opt, per_opt)
-            opt = LocalOptimiser()
-            x = opt.maximise(
-                f,
-                x,
-                tolerance=tolerance,
-                max_restarts=max_restarts,
-                show_remaining=callback,
-            )
-    finally:
-        # ensure state of calculator reflects optimised result, or
-        # partially optimised result if exiting on an exception.
-        (f, x, evals) = get_best()
+            # Local optimisation
+            if do_local:
+                callback = unsteady_progress_indicator(ctx, "Local", gend, 1.0)
+                opt = LocalOptimiser()
+                x = opt.maximise(
+                    f,
+                    x,
+                    tolerance=tolerance,
+                    max_restarts=max_restarts,
+                    show_remaining=callback,
+                )
+        finally:
+            # ensure state of calculator reflects optimised result, or
+            # partially optimised result if exiting on an exception.
+            (f, x, evals) = get_best()
 
     # ... and returning this info the obvious way keeps this function
     # potentially applicable optimising non-caching pure functions too.

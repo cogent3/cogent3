@@ -13,11 +13,11 @@ import contextlib
 from collections import deque
 
 import numpy
+from scinexus.progress import get_progress
 
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
 from cogent3.phylo.util import distance_dict_to_2D
-from cogent3.util import progress_display as UI
 
 
 class LightweightTreeTip(str):
@@ -161,8 +161,7 @@ def uniq_neighbour_joins(trees, encode_partition):
         topologies.add(topology)
 
 
-@UI.display_wrap
-def gnj(dists, keep=None, dkeep=0, ui=None):
+def gnj(dists, keep=None, dkeep=0, show_progress=False):
     """Arguments:
         - dists: dict of (name1, name2): distance
         - keep: number of best partial trees to keep at each iteration,
@@ -210,21 +209,28 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
     trees = [star_tree]
 
     # Progress display auxiliary code
-    template = f" size %s/{len(names)}  trees %{len(str(all_keep))}i"
+    n_names = len(names)
+    tree_width = len(str(all_keep))
     total_work = 0
     max_candidates = 1
     total_work_before = {}
-    for L in range(len(names), 3, -1):
+    for L in range(n_names, 3, -1):
         total_work_before[L] = total_work
         max_candidates = min(all_keep, max_candidates * L * (L - 1) // 2)
         total_work += max_candidates
 
+    progress = get_progress(show_progress)
+    ctx = progress.context(msg="GNJ")
+
     def _show_progress() -> None:
         t = len(next_trees)
         work_done = total_work_before[L] + t
-        ui.display(msg=template % (L, t), progress=work_done / total_work)
+        ctx.update(
+            progress=work_done / total_work,
+            msg=f" size {L}/{n_names}  trees {t:{tree_width}d}",
+        )
 
-    for L in range(len(names), 3, -1):
+    for L in range(n_names, 3, -1):
         # Generator of candidate joins, best first.
         # Note that with dkeep>0 this generator is used up a bit at a time
         # by 2 different interupted 'for' loops below.
@@ -276,6 +282,7 @@ def gnj(dists, keep=None, dkeep=0, ui=None):
 
         trees = [pair.joined() for pair in next_trees]
 
+    ctx.close()
     result = [tree.asScoreTreeTuple() for tree in trees]
     result.sort()
     return ScoredTreeCollection(result)
