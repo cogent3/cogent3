@@ -26,7 +26,7 @@ def load_from_json(filename: "PathType", classes: Iterable[type]) -> Any:
         "classes should be a series of Cogent3 types, for example: (Alignment, SequenceCollection)"
     )
 
-    from cogent3.app.data_store import load_record_from_json
+    from scinexus.data_store import load_record_from_json
 
     with open_(filename) as f:
         content = json.loads(f.read())

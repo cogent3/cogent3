@@ -1,10 +1,11 @@
 from unittest import TestCase
 
 import pytest
+from scinexus import composable
+from scinexus.composable import NotCompleted, NotCompletedType
 
 import cogent3
-from cogent3.app import composable, sample
-from cogent3.app.composable import NotCompleted
+from cogent3.app import sample
 from cogent3.core.moltype import MolTypeError
 
 DNA = cogent3.get_moltype("dna")
@@ -618,7 +619,7 @@ def test_minlength():
     ml = sample.min_length(9, subtract_degen=True)
     got = ml(aln)  # pylint: disable=not-callable
     assert isinstance(got, composable.NotCompleted)
-    assert got.type == "ERROR"
+    assert got.type is NotCompletedType.ERROR
 
     # but works if subtract_degen is False
     ml = sample.min_length(9, subtract_degen=False)

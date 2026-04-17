@@ -9,6 +9,12 @@ import tempfile
 import numpy
 import pytest
 from numpy.testing import assert_allclose
+from scinexus.composable import (
+    NotCompleted,
+    NotCompletedType,
+    propagate_source,
+    source_proxy,
+)
 from scinexus.data_store import (
     DataMember,
     DataStoreDirectory,
@@ -22,7 +28,6 @@ from scinexus.io import open_data_store
 import cogent3
 from cogent3 import get_app, get_moltype
 from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.core.table import Table
@@ -104,7 +109,8 @@ def test_write_seqs(fasta_dir, tmp_dir):
 
 def test_source_proxy_simple(fasta_dir):
     """correctly writes sequences out"""
-    from cogent3.app.composable import define_app
+    from scinexus.composable import define_app
+
     from cogent3.app.typing import IdentifierType
 
     @define_app
@@ -633,7 +639,7 @@ def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
     setattr(data, attr, value)
     m = writer(data)
     assert isinstance(m, NotCompleted)
-    assert m.type == "ERROR"
+    assert m.type is NotCompletedType.ERROR
 
 
 @pytest.mark.parametrize(

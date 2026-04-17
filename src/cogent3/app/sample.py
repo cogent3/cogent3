@@ -3,12 +3,12 @@ from typing import Union
 
 from numpy import array
 from numpy import random as np_random
+from scinexus.composable import ComposableApp, NonComposableApp, NotCompleted
 
 import cogent3
 from cogent3.core import moltype as c3_moltype
 
 from ._citations import cite_cogent3
-from .composable import NON_COMPOSABLE, NotCompleted, define_app
 from .translate import get_fourfold_degenerate_sets
 from .typing import AlignedSeqsType, SeqsCollectionType, SerialisableType
 
@@ -27,8 +27,7 @@ def union(groups: list[tuple[str, ...]]) -> set[str]:
     return union.union(*map(set, groups))
 
 
-@define_app(app_type=NON_COMPOSABLE, cite=cite_cogent3)
-class concat:
+class concat(NonComposableApp, cite=cite_cogent3):
     """Creates a concatenated alignment from a series."""
 
     def __init__(
@@ -147,8 +146,7 @@ class concat:
         return NotCompleted("FAIL", self, message="result is empty")
 
 
-@define_app(cite=cite_cogent3)
-class omit_degenerates:
+class omit_degenerates(ComposableApp, cite=cite_cogent3):
     """Excludes alignment columns with degenerate characters. Can accomodate
     reading frame."""
 
@@ -231,16 +229,10 @@ class omit_degenerates:
         return aln.no_degenerates(
             motif_length=self._motif_length,
             allow_gap=self._allow_gap,
-        ) or NotCompleted(
-            "FAIL",
-            origin=self,
-            message="all columns contained degenerates",
-            source=aln,
-        )
+        ) or NotCompleted("FAIL", self, "all columns contained degenerates", source=aln)
 
 
-@define_app(cite=cite_cogent3)
-class omit_gap_pos:
+class omit_gap_pos(ComposableApp, cite=cite_cogent3):
     """Excludes gapped alignment columns meeting a threshold. Can accomodate
     reading frame."""
 
@@ -327,15 +319,11 @@ class omit_gap_pos:
             allowed_gap_frac=self._allowed_frac,
             motif_length=self._motif_length,
         ) or NotCompleted(
-            type="FAIL",
-            origin=self,
-            message="all columns exceeded gap threshold",
-            source=aln,
+            "FAIL", self, "all columns exceeded gap threshold", source=aln
         )
 
 
-@define_app(cite=cite_cogent3)
-class take_codon_positions:
+class take_codon_positions(ComposableApp, cite=cite_cogent3):
     """Extracts the specified codon position(s) from an alignment."""
 
     def __init__(
@@ -458,12 +446,7 @@ class take_codon_positions:
 
         new = aln.filtered(ffold, motif_length=3)
         if not new:
-            return NotCompleted(
-                type="FAIL",
-                origin=self,
-                message="result is empty",
-                source=aln,
-            )
+            return NotCompleted("FAIL", self, "result is empty", source=aln)
         return new[2::3]
 
     def take_codon_position(self, aln):
@@ -486,8 +469,7 @@ class take_codon_positions:
         return self._func(aln)
 
 
-@define_app(cite=cite_cogent3)
-class take_named_seqs:
+class take_named_seqs(ComposableApp, cite=cite_cogent3):
     """Selects named sequences from a collection."""
 
     def __init__(self, *names: str, negate: bool = False) -> None:
@@ -532,12 +514,11 @@ class take_named_seqs:
     def main(self, data: SeqsCollectionType) -> T:
         if not self._negate and (missing := set(self._names) - set(data.names)):
             msg = f"named seq(s) {missing} not in {data.names}"
-            return NotCompleted("FALSE", self, msg, source=data)
+            return NotCompleted("FAIL", self, msg, source=data)
         return data.take_seqs(self._names, negate=self._negate)
 
 
-@define_app(cite=cite_cogent3)
-class take_n_seqs:
+class take_n_seqs(ComposableApp, cite=cite_cogent3):
     """Selects n sequences from a collection. Chooses first n sequences, or
     selects randomly if specified."""
 
@@ -644,19 +625,18 @@ class take_n_seqs:
     def main(self, data: SeqsCollectionType) -> T:
         """returns data with n sequences"""
         if len(data.names) < self._number:
-            return NotCompleted("FALSE", self.main, "not enough sequences")
+            return NotCompleted("FAIL", self.main, "not enough sequences")
 
         if self._names is None or not self._fixed_choice:
             self._set_names(data)
 
         if missing := set(self._names) - set(data.names):
             msg = f"named seq(s) {missing} not in {data.names}"
-            return NotCompleted("FALSE", self, msg, source=data)
+            return NotCompleted("FAIL", self, msg, source=data)
         return data.take_seqs(self._names)
 
 
-@define_app(cite=cite_cogent3)
-class min_length:
+class min_length(ComposableApp, cite=cite_cogent3):
     """Filters sequence collections / alignments by length."""
 
     def __init__(
@@ -733,7 +713,7 @@ class min_length:
 
         if length < self._min_length:
             msg = f"{length} < min_length {self._min_length}"
-            data = NotCompleted("FALSE", self, msg, source=data)
+            data = NotCompleted("FAIL", self, msg, source=data)
 
         return data
 
@@ -755,8 +735,7 @@ class _GetStart:
         return self.func(length)
 
 
-@define_app(cite=cite_cogent3)
-class fixed_length:
+class fixed_length(ComposableApp, cite=cite_cogent3):
     """Sample an alignment to a fixed length."""
 
     def __init__(
@@ -868,7 +847,7 @@ class fixed_length:
 
         if len(aln) < self._length:
             msg = f"{len(aln)} < min_length {self._length}"
-            return NotCompleted("FALSE", self.__class__.__name__, msg, source=aln)
+            return NotCompleted("FAIL", self.__class__.__name__, msg, source=aln)
         start = self._start(len(aln) - self._length)
         return aln[start : start + self._length]
 
@@ -904,8 +883,7 @@ class fixed_length:
         return self._func(data)
 
 
-@define_app(cite=cite_cogent3)
-class omit_bad_seqs:
+class omit_bad_seqs(ComposableApp, cite=cite_cogent3):
     """Eliminates sequences from Alignment based on gap fraction, unique gaps."""
 
     def __init__(
@@ -1008,8 +986,7 @@ class omit_bad_seqs:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class omit_duplicated:
+class omit_duplicated(ComposableApp, cite=cite_cogent3):
     """Removes redundant sequences, recording dropped sequences in
     seqs.info.dropped."""
 
@@ -1151,8 +1128,7 @@ class omit_duplicated:
         return self._func(seqs)
 
 
-@define_app(cite=cite_cogent3)
-class trim_stop_codons:
+class trim_stop_codons(ComposableApp, cite=cite_cogent3):
     """Removes terminal stop codons."""
 
     def __init__(self, gc: str | int = 1) -> None:

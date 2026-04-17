@@ -4,6 +4,8 @@ from bisect import bisect_left
 from itertools import combinations
 
 from numpy import array, isnan
+from scinexus import get_id_from_source
+from scinexus.composable import ComposableApp, NotCompleted, define_app
 
 import cogent3
 from cogent3.align import (
@@ -14,7 +16,6 @@ from cogent3.align import (
 )
 from cogent3.align.progressive import tree_align
 from cogent3.app import dist
-from cogent3.app.data_store import get_data_source
 from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
@@ -24,12 +25,13 @@ from cogent3.evolve.models import get_model
 from cogent3.maths.util import safe_log
 
 from ._citations import cite_cogent3
-from .composable import NotCompleted, define_app
 from .tree import quick_tree, scale_branches
 from .typing import AlignedSeqsType, SerialisableType, UnalignedSeqsType
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode
+
+get_data_source = get_id_from_source()
 
 
 class _GapOffset:
@@ -329,8 +331,7 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
     )
 
 
-@define_app(cite=cite_cogent3)
-class align_to_ref:
+class align_to_ref(ComposableApp, cite=cite_cogent3):
     """Aligns sequences to a nominated reference in the unaligned collection.
 
     This is much faster, and requires much less memory, than progressive_align
@@ -418,8 +419,7 @@ class align_to_ref:
         return self._func(seqs)
 
 
-@define_app(cite=cite_cogent3)
-class progressive_align:
+class progressive_align(ComposableApp, cite=cite_cogent3):
     """Progressive multiple sequence alignment via any cogent3 model."""
 
     def __init__(
@@ -618,8 +618,7 @@ class progressive_align:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class smith_waterman:
+class smith_waterman(ComposableApp, cite=cite_cogent3):
     """Local alignment of two sequences using the Smith-Waterman algorithm
 
     Notes
@@ -723,8 +722,7 @@ class smith_waterman:
         return aln.to_moltype(self.moltype)
 
 
-@define_app(cite=cite_cogent3)
-class ic_score:
+class ic_score(ComposableApp, cite=cite_cogent3):
     """compute the Information Content alignment quality score
 
     Returns
@@ -871,8 +869,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     )
 
 
-@define_app(cite=cite_cogent3)
-class sp_score:
+class sp_score(ComposableApp, cite=cite_cogent3):
     """Compute a variant of Sum of Pairs alignment quality score
 
     Returns

@@ -7,6 +7,7 @@ from importlib.metadata import EntryPoint
 from unittest.mock import patch
 
 import pytest
+from scinexus.composable import define_app
 from stevedore import extension
 from stevedore.extension import ExtensionManager
 
@@ -17,7 +18,6 @@ from cogent3.app import (
     available_apps,
     get_app,
 )
-from cogent3.app.composable import define_app
 from cogent3.core.table import Table
 
 

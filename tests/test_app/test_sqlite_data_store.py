@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from scinexus.composable import NotCompleted
 from scinexus.data_store import (
     APPEND,
     OVERWRITE,
@@ -10,14 +11,13 @@ from scinexus.data_store import (
 )
 from scinexus.io import open_data_store
 from scinexus.sqlite_data_store import (
-    _LOG_TABLE,
-    _RESULT_TABLE,
+    LOG_TABLE,
+    RESULT_TABLE,
     DataStoreSqlite,
     has_valid_schema,
 )
 
 from cogent3 import get_app
-from cogent3.app.composable import NotCompleted
 from cogent3.core.table import Table
 
 
@@ -105,19 +105,19 @@ def test_db_creation():
     assert len(result) == 4
     created_names = {r["name"] for r in result}
     assert created_names == {
-        _LOG_TABLE,
-        _RESULT_TABLE,
+        LOG_TABLE,
+        RESULT_TABLE,
         "state",
         "citations",
     }
-    rows = db.execute(f"Select * from {_LOG_TABLE}").fetchall()
+    rows = db.execute(f"Select * from {LOG_TABLE}").fetchall()
     assert len(rows) == 0
 
 
 def test_db_init_log():
     dstore = DataStoreSqlite(":memory:", mode=OVERWRITE)
     dstore._init_log()
-    rows = dstore.db.execute(f"Select * from {_LOG_TABLE}").fetchall()
+    rows = dstore.db.execute(f"Select * from {LOG_TABLE}").fetchall()
     assert len(rows) == 1
     assert rows[0]["date"].date() == datetime.now(tz=UTC).date()
 
@@ -127,9 +127,9 @@ def test_not_completed(nc_objects):
     for unique_id, obj in nc_objects.items():
         db.write_not_completed(data=obj.to_json(), unique_id=unique_id)
     expect = len(nc_objects)
-    query = f"SELECT count(*) as c FROM {_RESULT_TABLE} WHERE is_completed=?"
+    query = f"SELECT count(*) as c FROM {RESULT_TABLE} WHERE is_completed=?"
     got = db.db.execute(query, (0,)).fetchone()["c"]
-    assert got == expect, f"Failed for {_RESULT_TABLE} number of rows"
+    assert got == expect, f"Failed for {RESULT_TABLE} number of rows"
     assert len(db.not_completed) == expect
 
 
@@ -337,10 +337,10 @@ def test_old_schema_without_citations_table(tmp_dir):
         "CREATE TABLE state(state_id INTEGER PRIMARY KEY, record_type TEXT, lock_pid INTEGER)",
     )
     db.execute(
-        f"CREATE TABLE {_LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
+        f"CREATE TABLE {LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
     )
     db.execute(
-        f"CREATE TABLE {_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
+        f"CREATE TABLE {RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
     )
     db.close()
 
@@ -365,10 +365,10 @@ def test_old_schema_write_citations_creates_table(tmp_dir, sample_citations):
         "CREATE TABLE state(state_id INTEGER PRIMARY KEY, record_type TEXT, lock_pid INTEGER)",
     )
     db.execute(
-        f"CREATE TABLE {_LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
+        f"CREATE TABLE {LOG_TABLE}(log_id INTEGER PRIMARY KEY, log_name TEXT, date timestamp, data BLOB)",
     )
     db.execute(
-        f"CREATE TABLE {_RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
+        f"CREATE TABLE {RESULT_TABLE}(record_id TEXT PRIMARY KEY, log_id INTEGER, md5 BLOB, is_completed INTEGER, data BLOB)",
     )
     db.close()
 

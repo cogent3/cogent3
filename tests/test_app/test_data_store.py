@@ -4,19 +4,20 @@ from itertools import product
 from pathlib import Path
 
 import pytest
+from scinexus.composable import NotCompleted
 from scinexus.data_store import (
-    _MD5_TABLE,
+    MD5_TABLE,
     OVERWRITE,
     READONLY,
     DataStoreDirectory,
     ReadOnlyDataStoreZipped,
     get_data_source,
 )
+from scinexus.io import open_data_store
 
 from cogent3.app import io as io_app
 from cogent3.app import sample as sample_app
-from cogent3.app.composable import NotCompleted
-from cogent3.app.data_store import convert_directory_datastore, summary_not_completeds
+from cogent3.app.data_store import convert_directory_datastore
 from cogent3.core.table import Table
 from cogent3.util.union_dict import UnionDict
 
@@ -87,7 +88,7 @@ def nc_dstore(DATA_DIR, nc_dir):
     for i, item in enumerate(nc):
         dstore.write_not_completed(unique_id=f"nc{i + 1}", data=item.to_json())
     assert len(dstore.not_completed) == 3
-    assert len(list((nc_dir / _MD5_TABLE).glob("*.txt"))) == len(dstore)
+    assert len(list((nc_dir / MD5_TABLE).glob("*.txt"))) == len(dstore)
     filenames = DATA_DIR.glob("*.fasta")
     # write six fasta file
     for fn in filenames:
@@ -158,20 +159,15 @@ def test_summary_logs_missing_field(nc_dstore):
     assert isinstance(nc_dstore.summary_logs, Table)
 
 
-@pytest.mark.parametrize("use_dser", [False, True])
-def test_summary_not_completed_func(nc_objects, use_dser):
-    dstore = io_app.open_data_store(":memory:", mode="w")
+def test_summary_not_completed_func(nc_objects):
+    dstore = open_data_store(":memory:", mode="w")
     writer = io_app.write_db(dstore)
-    deser = io_app.load_db().deserialiser if use_dser else None
     for nc in nc_objects.values():
         writer(nc)
 
-    got = summary_not_completeds(dstore, deserialise=deser)
+    got = dstore.summary_not_completed
     assert isinstance(got, Table)
-    if use_dser:
-        assert got.shape[0] >= 1
-    else:
-        assert got.shape[0] == 0
+    assert got.shape[0] >= 1
 
 
 def test_write_read_not_completed(nc_dstore):
@@ -269,8 +265,6 @@ def test_summary_not_completed(dstore, request):
 
 @pytest.fixture
 def app_dstore_in(tmp_path):
-    from scinexus.io import open_data_store
-
     from cogent3 import get_app
 
     in_path = tmp_path / "in_data"
@@ -297,7 +291,6 @@ def test_write_multiple_times_apply_to(app_dstore_in):
 
 
 def test_directory_data_store_write_compressed(tmp_path):
-    from scinexus.io import open_data_store
 
     from cogent3 import get_app, make_aligned_seqs
 
@@ -315,7 +308,7 @@ def test_directory_data_store_write_compressed(tmp_path):
 def test_apply_to_not_completed(nc_dstore, tmp_path):
     loader = io_app.load_unaligned()
     num_seqs = sample_app.take_n_seqs(number=3, fixed_choice=False)
-    out_dstore = io_app.open_data_store(tmp_path / "output", suffix="fa", mode="w")
+    out_dstore = open_data_store(tmp_path / "output", suffix="fa", mode="w")
     writer = io_app.write_seqs(data_store=out_dstore, format_name="fasta")
     app = loader + num_seqs + writer
     fini = app.apply_to(nc_dstore)

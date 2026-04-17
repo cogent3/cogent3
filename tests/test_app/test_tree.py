@@ -2,11 +2,11 @@ import pathlib
 from unittest import TestCase
 
 import pytest
+from scinexus.composable import NotCompleted
 
 import cogent3
 from cogent3.app import dist
 from cogent3.app import tree as tree_app
-from cogent3.app.composable import NotCompleted
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
 

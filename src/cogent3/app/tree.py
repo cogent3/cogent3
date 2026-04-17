@@ -1,6 +1,8 @@
 import os
 from functools import singledispatch
 
+from scinexus import get_id_from_source
+from scinexus.composable import ComposableApp
 from scinexus.io_util import is_url, path_exists
 
 from cogent3 import load_tree, make_tree
@@ -8,15 +10,15 @@ from cogent3.core.tree import PhyloNode
 from cogent3.phylo.nj import gnj
 
 from ._citations import cite_cogent3
-from .composable import define_app
 from .data_store import get_data_source
 from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 NoneType = type(None)
 
+get_data_source = get_id_from_source()
 
-@define_app(cite=cite_cogent3)
-class scale_branches:
+
+class scale_branches(ComposableApp, cite=cite_cogent3):
     """Transforms tree branch lengths from nucleotide to codon, or the
     converse. Returns a new tree with lengths divided by scalar"""
 
@@ -68,8 +70,7 @@ class scale_branches:
         return tree
 
 
-@define_app(cite=cite_cogent3)
-class uniformize_tree:
+class uniformize_tree(ComposableApp, cite=cite_cogent3):
     """Standardises the orientation of unrooted trees."""
 
     def __init__(
@@ -102,8 +103,7 @@ class uniformize_tree:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class quick_tree:
+class quick_tree(ComposableApp, cite=cite_cogent3):
     """Computes a Neighbour Joining tree from pairwise distances."""
 
     def __init__(self, drop_invalid: bool = False) -> None:

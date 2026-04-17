@@ -883,17 +883,13 @@ def _(data: DataMemberABC) -> str | None:  # pragma: no cover
     return str(data.unique_id)
 
 
-@deprecated_callable(
-    version="2026.9",
-    reason="Use scinexus.data_store.convert_directory_datastore",
-    new="scinexus.data_store.convert_directory_datastore",
-    is_discontinued=True,
-)
 def convert_directory_datastore(  # pragma: no cover
     inpath: Path,
     outpath: Path,
     suffix: str | None = None,
 ) -> DataStoreABC:
+    from scinexus.data_store import OVERWRITE, DataStoreDirectory
+
     out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
     filenames = inpath.glob(f"*{suffix}")
     for fn in filenames:
@@ -932,36 +928,3 @@ def load_record_from_json(data):  # pragma: no cover
         with contextlib.suppress(json.JSONDecodeError):
             value = json.loads(value)
     return data["identifier"], value, data["completed"]
-
-
-def _summary_to_table(data, *, name):
-    """Convert scinexus summary dicts to cogent3 Table objects.
-
-    Registered with scinexus.data_store.set_summary_display so that
-    scinexus data store summary properties return cogent3 Tables.
-    """
-    from cogent3.core.table import Table
-
-    if isinstance(data, dict):
-        title = data.pop("title", name)
-        rows = [[k, v] for k, v in data.items()]
-        return Table(
-            header=["Condition", "Value"],
-            data=rows,
-            title=title,
-            index_name="Condition",
-        )
-
-    if isinstance(data, list):
-        if not data:
-            return Table(header=[], data=[], title=name)
-        header = list(data[0].keys())
-        rows = [list(row.values()) for row in data]
-        return Table(header=header, data=rows, title=name)
-
-    return data
-
-
-from scinexus.data_store import set_summary_display
-
-set_summary_display(_summary_to_table)

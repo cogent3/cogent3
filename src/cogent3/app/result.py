@@ -6,14 +6,16 @@ from functools import total_ordering
 from pathlib import Path
 
 import numpy
+from scinexus import get_id_from_source
 from scinexus.deserialise import deserialise_object, get_class, register_deserialiser
 from scinexus.misc import extend_docstring_from, get_object_provenance
 from scipy.stats.distributions import chi2
 
 import cogent3
 from cogent3._version import __version__
-from cogent3.app.data_store import get_data_source
 from cogent3.core.table import Table
+
+get_data_source = get_id_from_source()
 
 
 class generic_result(MutableMapping):

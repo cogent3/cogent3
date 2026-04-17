@@ -5,6 +5,7 @@ from unittest import TestCase
 import pytest
 from numpy import log, polyval
 from numpy.testing import assert_allclose
+from scinexus.composable import WRITER, NotCompleted
 
 from cogent3 import (
     DNA,
@@ -15,7 +16,6 @@ from cogent3 import (
     make_unaligned_seqs,
     open_data_store,
 )
-from cogent3.app.composable import WRITER, NotCompleted
 from cogent3.app.dist import (
     JACCARD_PDIST_POLY_COEFFS,
     approx_jc69,
@@ -153,12 +153,8 @@ class FastSlowDistTests(TestCase):
             # Compose two composable applications, there should not be exceptions.
             got = app + calc_dist
             assert isinstance(got, type(calc_dist))
-            assert got.input is app
             assert got._input_type is not None
             assert got._return_type is not None
-            assert got.input is app
-            app.disconnect()
-            calc_dist.disconnect()
 
     def test_est_dist_pair_slow(self):
         """tests the distance between seq pairs in aln"""

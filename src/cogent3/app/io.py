@@ -11,6 +11,13 @@ from gzip import decompress as gzip_decompress
 from pathlib import Path
 
 import numpy
+from scinexus.composable import (
+    ComposableApp,
+    LoaderApp,
+    NotCompleted,
+    WriterApp,
+    define_app,
+)
 from scinexus.data_store import (
     READONLY,
     DataStoreABC,
@@ -34,7 +41,6 @@ from cogent3.core.profile import (
 from cogent3.evolve.fast_distance import DistanceMatrix
 
 from ._citations import cite_cogent3
-from .composable import LOADER, WRITER, NotCompleted, define_app
 
 _MEMORY = ":memory:"
 from .typing import (
@@ -175,8 +181,7 @@ def unpickle_it(data: bytes) -> typing.Any:
     return pickle.loads(data)
 
 
-@define_app(skip_not_completed=False)
-class compress:
+class compress(ComposableApp, skip_not_completed=False):
     """Compresses bytes data."""
 
     def __init__(self, compressor: callable = gzip_compress) -> None:
@@ -192,8 +197,7 @@ class compress:
         return self.compressor(data)
 
 
-@define_app(skip_not_completed=False)
-class decompress:
+class decompress(ComposableApp, skip_not_completed=False):
     """Decompresses data."""
 
     def __init__(self, decompressor: callable = gzip_decompress) -> None:
@@ -217,8 +221,7 @@ def as_dict(obj: typing.Any) -> dict:
     return obj
 
 
-@define_app(skip_not_completed=False)
-class to_primitive:
+class to_primitive(ComposableApp, skip_not_completed=False):
     """convert an object to primitive python types suitable for serialisation"""
 
     def __init__(self, convertor: callable = as_dict) -> None:
@@ -229,8 +232,7 @@ class to_primitive:
         return self.convertor(data)
 
 
-@define_app(skip_not_completed=False)
-class from_primitive:
+class from_primitive(ComposableApp, skip_not_completed=False):
     """deserialises from primitive python types"""
 
     def __init__(self, deserialiser: callable = deserialise_object) -> None:
@@ -298,8 +300,7 @@ def _load_seqs(
     return coll_maker(data, moltype=moltype, source=unique_id)
 
 
-@define_app(app_type=LOADER, cite=cite_cogent3)
-class load_aligned:
+class load_aligned(LoaderApp, cite=cite_cogent3):
     """Loads aligned sequences. Returns an Alignment object."""
 
     def __init__(
@@ -333,8 +334,7 @@ class load_aligned:
         return _load_seqs(path, cogent3.make_aligned_seqs, self._parser, self.moltype)
 
 
-@define_app(app_type=LOADER, cite=cite_cogent3)
-class load_unaligned:
+class load_unaligned(LoaderApp, cite=cite_cogent3):
     """Loads unaligned sequences. Returns a SequenceCollection."""
 
     def __init__(
@@ -370,8 +370,7 @@ class load_unaligned:
         return seqs.degap()
 
 
-@define_app(app_type=LOADER, cite=cite_cogent3)
-class load_tabular:
+class load_tabular(LoaderApp, cite=cite_cogent3):
     """Loads delimited data. Returns a Table."""
 
     def __init__(
@@ -475,8 +474,7 @@ class load_tabular:
         return func[self.as_type](data)
 
 
-@define_app(app_type=LOADER, cite=cite_cogent3)
-class load_json:
+class load_json(LoaderApp, cite=cite_cogent3):
     """Loads json serialised cogent3 objects from a json file.
     Returns whatever object type was stored."""
 
@@ -507,8 +505,7 @@ class load_json:
 DEFAULT_DESERIALISER = unpickle_it() + from_primitive()
 
 
-@define_app(app_type=LOADER, cite=cite_cogent3)
-class load_db:
+class load_db(LoaderApp, cite=cite_cogent3):
     """Loads serialised cogent3 objects from a db.
     Returns whatever object type was stored."""
 
@@ -535,8 +532,7 @@ class load_db:
         return result
 
 
-@define_app(app_type=WRITER, cite=cite_cogent3)
-class write_json:
+class write_json(WriterApp, cite=cite_cogent3):
     """Writes data in json format."""
 
     def __init__(
@@ -575,9 +571,7 @@ class write_json:
         identifier = identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
-            return NotCompleted(
-                type="ERROR", origin=self, message=msg, source="unknown"
-            )
+            return NotCompleted("ERROR", self, msg, source="unknown")
 
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
@@ -590,8 +584,7 @@ class write_json:
         return self.data_store.write(unique_id=identifier, data=data)
 
 
-@define_app(app_type=WRITER, cite=cite_cogent3)
-class write_seqs:
+class write_seqs(WriterApp, cite=cite_cogent3):
     """Write sequences in standard formats."""
 
     def __init__(
@@ -636,9 +629,7 @@ class write_seqs:
         identifier = identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
-            return NotCompleted(
-                type="ERROR", origin=self, message=msg, source="unknown"
-            )
+            return NotCompleted("ERROR", self, msg, source="unknown")
 
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
@@ -650,8 +641,7 @@ class write_seqs:
         return self.data_store.write(unique_id=identifier, data=data)
 
 
-@define_app(app_type=WRITER, cite=cite_cogent3)
-class write_tabular:
+class write_tabular(WriterApp, cite=cite_cogent3):
     """Writes tabular data in text format supported by the cogent3 Table object."""
 
     def __init__(
@@ -692,9 +682,7 @@ class write_tabular:
         identifier = identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
-            return NotCompleted(
-                type="ERROR", origin=self, message=msg, source="unknown"
-            )
+            return NotCompleted("ERROR", self, msg, source="unknown")
 
         if isinstance(data, NotCompleted):
             return self.data_store.write_not_completed(
@@ -709,8 +697,7 @@ class write_tabular:
 DEFAULT_SERIALISER = to_primitive() + pickle_it()
 
 
-@define_app(app_type=WRITER, skip_not_completed=False, cite=cite_cogent3)
-class write_db:
+class write_db(WriterApp, skip_not_completed=False, cite=cite_cogent3):
     """Write serialised objects to a database instance."""
 
     def __init__(
@@ -751,9 +738,7 @@ class write_db:
         identifier = identifier or self._id_from_source(data)
         if identifier is None:
             msg = "identifier cannot be None"
-            return NotCompleted(
-                type="ERROR", origin=self, message=msg, source="unknown"
-            )
+            return NotCompleted("ERROR", self, msg, source="unknown")
 
         blob = self._serialiser(data)
         if isinstance(data, NotCompleted):

@@ -77,17 +77,17 @@ def test_infers_source():
         source=str(source),
     )
     gr = generic_result(aln)
-    assert gr.source == source.name
+    assert gr.source == source.stem
 
     # or Path
     aln.source = source
     gr = generic_result(aln)
-    assert str(gr.source) == source.name
+    assert str(gr.source) == source.stem
 
     # or DataMember
     aln.source = DataMember(data_store=None, unique_id=source.name)
     gr = generic_result(aln)
-    assert str(gr.source) == source.name
+    assert str(gr.source) == source.stem
 
     aln.source = None
     with pytest.raises(ValueError):

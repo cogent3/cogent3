@@ -3,7 +3,8 @@ from collections.abc import Callable, Iterable
 from copy import deepcopy
 from typing import Union
 
-from scinexus import parallel
+from scinexus import get_id_from_source, parallel
+from scinexus.composable import ComposableApp, NotCompleted
 from scinexus.io_util import path_exists
 
 from cogent3 import load_tree, make_tree
@@ -12,8 +13,6 @@ from cogent3.evolve.models import get_model
 from cogent3.evolve.substitution_model import _SubstitutionModel
 
 from ._citations import cite_cogent3
-from .composable import NotCompleted, define_app
-from .data_store import get_data_source
 from .result import (
     bootstrap_result,
     hypothesis_result,
@@ -31,6 +30,8 @@ from .typing import (
     SerialisableType,
     TabularResultType,
 )
+
+get_data_source = get_id_from_source()
 
 
 def _config_rules(param_rules, lower, upper, overwrite=False):
@@ -56,8 +57,7 @@ def _config_rules(param_rules, lower, upper, overwrite=False):
     return param_rules
 
 
-@define_app(cite=cite_cogent3)
-class model:
+class model(ComposableApp, cite=cite_cogent3):
     """Define a substitution model + tree for maximum likelihood evaluation."""
 
     def __init__(
@@ -576,16 +576,14 @@ class _ModelCollectionBase:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class model_collection(_ModelCollectionBase):
+class model_collection(_ModelCollectionBase, ComposableApp, cite=cite_cogent3):
     """Fits a collection of models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
         return model_collection_result(source=get_data_source(aln))
 
 
-@define_app(cite=cite_cogent3)
-class hypothesis(_ModelCollectionBase):
+class hypothesis(_ModelCollectionBase, ComposableApp, cite=cite_cogent3):
     """Specify a hypothesis through defining two models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
@@ -594,8 +592,7 @@ class hypothesis(_ModelCollectionBase):
         )
 
 
-@define_app(cite=cite_cogent3)
-class bootstrap:
+class bootstrap(ComposableApp, cite=cite_cogent3):
     """Parametric bootstrap for a provided hypothesis."""
 
     def __init__(
@@ -645,8 +642,7 @@ class bootstrap:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class ancestral_states:
+class ancestral_states(ComposableApp, cite=cite_cogent3):
     """Computes ancestral state probabilities from a model result."""
 
     def main(
@@ -667,8 +663,7 @@ class ancestral_states:
         return tab
 
 
-@define_app(cite=cite_cogent3)
-class tabulate_stats:
+class tabulate_stats(ComposableApp, cite=cite_cogent3):
     """Extracts all model statistics from model_result as Table."""
 
     def main(
@@ -720,8 +715,7 @@ def is_codon_model(sm):
     return isinstance(sm, _Codon)
 
 
-@define_app(cite=cite_cogent3)
-class natsel_neutral:
+class natsel_neutral(ComposableApp, cite=cite_cogent3):
     """Test of selective neutrality by assessing whether omega equals 1.
     Under the alternate, there is one omega for all branches and all sites.
     """
@@ -821,8 +815,7 @@ class natsel_neutral:
         return self._hyp(data)
 
 
-@define_app(cite=cite_cogent3)
-class natsel_zhang:
+class natsel_zhang(ComposableApp, cite=cite_cogent3):
     """The branch by site-class hypothesis test for natural selection of
     Zhang et al MBE 22: 2472-2479.
 
@@ -1033,8 +1026,7 @@ class natsel_zhang:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class natsel_sitehet:
+class natsel_sitehet(ComposableApp, cite=cite_cogent3):
     """Test for site-heterogeneity in omega. Under null, there are 2 site-classes,
     omega < 1 and omega = 1. Under the alternate, an additional site-class of
     omega > 1 is added."""
@@ -1191,8 +1183,7 @@ class natsel_sitehet:
         return result
 
 
-@define_app(cite=cite_cogent3)
-class natsel_timehet:
+class natsel_timehet(ComposableApp, cite=cite_cogent3):
     """The branch heterogeneity hypothesis test for natural selection.
     Tests for whether a single omega for all branches is sufficient against the
     alternate that a user specified subset of branches has a distinct value

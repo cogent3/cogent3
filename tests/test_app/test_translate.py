@@ -1,7 +1,7 @@
 import pytest
+from scinexus.composable import NotCompleted
 
 import cogent3
-from cogent3.app.composable import NotCompleted
 from cogent3.app.translate import (
     best_frame,
     get_fourfold_degenerate_sets,
