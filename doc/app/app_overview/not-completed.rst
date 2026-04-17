@@ -1,24 +1,26 @@
+.. _not_completed:
+
+Tracking records that could not be processed
+=============================================
+
+``NotCompleted`` is a special result type provided by the `scinexus <https://pypi.org/project/scinexus/>`_ package. Apps return a ``NotCompleted`` result when a condition is not met (``FALSE`` type) or an unexpected error occurs (``ERROR`` type). These objects evaluate to ``False``, carry information about the failure, and propagate through composed pipelines so that subsequent steps are skipped.
+
+.. todo::
+
+    Link to scinexus NotCompleted documentation once available.
+
+..
+    Placeholder: <scinexus NotCompleted docs URL>
+
+A cogent3 example
+-----------------
+
 .. jupyter-execute::
     :hide-code:
 
     import set_working_directory
 
-Tracking records that could not be processed
-============================================
-
-.. _not_completed:
-
-The ``NotCompleted`` object
----------------------------
-
-``NotCompleted`` is a special result type that can be produced by a composable app. These objects evaluate to ``False``.
-
-An app can return a ``NotCompleted`` result for one of 2 reasons. The object contains information regarding the input data, where the issue arose and whatever message was provided by the code (like an exception traceback).
-
-``NotCompleted`` FALSE type
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The results when a condition was not met. For example, below I create an app that will return alignments with 2 specific sequences. I'm applying this to a data set where a "Mouse" sequence does not exist. This will produce a FALSE type.
+Below, an app that selects specific sequences returns a ``NotCompleted`` because the requested sequence ``"Mouse"`` does not exist in the primate data set.
 
 .. jupyter-execute::
 
@@ -49,31 +51,13 @@ and the reason for the failure
 
     result.message
 
-
-``NotCompleted`` ERROR type
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-An ``ERROR`` type is returned if an unexpected condition occurs. This can be an exception raised during the calculation. In our example, we illustrate this by trying to open a file with an incorrect path.
-
-.. jupyter-execute::
-
-    result = reader("primate_brca1.fasta")
-    result
-
 Composed functions propagate ``NotCompleted`` results
 -----------------------------------------------------
 
-If you have a composed function, with multiple steps and an error occurs then the resulting ``NotCompleted`` result is returned without any of the other steps being applied to it. For example, we make a composed app from both of the above apps.
+If you have a composed function and an error occurs, the ``NotCompleted`` result is returned without any subsequent steps being applied.
 
 .. jupyter-execute::
 
     app = reader + select_seqs
     result = app("data/primate_brca1.fasta")
-    result
-
-and
-
-.. jupyter-execute::
-
-    result = app("primate_brca1.fasta")
     result

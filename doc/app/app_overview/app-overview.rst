@@ -13,12 +13,14 @@ What are apps?
 
 Apps are ready-made "functions" that you can apply to your data without needing to know all the technical details. They are easy to use, even if you're not an expert programmer. Multiple apps can be naturally composed into "pipelines", which are fully equipped for robust and reproducible application to data. In fact, apps and app pipelines can be applied to a single, or thousands, of data file(s) without writing loops or conditionals.
 
-Apps have several key features, they:
+The composable app infrastructure is provided by the `scinexus <https://pypi.org/project/scinexus/>`_ package. See the scinexus documentation for details on composability rules, type checking, batch processing, parallel execution, and progress tracking.
 
-#. trap errors
-#. check the validity of input data
-#. can be used by themselves or combined into a "composed" app (aka pipeline)
-#. automatically track the relationship between an input data record and its output record
+.. todo::
+
+    Link to scinexus composable apps documentation once available.
+
+..
+    Placeholder: <scinexus composable apps docs URL>
 
 .. _app_start:
 
@@ -31,9 +33,9 @@ Three top-level functions are very useful:
 - ``app_help()`` shows what a given app can do (see :ref:`app_help`)
 - ``get_app()`` returns an app instance for you to use (see :ref:`get_app`)
 
-Two other crucial concepts concern: 
+Two other crucial concepts concern:
 
-- :ref:`data stores <data_stores>` and 
+- :ref:`data stores <data_stores>` and
 - :ref:`tracking failures <not_completed>`
 
 .. _app_types:
@@ -49,55 +51,13 @@ There are 3 types of apps:
 
 As their names imply, loaders load, writers write and generic apps do other operations on data.
 
-.. _app_composability:
-
-Composability
--------------
-
-Most ``cogent3`` apps are "composable", meaning that multiple apps can be combined into a single function by addition. For example, say we have an app (``fit_model``) that performs a molecular evolutionary analysis on an alignment, and another app (``extract_stats``) that gets the statistics from the result. We could perform these steps sequentially as follows
-
-.. code-block:: python
-
-    fitted = fit_model(alignment)
-    stats = extract_stats(fitted)
-
-Composability allows us to simplify this as follows
-
-.. code-block:: python
-
-    app = fit_model + extract_stats
-    stats = app(fitted)
-
-We can have many more apps in a composed function than just the two shown here.
-
-.. _composability_rules:
-
-Composability rules
-^^^^^^^^^^^^^^^^^^^
-
-There are rules around app composition, starting with app types. Loaders and writers are special cases. If included, a loader must always be first, e.g.
-
-.. code-block:: python
-
-    app = a_loader + a_generic
-
-If included, a writer must always be last, e.g.
-
-.. code-block:: python
-
-    app = a_generic + a_writer
-
-Changing the order for either of the above will result in a ``TypeError``.
-
-The next constraint on app composition are the input and output types of the apps involved. Specifically, apps define the type of input they work on and the type of output they produce. For two apps to be composed, the output (or return) type of app on the left (e.g. ``a_loader``) must overlap with the input type of the app on the right (e.g. ``a_generic``). If they don't match, a ``TypeError`` is raised.
-
 An example
 ----------
 
 .. jupyter-execute::
     :hide-code:
 
-    
+
     from tempfile import TemporaryDirectory
 
     tmpdir = TemporaryDirectory(dir=".")
@@ -153,56 +113,6 @@ To apply a composed function to multiple files requires a :ref:`data store <data
     result = process.apply_to(dstore)
 
 .. note:: ``result`` is ``out_dstore``.
-
-Other important features
-------------------------
-
-The settings and data analysed will be logged
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-A log file will be written into the same data store as the output. The log includes information on the conditions under which the analysis was run and fingerprint all input and output files.
-
-.. jupyter-execute::
-
-    out_dstore.summary_logs
-
-Failures are recorded
-^^^^^^^^^^^^^^^^^^^^^
-
-Any "failures" (see :ref:`not_completed`) are saved. The data store class provides methods for interrogating those. First, a general summary of the output data store indicates we have 6 records that did not complete.
-
-.. jupyter-execute::
-
-    out_dstore.describe
-
-These occur for this example primarily because some of the files contain sequences that are not aligned
-
-.. jupyter-execute::
-
-    out_dstore.summary_not_completed
-
-You can track progress
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. jupyter-execute::
-
-    result = process.apply_to(dstore, show_progress=True)
-
-You can do parallel computation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-    result = process.apply_to(dstore, parallel=True)
-
-By default, this will use all available processors on your machine. (See :ref:`parallel` for more details plus how to take advantage of multiple machines using MPI.)
-
-All of the above
-^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-    process.apply_to(dstore, parallel=True, show_progress=True)
 
 .. jupyter-execute::
     :hide-code:
