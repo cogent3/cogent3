@@ -47,8 +47,6 @@ def test(session):
         "pytest",
         "-s",
         "-x",
-        "--ignore-glob",
-        "*app/test_app_mpi.py",
         "-m",
         "not slow",
         *session.posargs,
@@ -66,27 +64,6 @@ def test_module_docs(session):
         "-s",
         "--doctest-modules",
         ".",
-    )
-
-
-@nox.session(python=[f"3.{v}" for v in _py_versions])
-def testmpi(session):
-    session.install("-e.[test]")
-    session.install("mpi4py")
-    py = pathlib.Path(session.bin_paths[0]) / "python"
-    session.chdir("tests/test_app")
-    session.run(
-        "mpiexec",
-        "-n",
-        "4",
-        str(py),
-        "-m",
-        "mpi4py.futures",
-        "-m",
-        "pytest",
-        "-x",
-        "test_app_mpi.py",
-        external=True,
     )
 
 
