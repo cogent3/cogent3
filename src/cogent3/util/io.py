@@ -16,6 +16,7 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 from charset_normalizer import detect
+from scinexus.warning import deprecated_callable
 
 from cogent3.util.misc import _wout_period
 
@@ -146,7 +147,13 @@ def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.open_url",
+    new="scinexus.io_util.open_url",
+    is_discontinued=True,
+)
+def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:  # pragma: no cover
     """open a url
 
     Parameters

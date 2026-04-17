@@ -3,7 +3,6 @@ import gzip
 import pathlib
 import tempfile
 import zipfile
-from urllib.parse import urlparse
 
 import pytest
 
@@ -16,7 +15,6 @@ from cogent3.util.io import (
     iter_line_blocks,
     iter_splitlines,
     open_,
-    open_url,
     path_exists,
     remove_files,
 )
@@ -314,77 +312,6 @@ def test_open_zip_multi(tmp_dir):
         open_(zip_path)
 
 
-@pytest.mark.parametrize(
-    "mode",
-    ["r", "rb", "rt", None],
-)
-@pytest.mark.internet
-def test_open_url(DATA_DIR, mode):
-    """different open mode's all work"""
-    # None value for open_url mode defaults to "r"
-    file_name = "gff2_test.gff"
-    remote_root = "https://github.com/user-attachments/files/20321057/{}.gz"
-
-    with open_(DATA_DIR / file_name, mode=mode) as infile:
-        local_data = infile.read()
-
-    with open_url(remote_root.format(file_name), mode=mode) as infile:
-        remote_data = infile.read()
-
-    assert remote_data.splitlines() == local_data.splitlines()
-
-    # Test using a ParseResult for url
-    with open_url(urlparse(remote_root.format(file_name)), mode=mode) as infile:
-        remote_data = infile.read()
-    assert remote_data.splitlines() == local_data.splitlines()
-
-
-def test_open_url_local(DATA_DIR):
-    """using file:///"""
-    file_name = "gff2_test.gff"
-    local_path = DATA_DIR / file_name
-    with open_(local_path) as infile:
-        local_data = infile.read()
-
-    # make absolute path
-    with open_url(local_path.absolute().as_uri()) as infile:
-        remote_data = infile.read()
-
-    assert remote_data.splitlines() == local_data.splitlines()
-
-
-@pytest.mark.internet
-def test_open_url_compressed(DATA_DIR):
-    """comparing compressed file handling"""
-    file_name = "formattest.fasta.gz"
-    remote_root = "https://github.com/user-attachments/files/20321056/{}"
-
-    with open_(DATA_DIR / file_name) as infile:
-        local_data = infile.read()
-
-    with open_url(remote_root.format(file_name), mode="rt") as infile:
-        remote_data = infile.read()
-
-    assert remote_data.splitlines() == local_data.splitlines()
-
-
-def test_open_url_write_exceptions():
-    """Test 'w' mode (should raise Exception)"""
-    with pytest.raises(Exception):
-        _ = open_url(
-            "https://github.com/user-attachments/files/20321057/gff2_test.gff.gz",
-            mode="w",
-        )
-
-
-def test_open_url_exceptions():
-    """non-http(s) address for url (should raise Exception)"""
-    with pytest.raises(Exception):
-        _ = open_url(
-            "ftp://github.com/user-attachments/files/20321057/gff2_test.gff.gz",
-        )
-
-
 def test_iter_splitlines_one(tmp_path):
     # file has a single line
     path = tmp_path / "one-line.txt"
@@ -515,22 +442,3 @@ def test_is_url(url):
 )
 def test_not_is_url(url):
     assert not is_url(url)
-
-
-@pytest.fixture
-def gzip_uri(DATA_DIR, tmp_path):
-    inpath = DATA_DIR / "sample.tsv"
-    data = inpath.read_text()
-    outpath = tmp_path / "sample.tsv.gz"
-    with open_(outpath, "wb") as outfile:
-        outfile.write(data.encode("utf8"))
-
-    return outpath.as_uri()
-
-
-@pytest.mark.parametrize("mode", ["r", "rb", "rt"])
-def test_open_url_gzip_mode(gzip_uri, mode):
-    with open_url(gzip_uri, mode=mode) as infile:
-        got = infile.read()
-    expect_type = bytes if "b" in mode else str
-    assert isinstance(got, expect_type)
