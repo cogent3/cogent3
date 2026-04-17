@@ -25,7 +25,6 @@ from cogent3.util.misc import (
     adjusted_gt_minprob,
     adjusted_within_bounds,
     curry,
-    docstring_to_summary_rest,
     get_independent_coords,
     get_merged_by_value_coords,
     get_merged_overlapping_coords,
@@ -1074,49 +1073,6 @@ def test_is_in_jupyter():
     module.get_ipython = lambda x: x
     assert in_jupyter()
     del module.get_ipython
-
-
-def foo1():
-    """some text"""
-
-
-def foo2():
-    """some text
-
-    Notes
-    -----
-    body
-    """
-
-
-def foo3():
-    """
-    Notes
-    -----
-    body
-    """
-
-
-def foo4(): ...
-
-
-_sum_expect = "some text"
-_body_expect = ["Notes", "-----", "body"]
-
-
-@pytest.mark.parametrize(
-    ("foo", "sum_exp", "body_exp"),
-    [
-        (foo1, _sum_expect, []),
-        (foo2, _sum_expect, _body_expect),
-        (foo3, "", _body_expect),
-        (foo4, "", []),
-    ],
-)
-def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
-    summary, body = docstring_to_summary_rest(foo.__doc__)
-    assert summary == sum_exp
-    assert body.split() == body_exp
 
 
 def test_get_true_spans_absolute():

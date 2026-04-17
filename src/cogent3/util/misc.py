@@ -1014,7 +1014,13 @@ _doc_block = re.compile(
 )
 
 
-def docstring_to_summary_rest(text: str) -> tuple[str, str]:
+@deprecated_callable(
+    version="2026.4",
+    reason="Use scinexus.misc.docstring_to_summary_rest",
+    new="scinexus.misc.docstring_to_summary_rest",
+    is_discontinued=True,
+)
+def docstring_to_summary_rest(text: str) -> tuple[str, str]:  # pragma: no cover
     """separates the summary at the start of a docstring from the rest
 
     Notes
