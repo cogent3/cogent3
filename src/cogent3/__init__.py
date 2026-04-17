@@ -10,6 +10,7 @@ import warnings
 from collections.abc import Callable
 from importlib import import_module
 
+from scinexus.io import open_data_store
 from scinexus.io_util import open_
 
 from cogent3._version import __version__
@@ -77,7 +78,6 @@ _import_mapping = {
     "app_help": "app",
     "available_apps": "app",
     "get_app": "app",
-    "open_data_store": "app.io",
     # Core types returned by top-level functions
     "Alignment": "core.alignment",
     "SequenceCollection": "core.alignment",

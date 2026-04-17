@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 from scinexus import parallel
+from scinexus.io import open_data_store
 
-from cogent3 import get_app, open_data_store
+from cogent3 import get_app
 
 
 @pytest.fixture

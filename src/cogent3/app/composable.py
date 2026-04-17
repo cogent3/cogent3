@@ -15,6 +15,12 @@ from uuid import uuid4
 
 from citeable import Citation
 from scinexus import parallel as PAR
+from scinexus.data_store import (
+    DataMember,
+    DataStoreABC,
+    get_data_source,
+    get_unique_id,
+)
 from scinexus.deserialise import register_deserialiser
 from scinexus.misc import get_object_provenance
 from scitrack import CachingLogger
@@ -28,13 +34,6 @@ from cogent3.app.typing import (
     resolve_type_hint,
 )
 from cogent3.util.misc import docstring_to_summary_rest
-
-from .data_store import (
-    DataMember,
-    DataStoreABC,
-    get_data_source,
-    get_unique_id,
-)
 
 _builtin_seqs = list, set, tuple
 

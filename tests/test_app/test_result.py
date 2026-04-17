@@ -1,11 +1,11 @@
 import pathlib
 
 import pytest
+from scinexus.data_store import DataMember
 from scinexus.deserialise import deserialise_object
 
 import cogent3
 from cogent3.app import evo as evo_app
-from cogent3.app.data_store import DataMember
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,

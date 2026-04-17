@@ -9,19 +9,20 @@ import tempfile
 import numpy
 import pytest
 from numpy.testing import assert_allclose
-from scinexus.deserialise import deserialise_object
-
-import cogent3
-from cogent3 import get_app, get_moltype, open_data_store
-from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
-from cogent3.app.data_store import (
+from scinexus.data_store import (
     DataMember,
     DataStoreDirectory,
     Mode,
     ReadOnlyDataStoreZipped,
     get_data_source,
 )
+from scinexus.deserialise import deserialise_object
+from scinexus.io import open_data_store
+
+import cogent3
+from cogent3 import get_app, get_moltype
+from cogent3.app import io as io_app
+from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.core.table import Table
@@ -171,7 +172,7 @@ def test_load_json(tmp_dir):
     """correctly loads an object from json"""
     import json
 
-    from cogent3.app.data_store import make_record_for_json
+    from scinexus.data_store import make_record_for_json
 
     data = make_record_for_json("delme", DNA, True)
     data = json.dumps(data)
@@ -454,8 +455,7 @@ def test_pickled_compress_roundtrip(data):
 
 def test_write_db_load_db(fasta_dir, tmp_dir):
     from scinexus.misc import get_object_provenance
-
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     orig_dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -472,7 +472,7 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
 
 
 def test_load_db_prefer_source_attr(tmp_dir):
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     path = tmp_dir / "test.sqlitedb"
     data_store = DataStoreSqlite(path, mode="w")
@@ -494,7 +494,7 @@ def test_load_db_prefer_source_attr(tmp_dir):
 
 
 def test_write_read_db_not_completed(tmp_dir):
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -509,7 +509,7 @@ def test_write_read_db_not_completed(tmp_dir):
 
 def test_write_read_db_summary_not_completed(tmp_dir):
     # should not fail, even if not completed content is compressed
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -600,7 +600,7 @@ def db_dstore(tmp_dir):
 )
 def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     def uniqid(source):
-        from cogent3.app.data_store import get_data_source
+        from scinexus.data_store import get_data_source
 
         name = pathlib.Path(get_data_source(source)).name
         return name.split(".")[0]

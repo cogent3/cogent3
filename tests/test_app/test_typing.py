@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import TypeVar, Union
 
 import pytest
+from scinexus.data_store import DataMemberABC
 
-from cogent3.app.data_store import DataMemberABC
 from cogent3.app.typing import (
     AlignedSeqsType,
     IdentifierType,

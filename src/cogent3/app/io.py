@@ -11,7 +11,18 @@ from gzip import decompress as gzip_decompress
 from pathlib import Path
 
 import numpy
+from scinexus.data_store import (
+    READONLY,
+    DataStoreABC,
+    DataStoreDirectory,
+    Mode,
+    ReadOnlyDataStoreZipped,
+    get_unique_id,
+    load_record_from_json,
+    make_record_for_json,
+)
 from scinexus.deserialise import deserialise_object
+from scinexus.sqlite_data_store import DataStoreSqlite
 
 import cogent3
 from cogent3.core import moltype as c3_moltype
@@ -24,17 +35,8 @@ from cogent3.evolve.fast_distance import DistanceMatrix
 
 from ._citations import cite_cogent3
 from .composable import LOADER, WRITER, NotCompleted, define_app
-from .data_store import (
-    READONLY,
-    DataStoreABC,
-    DataStoreDirectory,
-    Mode,
-    ReadOnlyDataStoreZipped,
-    get_unique_id,
-    load_record_from_json,
-    make_record_for_json,
-)
-from .sqlite_data_store import _MEMORY, DataStoreSqlite
+
+_MEMORY = ":memory:"
 from .typing import (
     AlignedSeqsType,
     IdentifierType,
