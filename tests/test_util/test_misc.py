@@ -1038,23 +1038,6 @@ class MappedDictTests(TestCase):
         assert "5" not in d
 
 
-def test_not_in_jupyter():
-    from cogent3.util.misc import in_jupyter
-
-    assert not in_jupyter()
-
-
-def test_is_in_jupyter():
-    # an ugly hack, the in_jupyter function relies entirely on whether a
-    # get_ipython variable exists in the name space
-    import cogent3.util.misc as module
-    from cogent3.util.misc import in_jupyter
-
-    module.get_ipython = lambda x: x
-    assert in_jupyter()
-    del module.get_ipython
-
-
 def test_get_true_spans_absolute():
     got = get_true_spans(array([0, 1, 1, 0, 1]))
     assert_allclose(got, array([[1, 2], [4, 1]]))

@@ -1098,7 +1098,13 @@ def get_setting_from_environ(
     return result
 
 
-def in_jupyter() -> bool:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.misc.in_jupyter",
+    new="scinexus.misc.in_jupyter",
+    is_discontinued=True,
+)
+def in_jupyter() -> bool:  # pragma: no cover
     """whether code is being executed within a jupyter notebook"""
     val = True
     try:
