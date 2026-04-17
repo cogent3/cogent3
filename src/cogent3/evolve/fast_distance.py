@@ -7,14 +7,14 @@ import numba
 import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
+from scinexus.deserialise import register_deserialiser
+from scinexus.misc import get_object_provenance
+from scinexus.progress import get_progress
 
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import moltype as c3_moltype
-from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
-from cogent3.util.misc import get_object_provenance
-from cogent3.util.progress_display import display_wrap
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import Alignment
@@ -390,8 +390,7 @@ class _PairwiseDistance:
     def func() -> None:
         pass  # over ride in subclasses
 
-    @display_wrap
-    def run(self, alignment=None, ui=None) -> None:
+    def run(self, alignment=None, show_progress=False) -> None:
         """computes the pairwise distances"""
         self._dupes = None
         self._duped = None
@@ -409,6 +408,8 @@ class _PairwiseDistance:
         ]
         off_diag = tuple(tuple(a) for a in zip(*off_diag, strict=False))
 
+        progress = get_progress(show_progress)
+        ctx = progress.context(msg="Pairwise distances")
         done = 0.0
         to_do = (len(names) ** 2 - 1) / 2
         for i in range(len(names) - 1):
@@ -422,7 +423,7 @@ class _PairwiseDistance:
                     continue
 
                 name_2 = names[j]
-                ui.display(f"{name_1} vs {name_2}", done / to_do)
+                ctx.update(progress=done / to_do, msg=f"{name_1} vs {name_2}")
                 done += 1
                 matrix.fill(0)
                 s2 = self.indexed_seqs[j]
@@ -441,6 +442,7 @@ class _PairwiseDistance:
                 self._dists[(name_1, name_2)] = result
                 self._dists[(name_2, name_1)] = result
 
+        ctx.close()
         self._dupes = [names[i] for i in dupes] or None
         if duped:
             self._duped = {}

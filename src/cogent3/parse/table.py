@@ -1,7 +1,7 @@
 import csv
 import pathlib
 
-from cogent3.util.io import open_
+from scinexus.io_util import open_
 
 from .record_finder import is_empty
 

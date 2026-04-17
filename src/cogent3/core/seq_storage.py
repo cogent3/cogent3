@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, Any, Self, cast
 import numba
 import numpy
 import numpy.typing as npt
+from scinexus.misc import extend_docstring_from
 
 import cogent3.core.alphabet as c3_alphabet
 import cogent3.core.sequence as c3_sequence
 from cogent3.core.location import IndelMap
 from cogent3.core.seqview import AlignedDataView, AlignedDataViewABC, SeqDataView
-from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Collection, Mapping

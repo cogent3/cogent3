@@ -3,9 +3,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Self, SupportsIndex
 
+from scinexus.misc import get_object_provenance
+
 from cogent3._version import __version__
 from cogent3.core.location import _input_vals_neg_step, _input_vals_pos_step
-from cogent3.util.misc import get_object_provenance
 
 
 class SliceRecordABC(ABC):

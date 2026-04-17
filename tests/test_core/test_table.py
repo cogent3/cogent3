@@ -13,6 +13,7 @@ import pytest
 from numpy import arange
 from numpy.exceptions import ComplexWarning
 from numpy.testing import assert_equal
+from scinexus.misc import get_object_provenance
 
 from cogent3 import load_table, make_table, open_
 from cogent3.core.table import (
@@ -27,7 +28,6 @@ from cogent3.format.table import (
     is_html_markup,
 )
 from cogent3.parse.table import FilteringParser
-from cogent3.util.misc import get_object_provenance
 
 try:
     from pandas import DataFrame

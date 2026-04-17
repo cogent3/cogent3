@@ -2,6 +2,7 @@ import numpy
 import pytest
 from numpy import log2
 from numpy.testing import assert_allclose
+from scinexus.composable import NotCompleted
 
 from cogent3 import (
     get_app,
@@ -27,7 +28,6 @@ from cogent3.app.align import (
     pairwise_to_multiple,
     smith_waterman,
 )
-from cogent3.app.composable import NotCompleted
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
 

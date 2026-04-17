@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 import numpy
 from numpy import polyval, triu_indices
+from scinexus import get_id_from_source
+from scinexus.composable import ComposableApp, NotCompleted, define_app
 
 from cogent3 import MolTypeLiteral, get_moltype, make_tree
 from cogent3.evolve.fast_distance import (
@@ -17,8 +19,6 @@ from cogent3.maths.distance_transform import jaccard
 from cogent3.util.misc import get_true_spans
 
 from ._citations import cite_cogent3
-from .composable import NotCompleted, define_app
-from .data_store import get_data_source
 from .typing import (
     AlignedSeqsType,
     PairwiseDistanceType,
@@ -28,6 +28,8 @@ from .typing import (
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import SequenceCollection
+
+get_data_source = get_id_from_source()
 
 # The following coefficients are derived from a polynomial fit between Jaccard distance
 # and the proportion of different sites for mammalian DNA sequences. NOTE: the Jaccard
@@ -48,8 +50,7 @@ JACCARD_PDIST_POLY_COEFFS = [
 ]
 
 
-@define_app(cite=cite_cogent3)
-class fast_slow_dist:
+class fast_slow_dist(ComposableApp, cite=cite_cogent3):
     """Pairwise distance calculation for aligned sequences.
 
     Uses fast (but less numerically robust) approach where possible, slow (robust)
@@ -384,8 +385,7 @@ def get_approx_dist_calc(
     return dist_calc_app
 
 
-@define_app(cite=cite_cogent3)
-class gap_dist:
+class gap_dist(ComposableApp, cite=cite_cogent3):
     """compute the pairwise difference in gaps using affine gap score"""
 
     def __init__(self, gap_insert: float = 12.0, gap_extend: float = 1.0) -> None:

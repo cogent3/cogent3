@@ -16,34 +16,43 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 from charset_normalizer import detect
+from scinexus.io_util import is_url as _is_url
+from scinexus.io_util import open_ as _open_
+from scinexus.warning import deprecated_callable
 
 from cogent3.util.misc import _wout_period
 
 PathType = str | PathLike[Any] | PurePath | Path
 
 
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.is_url",
+    new="scinexus.io_util.is_url",
+    is_discontinued=True,
+)
 @functools.singledispatch
-def is_url(path: str | bytes | Path | PathLike) -> bool:
+def is_url(path: str | bytes | Path | PathLike) -> bool:  # pragma: no cover
     """whether a path is a url"""
     return False
 
 
 @is_url.register
-def _(path: str) -> bool:
+def _(path: str) -> bool:  # pragma: no cover
     return is_url(urlparse(path))
 
 
 @is_url.register
-def _(path: bytes) -> bool:
+def _(path: bytes) -> bool:  # pragma: no cover
     return is_url(urlparse(path.decode("utf8")))
 
 
 @is_url.register
-def _(path: ParseResult) -> bool:
+def _(path: ParseResult) -> bool:  # pragma: no cover
     return path.scheme in {"http", "https", "file"}
 
 
-def _get_compression_open(
+def _get_compression_open(  # pragma: no cover
     path: PathType | None = None,
     compression: str | None = None,
 ) -> Callable | None:
@@ -66,7 +75,13 @@ def _get_compression_open(
     return _compression_handlers.get(compression)
 
 
-def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.open_zip",
+    new="scinexus.io_util.open_zip",
+    is_discontinued=True,
+)
+def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:  # pragma: no cover
     """open a single member zip-compressed file
 
     Note
@@ -107,7 +122,15 @@ _compression_handlers = {
 }
 
 
-def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.open_",
+    new="scinexus.io_util.open_",
+    is_discontinued=True,
+)
+def open_(
+    filename: PathType, mode: str = "rt", **kwargs: Any
+) -> IO[Any]:  # pragma: no cover
     """open that handles different compression
 
     Parameters
@@ -127,7 +150,7 @@ def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
         msg = f"{filename} not a valid file name or url"
         raise ValueError(msg)
 
-    if is_url(filename):
+    if _is_url(filename):
         return open_url(filename, mode=mode, **kwargs)
 
     mode = mode or "rt"
@@ -146,7 +169,13 @@ def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
     return op(filename, mode, encoding=encoding, **kwargs)
 
 
-def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.open_url",
+    new="scinexus.io_util.open_url",
+    is_discontinued=True,
+)
+def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:  # pragma: no cover
     """open a url
 
     Parameters
@@ -187,7 +216,7 @@ def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:
     return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 
 
-def _path_relative_to_zip_parent(zip_path, member_path):
+def _path_relative_to_zip_parent(zip_path, member_path):  # pragma: no cover
     """returns member_path relative to zip_path
 
     Parameters
@@ -207,9 +236,15 @@ def _path_relative_to_zip_parent(zip_path, member_path):
     return Path(*member_path.parts[member_path.parts.index(zip_name) :])
 
 
-class atomic_write:
+class atomic_write:  # pragma: no cover
     """performs atomic write operations, cleans up if fails"""
 
+    @deprecated_callable(
+        version="2026.9",
+        reason="Use scinexus.io_util.atomic_write",
+        new="scinexus.io_util.atomic_write",
+        is_discontinued=True,
+    )
     def __init__(
         self,
         path: PathType,
@@ -295,7 +330,7 @@ class atomic_write:
     def _get_fileobj(self) -> IO[Any]:
         """returns file to be written to"""
         if self._file is None:
-            self._file = open_(self._tmppath, self._mode, encoding=self._encoding)
+            self._file = _open_(self._tmppath, self._mode, encoding=self._encoding)
 
         return self._file
 
@@ -338,7 +373,15 @@ class atomic_write:
         self.__exit__(None, None, None)
 
 
-def get_format_suffixes(filename: PathType) -> tuple[str | None, str | None]:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.get_format_suffixes",
+    new="scinexus.io_util.get_format_suffixes",
+    is_discontinued=True,
+)
+def get_format_suffixes(
+    filename: PathType,
+) -> tuple[str | None, str | None]:  # pragma: no cover
     """returns file, compression suffixes"""
     filename = Path(filename)
     if not filename.suffix:
@@ -356,7 +399,12 @@ def get_format_suffixes(filename: PathType) -> tuple[str | None, str | None]:
     return suffix, cmp_suffix
 
 
-def remove_files(list_of_filepaths, error_on_missing=True) -> None:
+@deprecated_callable(
+    version="2026.9",
+    reason="use shutil instead",
+    is_discontinued=True,
+)
+def remove_files(list_of_filepaths, error_on_missing=True) -> None:  # pragma: no cover
     """Remove list of filepaths, optionally raising an error if any are missing"""
     missing = []
     for fp in list_of_filepaths:
@@ -370,14 +418,26 @@ def remove_files(list_of_filepaths, error_on_missing=True) -> None:
         raise OSError(msg)
 
 
-def path_exists(path: PathType) -> bool:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.path_exists",
+    new="scinexus.io_util.path_exists",
+    is_discontinued=True,
+)
+def path_exists(path: PathType) -> bool:  # pragma: no cover
     """whether path is a valid path and it exists"""
     with contextlib.suppress(Exception):
         return Path(path).exists()
     return False
 
 
-def iter_splitlines(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.iter_splitlines",
+    new="scinexus.io_util.iter_splitlines",
+    is_discontinued=True,
+)
+def iter_splitlines(  # pragma: no cover
     path: PathType,
     chunk_size: int | None = 1_000_000,
 ) -> Iterator[str]:
@@ -394,7 +454,7 @@ def iter_splitlines(
     -----
     Loads chunks of data from the file, yields one line at a time
     """
-    if is_url(path):
+    if _is_url(path):
         chunk_size = None
     else:
         path = Path(path).expanduser()
@@ -403,7 +463,7 @@ def iter_splitlines(
             # load it all
             chunk_size = None
 
-    with open_(path) as infile:
+    with _open_(path) as infile:
         last = ""
         while True:
             data = infile.read(chunk_size)
@@ -429,7 +489,13 @@ def iter_splitlines(
             yield from last.splitlines()
 
 
-def iter_line_blocks(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.iter_line_blocks",
+    new="scinexus.io_util.iter_line_blocks",
+    is_discontinued=True,
+)
+def iter_line_blocks(  # pragma: no cover
     path: PathType,
     num_lines: int | None = 1000,
     chunk_size: int | None = 5_000_000,

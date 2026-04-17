@@ -4,9 +4,9 @@ import json
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
-from cogent3.util.deserialise import deserialise_object
-from cogent3.util.io import open_
-from cogent3.util.misc import get_object_provenance
+from scinexus.deserialise import deserialise_object
+from scinexus.io_util import open_
+from scinexus.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType
@@ -26,7 +26,7 @@ def load_from_json(filename: "PathType", classes: Iterable[type]) -> Any:
         "classes should be a series of Cogent3 types, for example: (Alignment, SequenceCollection)"
     )
 
-    from cogent3.app.data_store import load_record_from_json
+    from scinexus.data_store import load_record_from_json
 
     with open_(filename) as f:
         content = json.loads(f.read())

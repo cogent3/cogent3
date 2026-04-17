@@ -10,7 +10,9 @@ from collections.abc import Callable, Iterable
 from collections.abc import Sequence as PySeq
 from typing import IO, Any, cast
 
-from cogent3.util.io import PathType, open_
+from scinexus.io_util import open_
+
+from cogent3.util.io import PathType
 
 
 @functools.singledispatch

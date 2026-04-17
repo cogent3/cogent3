@@ -17,6 +17,7 @@ from warnings import warn
 
 import numpy
 from numpy import array, finfo, float64, floating, integer, ndarray, zeros
+from scinexus.warning import deprecated_callable
 from typing_extensions import TypeIs
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -189,7 +190,13 @@ def is_char_or_noniterable(x):
     return is_char(x) or not is_iterable(x)
 
 
-def is_url(text: str) -> bool:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.is_url",
+    new="scinexus.io_util.is_url",
+    is_discontinued=True,
+)
+def is_url(text: str) -> bool:  # pragma: no cover
     _urls = re.compile("^(http[s]*|file)")
     r = urlparse(text)
     return _urls.search(r.scheme) is not None
@@ -963,7 +970,13 @@ def get_merged_by_value_coords(spans_value, digits=None):
     return data
 
 
-def get_object_provenance(obj: object) -> str:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.misc.get_object_provenance",
+    new="scinexus.misc.get_object_provenance",
+    is_discontinued=True,
+)
+def get_object_provenance(obj: object) -> str:  # pragma: no cover
     """returns string of complete object provenance"""
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
@@ -978,7 +991,13 @@ def get_object_provenance(obj: object) -> str:
     return name if mod is None or mod == "builtins" else f"{mod}.{name}"
 
 
-def extend_docstring_from(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.misc.extend_docstring_from",
+    new="scinexus.misc.extend_docstring_from",
+    is_discontinued=True,
+)
+def extend_docstring_from(  # pragma: no cover
     source: object, pre: bool = False
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     def docstring_inheriting_decorator(dest: Callable[P, R]) -> Callable[P, R]:
@@ -1007,7 +1026,13 @@ _doc_block = re.compile(
 )
 
 
-def docstring_to_summary_rest(text: str) -> tuple[str, str]:
+@deprecated_callable(
+    version="2026.4",
+    reason="Use scinexus.misc.docstring_to_summary_rest",
+    new="scinexus.misc.docstring_to_summary_rest",
+    is_discontinued=True,
+)
+def docstring_to_summary_rest(text: str) -> tuple[str, str]:  # pragma: no cover
     """separates the summary at the start of a docstring from the rest
 
     Notes
@@ -1079,7 +1104,13 @@ def get_setting_from_environ(
     return result
 
 
-def in_jupyter() -> bool:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.misc.in_jupyter",
+    new="scinexus.misc.in_jupyter",
+    is_discontinued=True,
+)
+def in_jupyter() -> bool:  # pragma: no cover
     """whether code is being executed within a jupyter notebook"""
     val = True
     try:

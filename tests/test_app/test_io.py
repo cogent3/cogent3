@@ -9,25 +9,31 @@ import tempfile
 import numpy
 import pytest
 from numpy.testing import assert_allclose
-
-import cogent3
-from cogent3 import get_app, get_moltype, open_data_store
-from cogent3.app import io as io_app
-from cogent3.app.composable import NotCompleted, propagate_source, source_proxy
-from cogent3.app.data_store import (
+from scinexus.composable import (
+    NotCompleted,
+    NotCompletedType,
+    propagate_source,
+    source_proxy,
+)
+from scinexus.data_store import (
     DataMember,
     DataStoreDirectory,
     Mode,
     ReadOnlyDataStoreZipped,
     get_data_source,
 )
+from scinexus.deserialise import deserialise_object
+from scinexus.io import open_data_store
+
+import cogent3
+from cogent3 import get_app, get_moltype
+from cogent3.app import io as io_app
 from cogent3.app.io import DEFAULT_DESERIALISER, DEFAULT_SERIALISER
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray
 from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
-from cogent3.util.deserialise import deserialise_object
 
 DNA = get_moltype("dna")
 
@@ -103,7 +109,8 @@ def test_write_seqs(fasta_dir, tmp_dir):
 
 def test_source_proxy_simple(fasta_dir):
     """correctly writes sequences out"""
-    from cogent3.app.composable import define_app
+    from scinexus.composable import define_app
+
     from cogent3.app.typing import IdentifierType
 
     @define_app
@@ -171,7 +178,7 @@ def test_load_json(tmp_dir):
     """correctly loads an object from json"""
     import json
 
-    from cogent3.app.data_store import make_record_for_json
+    from scinexus.data_store import make_record_for_json
 
     data = make_record_for_json("delme", DNA, True)
     data = json.dumps(data)
@@ -453,8 +460,8 @@ def test_pickled_compress_roundtrip(data):
 
 
 def test_write_db_load_db(fasta_dir, tmp_dir):
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     orig_dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -471,7 +478,7 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
 
 
 def test_load_db_prefer_source_attr(tmp_dir):
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     path = tmp_dir / "test.sqlitedb"
     data_store = DataStoreSqlite(path, mode="w")
@@ -493,7 +500,7 @@ def test_load_db_prefer_source_attr(tmp_dir):
 
 
 def test_write_read_db_not_completed(tmp_dir):
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -508,7 +515,7 @@ def test_write_read_db_not_completed(tmp_dir):
 
 def test_write_read_db_summary_not_completed(tmp_dir):
     # should not fail, even if not completed content is compressed
-    from cogent3.app.sqlite_data_store import DataStoreSqlite
+    from scinexus.sqlite_data_store import DataStoreSqlite
 
     nc = NotCompleted("ERROR", "test", "for tracing", source="blah")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")
@@ -599,7 +606,7 @@ def db_dstore(tmp_dir):
 )
 def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     def uniqid(source):
-        from cogent3.app.data_store import get_data_source
+        from scinexus.data_store import get_data_source
 
         name = pathlib.Path(get_data_source(source)).name
         return name.split(".")[0]
@@ -632,7 +639,7 @@ def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
     setattr(data, attr, value)
     m = writer(data)
     assert isinstance(m, NotCompleted)
-    assert m.type == "ERROR"
+    assert m.type is NotCompletedType.ERROR
 
 
 @pytest.mark.parametrize(
@@ -690,12 +697,6 @@ def test_to_from_json():
 def test_to_json_combines():
     app = io_app.to_primitive() + io_app.to_json()
     assert app(DNA) == DNA.to_json()
-
-
-def test_open_zipped(zipped_full):
-    got = open_data_store(zipped_full.source, mode="r", suffix="fasta")
-    assert len(got) == len(zipped_full)
-    assert isinstance(got, type(zipped_full))
 
 
 @pytest.fixture

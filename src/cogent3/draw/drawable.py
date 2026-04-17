@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Any, Self, TypeVar, cast
 
 import numpy
 import numpy.typing as npt
+from scinexus.misc import extend_docstring_from
 
-from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 if TYPE_CHECKING:  # pragma: no cover

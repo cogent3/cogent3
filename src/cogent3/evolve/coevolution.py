@@ -5,13 +5,12 @@ import typing
 import numba
 import numpy
 from numpy import nan
+from scinexus.warning import deprecated_callable
 
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core.moltype import IUPAC_gap, IUPAC_missing
 from cogent3.evolve.pairwise_distance_numba import index_to_lower_tri
 from cogent3.util import dict_array
-from cogent3.util import progress_display as UI
-from cogent3.util.warning import deprecated_callable
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.alignment import Alignment
@@ -812,7 +811,6 @@ def _rmi_calc(
     return positions, stats
 
 
-@UI.display_wrap
 def coevolution_matrix(
     *,
     alignment: "Alignment",
@@ -821,7 +819,6 @@ def coevolution_matrix(
     parallel: bool = False,
     par_kw: dict | None = None,
     show_progress: bool = False,
-    ui=None,
 ) -> dict_array.DictArray:
     """measure pairwise coevolution
 

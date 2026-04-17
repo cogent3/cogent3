@@ -1,10 +1,10 @@
 from math import fsum
 
+import scinexus.misc
 from numpy import array, diag, diagonal, dot, eye, isclose, log, sqrt
 from numpy.linalg import slogdet
 from numpy.testing import assert_allclose, assert_equal
 
-import cogent3.util.misc
 from cogent3.maths.util import safe_p_log_p, validate_freqs_array
 
 
@@ -114,7 +114,7 @@ def jsd(*vectors, validate=False):
     return jsd_
 
 
-@cogent3.util.misc.extend_docstring_from(jsd)
+@scinexus.misc.extend_docstring_from(jsd)
 def jsm(*args, **kwargs):
     """
     Returns

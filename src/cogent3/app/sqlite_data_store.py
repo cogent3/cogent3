@@ -5,11 +5,20 @@ import datetime
 import os
 import re
 import sqlite3
+import warnings
 import weakref
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from scinexus.misc import extend_docstring_from
 from scitrack import get_text_hexdigest
+
+warnings.warn(
+    "cogent3.app.sqlite_data_store is discontinued and will be removed in version 2026.9, "
+    "use scinexus.sqlite_data_store instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from cogent3.app.data_store import (
     _LOG_TABLE,
@@ -23,7 +32,6 @@ from cogent3.app.data_store import (
     Mode,
     StrOrBytes,
 )
-from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:  # pragma: no cover
     from citeable import CitationBase
@@ -39,7 +47,7 @@ NoneType = type(None)
 # dealing with python3.12 deprecation of datetime objects and their sqlite3 handling
 
 
-def _datetime_to_iso(timestamp: datetime.datetime) -> str:
+def _datetime_to_iso(timestamp: datetime.datetime) -> str:  # pragma: no cover
     """timestamp in ISO 8601 format"""
     return timestamp.isoformat()
 
@@ -47,7 +55,7 @@ def _datetime_to_iso(timestamp: datetime.datetime) -> str:
 sqlite3.register_adapter(datetime.datetime, _datetime_to_iso)
 
 
-def _datetime_from_iso(data: bytes) -> datetime.datetime:
+def _datetime_from_iso(data: bytes) -> datetime.datetime:  # pragma: no cover
     """timestamp from ISO 8601 format"""
     return datetime.datetime.fromisoformat(data.decode())
 
@@ -56,7 +64,7 @@ sqlite3.register_converter("timestamp", _datetime_from_iso)
 
 
 # create db
-def open_sqlite_db_rw(path: str | Path):
+def open_sqlite_db_rw(path: str | Path):  # pragma: no cover
     """creates a new sqlitedb for read/write at path, can be an in-memory db
 
     Notes
@@ -90,7 +98,7 @@ def open_sqlite_db_rw(path: str | Path):
     return db
 
 
-def open_sqlite_db_ro(path):
+def open_sqlite_db_ro(path):  # pragma: no cover
     """returns db opened as read only
     Returns
     -------
@@ -107,7 +115,7 @@ def open_sqlite_db_ro(path):
     return db
 
 
-def has_valid_schema(db):
+def has_valid_schema(db):  # pragma: no cover
     # TODO: should be a full schema check
     query = "SELECT name FROM sqlite_master WHERE type='table'"
     result = db.execute(query).fetchall()
@@ -117,7 +125,7 @@ def has_valid_schema(db):
     return _required <= table_names <= (_required | _optional)
 
 
-class DataStoreSqlite(DataStoreABC):
+class DataStoreSqlite(DataStoreABC):  # pragma: no cover
     store_suffix = "sqlitedb"
 
     def __init__(
@@ -507,7 +515,7 @@ class DataStoreSqlite(DataStoreABC):
 
     @record_type.setter
     def record_type(self, obj) -> None:
-        from cogent3.util.misc import get_object_provenance
+        from scinexus.misc import get_object_provenance
 
         rt = self.record_type
         if self.mode is OVERWRITE and rt:

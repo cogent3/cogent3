@@ -16,10 +16,10 @@ from typing import Any, Self, TypeVar, cast, overload
 import numba
 import numpy
 from numpy.typing import NDArray
+from scinexus.deserialise import get_class, register_deserialiser
+from scinexus.misc import get_object_provenance
 
 from cogent3._version import __version__
-from cogent3.util.deserialise import get_class, register_deserialiser
-from cogent3.util.misc import get_object_provenance
 
 strip = str.strip
 
@@ -1954,7 +1954,7 @@ class FeatureMap(MapABC):
         )
 
     # Overriding the InitVar causes an issue with type checkers
-    @property  # type: ignore[no-redef]
+    @property  # type: ignore[no-redef, misc]
     def spans(self) -> Iterator[SpanTypes]:
         yield from self._spans
 
@@ -2140,7 +2140,7 @@ class FeatureMap(MapABC):
 
     @classmethod
     def from_rich_dict(cls, map_element: dict[str, Any]) -> FeatureMap:
-        from cogent3.util.deserialise import get_class
+        from scinexus.deserialise import get_class
 
         map_element.pop("version", None)
         type_ = map_element.pop("type")

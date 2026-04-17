@@ -3,6 +3,7 @@ import json
 import numpy
 import pytest
 from numpy.testing import assert_allclose
+from scinexus.deserialise import deserialise_object
 
 from cogent3 import (
     get_app,
@@ -21,10 +22,7 @@ from cogent3.evolve.ns_substitution_model import (
     NonReversibleTrinucleotide,
     _sym_preds,
 )
-from cogent3.util.deserialise import (
-    deserialise_likelihood_function,
-    deserialise_object,
-)
+from cogent3.evolve.parameter_controller import deserialise_likelihood_function
 
 
 def test_roundtrip_codon_alphabet():
@@ -351,7 +349,7 @@ def test_roundtrip_tuple_key():
 
 def test_not_completed_result():
     """correctly reconstructs a NotCompletedResult object"""
-    from cogent3.app.composable import NotCompleted
+    from scinexus.composable import NotCompleted
 
     val = NotCompleted("ERROR", "nothing", "some error", source="here")
     expect = val.to_rich_dict()
@@ -428,17 +426,6 @@ def test_deserialise_tabular_distancematrix():
             assert_allclose(dist, got_dict[a, b])
 
 
-def test_deserialise_python_builtins():
-    """any object that does not contain a type key is returned as is"""
-    data = {"a": 123, "b": "text"}
-    jdata = json.dumps(data)
-    got = deserialise_object(jdata)
-    assert got == data
-    data = range(4)
-    got = deserialise_object(data)
-    assert got is data
-
-
 def test_deserialise_likelihood_function1(DATA_DIR):
     """correctly deserialise data into likelihood function"""
     # tests single alignment
@@ -488,29 +475,6 @@ def test_deserialise_likelihood_function_multilocus(DATA_DIR):
     assert str(lf.defn_for["alignment"].assignments) == str(
         got.defn_for["alignment"].assignments,
     )
-
-
-def test_custom_deserialiser():
-    """correctly registers a function to inflate a custom object"""
-    from cogent3.util.deserialise import register_deserialiser
-
-    @register_deserialiser("myfunkydata")
-    def astuple(data):
-        data.pop("type")
-        return tuple(data["data"])
-
-    orig = {"type": "myfunkydata", "data": (1, 2, 3)}
-    txt = json.dumps(orig)
-    got = deserialise_object(txt)
-    assert got == (1, 2, 3)
-    assert isinstance(got, tuple)
-
-    with pytest.raises(TypeError):
-
-        @register_deserialiser
-        def astupled(data):
-            data.pop("type")
-            return tuple(data["data"])
 
 
 def test_convert_annotation_to_annotation_db():
@@ -610,7 +574,7 @@ def test_dser_submodel(mn):
 
 
 def test_deserialise_old_to_new_type_alignment_1():
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     rd = {
         "seqs": {
@@ -714,7 +678,7 @@ def test_deserialise_old_to_new_type_alignment_1():
 
 
 def test_deserialise_old_to_new_type_alignment_2():
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     rd = {
         "seqs": {
@@ -815,7 +779,7 @@ def test_deserialise_old_to_new_type_alignment_2():
 
 
 def test_deserialise_old_to_new_type_seqcoll():
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     rd = {
         "seqs": {

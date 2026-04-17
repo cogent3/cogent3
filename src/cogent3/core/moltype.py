@@ -18,11 +18,11 @@ from typing import (
 
 import numpy
 import numpy.typing as npt
+from scinexus.deserialise import register_deserialiser
+from scinexus.misc import get_object_provenance
 
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
-from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Generator, Mapping

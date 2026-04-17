@@ -7,6 +7,7 @@ import contextlib
 import pickle
 
 import numpy
+from scinexus.deserialise import deserialise_object, register_deserialiser
 
 from cogent3.align import dp_calculation
 from cogent3.align.pairwise import AlignableSeq
@@ -622,3 +623,38 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
                 )
                 mprobs = counts / (1.0 * sum(counts))
                 self.set_motif_probs(mprobs, locus=locus, is_constant=True, warn=False)
+
+
+@register_deserialiser("cogent3.evolve.parameter_controller")
+def deserialise_likelihood_function(data):
+    """returns a cogent3 likelihood function instance"""
+    data.pop("version", None)
+    model = deserialise_object(data.pop("model"))
+    tree = deserialise_object(data.pop("tree"))
+    constructor_args = data.pop("likelihood_construction")
+    motif_probs = data.pop("motif_probs")
+    param_rules = data.pop("param_rules")
+    name = data.pop("name", None)
+    lf = model.make_likelihood_function(tree, **constructor_args)
+    lf.set_name(name)
+    lf = model.make_likelihood_function(tree, **constructor_args)
+
+    if isinstance(constructor_args["loci"], list):
+        locus_names = constructor_args["loci"]
+        align = data["alignment"]
+        aln = [deserialise_object(align[k]) for k in locus_names]
+        if locus_names[0] in motif_probs:
+            mprobs = [motif_probs[k] for k in motif_probs]
+        else:
+            mprobs = [motif_probs]
+    else:
+        aln = deserialise_object(data.pop("alignment"))
+        mprobs = [motif_probs]
+
+    lf.set_alignment(aln)
+    with lf.updates_postponed():
+        for motif_probs in mprobs:
+            lf.set_motif_probs(motif_probs)
+        for rule in param_rules:
+            lf.set_param_rule(**rule)
+    return lf

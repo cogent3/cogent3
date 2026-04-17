@@ -1,13 +1,14 @@
 from collections import defaultdict
 from typing import TYPE_CHECKING, Union
 
+from scinexus import get_id_from_source
+from scinexus.composable import ComposableApp, NotCompleted
+
 import cogent3
 from cogent3.core import alphabet as c3_alphabet
 from cogent3.core import moltype as c3_moltype
 
 from ._citations import cite_cogent3
-from .composable import NotCompleted, define_app
-from .data_store import get_data_source
 from .typing import SeqsCollectionType, SeqType, SerialisableType
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -16,6 +17,9 @@ if TYPE_CHECKING:  # pragma: no cover
 GeneticCodeTypes = Union["GeneticCode | str | int"]
 MolTypes = str | c3_moltype.MolType
 AlphabetTypes = c3_alphabet.CharAlphabet
+
+
+get_data_source = get_id_from_source()
 
 
 def best_frame(
@@ -165,8 +169,7 @@ def get_fourfold_degenerate_sets(
     return four_fold
 
 
-@define_app(cite=cite_cogent3)
-class select_translatable:
+class select_translatable(ComposableApp, cite=cite_cogent3):
     """Selects translatable sequences by identifying the most likely reading
     frame. Sequences are truncated to modulo 3. seqs.info has a
     translation_errors entry."""
@@ -303,14 +306,13 @@ class select_translatable:
             translatable.info["translation_errors"] = error_log
         else:
             translatable = NotCompleted(
-                "FALSE", self, " ".join(error_log), source=source
+                "FAIL", self, " ".join(error_log), source=source
             )
 
         return translatable
 
 
-@define_app(cite=cite_cogent3)
-class translate_seqs:
+class translate_seqs(ComposableApp, cite=cite_cogent3):
     """Translates nucleic acid sequences into protein sequences, assumes in
     correct reading frame."""
 

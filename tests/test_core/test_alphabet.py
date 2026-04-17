@@ -623,7 +623,7 @@ def test_serialise_kmeralphabet(gap, missing, include_gap):
     ],
 )
 def test_deserialise_alphas(alpha):
-    from cogent3.util.deserialise import deserialise_object
+    from scinexus.deserialise import deserialise_object
 
     ser = alpha.to_rich_dict()
     got = deserialise_object(ser)
@@ -717,7 +717,7 @@ def test_codon_alphabet_missing(calpha):
 
 
 def test_codon_alphabet_serlialise_round_trip(calpha):
-    from cogent3.util.deserialise import deserialise_object
+    from scinexus.deserialise import deserialise_object
 
     got = deserialise_object(calpha.to_json())
     assert isinstance(got, c3_alphabet.SenseCodonAlphabet)

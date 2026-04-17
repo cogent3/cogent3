@@ -1,9 +1,10 @@
 from pathlib import Path
 
 import pytest
+from scinexus.composable import LOADER, WRITER, is_app
+from scinexus.io import open_data_store
 
-from cogent3 import app_help, available_apps, get_app, open_data_store
-from cogent3.app.composable import LOADER, WRITER, is_app
+from cogent3 import app_help, available_apps, get_app
 from cogent3.core.table import Table
 
 try:
@@ -131,9 +132,6 @@ def test_incompatible_pairwise_applications(incompat_app_pair):
     assert is_app(app_a)
     assert is_app(app_b)
     err_type = ValueError if app_a is app_b else TypeError
-    # make sure they're not connected
-    app_a.disconnect()
-    app_b.disconnect()
 
     # Compose two incompatible applications, there should be exceptions.
     with pytest.raises(err_type):
@@ -146,8 +144,6 @@ def test_composable_pairwise_applications(compat_pair):
     assert is_app(app_a)
     assert is_app(app_b)
 
-    app_a.disconnect()
-    app_b.disconnect()
     # Compose two composable applications, there should not be exceptions.
     _ = app_a + app_b
 

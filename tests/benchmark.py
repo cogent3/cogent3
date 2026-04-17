@@ -3,8 +3,9 @@
 import contextlib
 import sys  # ,hotshot
 
+from scinexus import parallel
+
 from cogent3 import load_aligned_seqs, load_tree
-from cogent3.util import parallel
 
 ALIGNMENT = load_aligned_seqs(filename="data/brca1.fasta")
 TREE = load_tree(filename="data/murphy.tree")

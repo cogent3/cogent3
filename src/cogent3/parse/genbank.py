@@ -638,9 +638,9 @@ def _(
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
-    import cogent3
+    from scinexus.io_util import open_
 
-    with cogent3.open_(data, mode="rb") as infile:
+    with open_(data, mode="rb") as infile:
         data: bytes = infile.read()
 
     return iter_genbank_records(
@@ -656,9 +656,9 @@ def _(
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
-    import cogent3
+    from scinexus.io_util import open_
 
-    with cogent3.open_(data, mode="rb") as infile:
+    with open_(data, mode="rb") as infile:
         data: bytes = infile.read()
 
     return iter_genbank_records(

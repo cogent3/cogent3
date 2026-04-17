@@ -15,11 +15,12 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from scinexus.data_store import DataMemberABC
+from scinexus.deserialise import deserialise_object
+from scinexus.io_util import get_format_suffixes, open_
+from scinexus.parallel import is_master_process
+from scinexus.warning import deprecated_callable
 from scitrack import get_text_hexdigest
-
-from cogent3.util.deserialise import deserialise_object
-from cogent3.util.io import get_format_suffixes, open_
-from cogent3.util.parallel import is_master_process
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Iterator
@@ -43,7 +44,8 @@ StrOrBytes = str | bytes
 NoneType = type(None)
 
 
-class Mode(Enum):
+# TODO: delete in 2026.9, use scinexus.data_store.Mode
+class Mode(Enum):  # pragma: no cover
     r = "r"
     w = "w"
     a = "a"
@@ -54,44 +56,8 @@ OVERWRITE = Mode.w
 READONLY = Mode.r
 
 
-class DataMemberABC(ABC):
-    """Abstract base class for DataMember
-
-    A data member is a handle to a record in a DataStore. It has a reference
-    to its data store and a unique identifier.
-    """
-
-    @property
-    @abstractmethod
-    def data_store(self) -> DataStoreABC: ...
-
-    @property
-    @abstractmethod
-    def unique_id(self): ...
-
-    def __str__(self) -> str:
-        return self.unique_id
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(data_store={self.data_store.source}, unique_id={self.unique_id})"
-
-    def read(self) -> StrOrBytes:
-        return self.data_store.read(self.unique_id)
-
-    def __eq__(self, other):
-        """to check equality of members and check existence of a
-        member in a list of members"""
-        return isinstance(other, type(self)) and (self.data_store, self.unique_id) == (
-            other.data_store,
-            other.unique_id,
-        )
-
-    @property
-    def md5(self):
-        return self.data_store.md5(self.unique_id)
-
-
-class DataStoreABC(ABC):
+# TODO: delete in 2026.9, use scinexus.data_store.DataStoreABC
+class DataStoreABC(ABC):  # pragma: no cover
     """Abstract base class for DataStore"""
 
     def __new__(cls, *args, **kwargs):
@@ -342,10 +308,16 @@ class DataStoreABC(ABC):
         return []
 
 
-class DataMember(DataMemberABC):
+class DataMember(DataMemberABC):  # pragma: no cover
     """Generic DataMember class, bound to a data store. All read operations
     delivered by the parent."""
 
+    @deprecated_callable(
+        version="2026.9",
+        reason="Use scinexus.data_store.DataMember",
+        new="scinexus.data_store.DataMember",
+        is_discontinued=True,
+    )
     def __init__(self, *, data_store: DataStoreABC, unique_id: str) -> None:
         self._data_store = data_store
         self._unique_id = str(unique_id)
@@ -359,7 +331,13 @@ class DataMember(DataMemberABC):
         return self._unique_id
 
 
-def summary_not_completeds(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.data_store.summary_not_completeds",
+    new="scinexus.data_store.summary_not_completeds",
+    is_discontinued=True,
+)
+def summary_not_completeds(  # pragma: no cover
     not_completed: list[DataMemberABC],
     deserialise: callable | None = None,
 ) -> Table:
@@ -414,7 +392,7 @@ def summary_not_completeds(
     return Table(header=header, data=rows, title="not completed records")
 
 
-def _tidy_and_check_suffix(suffix: str | None) -> str:
+def _tidy_and_check_suffix(suffix: str | None) -> str:  # pragma: no cover
     """tidies suffix by removing leading wildcards and dots"""
     suffix = suffix or ""
     suffix = re.sub(r"^[\s.*]+", "", suffix)  # tidy the suffix
@@ -425,7 +403,13 @@ def _tidy_and_check_suffix(suffix: str | None) -> str:
     return suffix
 
 
-class DataStoreDirectory(DataStoreABC):
+class DataStoreDirectory(DataStoreABC):  # pragma: no cover
+    @deprecated_callable(
+        version="2026.9",
+        reason="Use scinexus.data_store.DataStoreDirectory",
+        new="scinexus.data_store.DataStoreDirectory",
+        is_discontinued=True,
+    )
     def __init__(
         self,
         source: str | Path,
@@ -688,7 +672,13 @@ class DataStoreDirectory(DataStoreABC):
         return Table(header=["app", "citation"], data=rows, title="citations")
 
 
-class ReadOnlyDataStoreZipped(DataStoreABC):
+class ReadOnlyDataStoreZipped(DataStoreABC):  # pragma: no cover
+    @deprecated_callable(
+        version="2026.9",
+        reason="Use scinexus.data_store.ReadOnlyDataStoreZipped",
+        new="scinexus.data_store.ReadOnlyDataStoreZipped",
+        is_discontinued=True,
+    )
     def __init__(
         self,
         source: str | Path,
@@ -843,7 +833,13 @@ class ReadOnlyDataStoreZipped(DataStoreABC):
         return Table(header=["app", "citation"], data=rows, title="citations")
 
 
-def get_unique_id(name: object) -> str | None:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.data_store.get_unique_id",
+    new="scinexus.data_store.get_unique_id",
+    is_discontinued=True,
+)
+def get_unique_id(name: object) -> str | None:  # pragma: no cover
     """strips any format suffixes from name"""
     if (name := get_data_source(name)) is None:
         return None
@@ -851,24 +847,30 @@ def get_unique_id(name: object) -> str | None:
     return re.sub(rf"[.]{suffixes}$", "", name)
 
 
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.data_store.get_data_source",
+    new="scinexus.data_store.get_data_source",
+    is_discontinued=True,
+)
 @singledispatch
-def get_data_source(data: object) -> str | None:
+def get_data_source(data: object) -> str | None:  # pragma: no cover
     source = getattr(data, "source", None)
     return None if source is None else get_data_source(source)
 
 
 @get_data_source.register
-def _(data: str) -> str | None:
+def _(data: str) -> str | None:  # pragma: no cover
     return get_data_source(Path(data))
 
 
 @get_data_source.register
-def _(data: Path) -> str | None:
+def _(data: Path) -> str | None:  # pragma: no cover
     return data.name
 
 
 @get_data_source.register
-def _(data: dict) -> str | None:
+def _(data: dict) -> str | None:  # pragma: no cover
     try:
         source = data.get("info", {})["source"]
     except KeyError:
@@ -877,15 +879,17 @@ def _(data: dict) -> str | None:
 
 
 @get_data_source.register
-def _(data: DataMemberABC) -> str | None:
+def _(data: DataMemberABC) -> str | None:  # pragma: no cover
     return str(data.unique_id)
 
 
-def convert_directory_datastore(
+def convert_directory_datastore(  # pragma: no cover
     inpath: Path,
     outpath: Path,
     suffix: str | None = None,
 ) -> DataStoreABC:
+    from scinexus.data_store import OVERWRITE, DataStoreDirectory
+
     out_dstore = DataStoreDirectory(source=outpath, mode=OVERWRITE, suffix=suffix)
     filenames = inpath.glob(f"*{suffix}")
     for fn in filenames:
@@ -893,7 +897,13 @@ def convert_directory_datastore(
     return out_dstore
 
 
-def make_record_for_json(identifier, data, completed):
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.data_store.make_record_for_json",
+    new="scinexus.data_store.make_record_for_json",
+    is_discontinued=True,
+)
+def make_record_for_json(identifier, data, completed):  # pragma: no cover
     """returns a dict for storage as json"""
     with contextlib.suppress(AttributeError):
         data = data.to_rich_dict()
@@ -902,7 +912,13 @@ def make_record_for_json(identifier, data, completed):
     return {"identifier": identifier, "data": data, "completed": completed}
 
 
-def load_record_from_json(data):
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.data_store.load_record_from_json",
+    new="scinexus.data_store.load_record_from_json",
+    is_discontinued=True,
+)
+def load_record_from_json(data):  # pragma: no cover
     """returns identifier, data, completed status from json string"""
     if isinstance(data, str):
         data = json.loads(data)

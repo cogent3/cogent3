@@ -360,7 +360,7 @@ def test_tree_align_pwise_iter(seqs):
 
 def test_tree_align_dists_from_pairwise_align(seqs):
     # difficult to test reliably so only exercising use of option
-    aln, tree = cogent3.align.progressive.tree_align(
+    aln, _ = cogent3.align.progressive.tree_align(
         model="F81",
         seqs=seqs,
         show_progress=False,

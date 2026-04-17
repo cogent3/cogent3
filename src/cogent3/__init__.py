@@ -10,6 +10,8 @@ import warnings
 from collections.abc import Callable
 from importlib import import_module
 
+from scinexus import open_, open_data_store  # noqa: F401
+
 from cogent3._version import __version__
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -68,7 +70,6 @@ _import_mapping = {
     "available_moltypes": "core.moltype",
     "get_moltype": "core.moltype",
     "MolTypeLiteral": "core.moltype",
-    "open_": "util.io",
     "available_models": "evolve.models",
     "get_model": "evolve.models",
     "available_codes": "core.genetic_code",
@@ -76,7 +77,6 @@ _import_mapping = {
     "app_help": "app",
     "available_apps": "app",
     "get_app": "app",
-    "open_data_store": "app.io",
     # Core types returned by top-level functions
     "Alignment": "core.alignment",
     "SequenceCollection": "core.alignment",
@@ -163,12 +163,15 @@ def _load_files_to_unaligned_seqs(
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
+    show_progress: bool = False,
     **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
+    from scinexus.progress import get_progress
+
     from cogent3.core.alignment import make_unaligned_seqs
 
-    ui = kwargs.pop("ui")
+    progress = get_progress(show_progress)
     file_names = list(path.parent.glob(path.name))
     seqs = [
         load_seq(
@@ -178,7 +181,7 @@ def _load_files_to_unaligned_seqs(
             label_to_name=label_to_name,
             parser_kw=parser_kw,
         )
-        for fn in ui.series(file_names)
+        for fn in progress(file_names, msg="Loading sequences")
     ]
 
     return make_unaligned_seqs(
@@ -260,11 +263,12 @@ def load_seq(
     -------
     ``Sequence``
     """
+    from scinexus.io_util import get_format_suffixes, is_url
+
     from cogent3._plugin import get_seq_format_parser_plugin
     from cogent3.core.annotation_db import load_annotations
     from cogent3.parse.cogent3_json import load_from_json
     from cogent3.parse.sequence import is_genbank
-    from cogent3.util.io import get_format_suffixes, is_url
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
@@ -359,20 +363,18 @@ def load_unaligned_seqs(
     -------
     ``SequenceCollection``
     """
+    from scinexus.io_util import get_format_suffixes, is_url
+
     from cogent3._plugin import get_seq_format_parser_plugin
     from cogent3.core.alignment import SequenceCollection, make_unaligned_seqs
     from cogent3.parse.cogent3_json import load_from_json
-    from cogent3.util.io import get_format_suffixes, is_url
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
 
     file_suffix, _ = get_format_suffixes(filename)
     if "*" in filename.name:
-        from cogent3.util.progress_display import display_wrap
-
-        func = display_wrap(_load_files_to_unaligned_seqs)
-        return func(
+        return _load_files_to_unaligned_seqs(
             path=filename,
             format_name=format_name or file_suffix,
             moltype=moltype,
@@ -441,10 +443,11 @@ def load_aligned_seqs(
     -------
     ``Alignment`` instance
     """
+    from scinexus.io_util import get_format_suffixes, is_url
+
     from cogent3._plugin import get_seq_format_parser_plugin
     from cogent3.core.alignment import Alignment, make_aligned_seqs
     from cogent3.parse.cogent3_json import load_from_json
-    from cogent3.util.io import get_format_suffixes, is_url
 
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()

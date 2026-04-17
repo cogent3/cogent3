@@ -4,6 +4,7 @@ import pathlib
 
 import numpy
 import pytest
+from scinexus import deserialise
 
 import cogent3
 from cogent3.core.annotation_db import (
@@ -20,7 +21,6 @@ from cogent3.core.annotation_db import (
     upgrade_annotation_db,
 )
 from cogent3.parse import genbank
-from cogent3.util import deserialise
 
 DNA = cogent3.get_moltype("dna")
 

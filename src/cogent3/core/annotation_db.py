@@ -25,14 +25,16 @@ from typing import (
 
 import numpy
 import numpy.typing as npt
+from scinexus import warning as snx_warn
+from scinexus.deserialise import deserialise_object, register_deserialiser
+from scinexus.io_util import get_format_suffixes, iter_line_blocks
+from scinexus.misc import extend_docstring_from, get_object_provenance
+from scinexus.progress import get_progress
 
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
-from cogent3.util import warning as c3warn
-from cogent3.util.deserialise import deserialise_object, register_deserialiser
-from cogent3.util.io import PathType, get_format_suffixes, iter_line_blocks
-from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.io import PathType
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
@@ -298,7 +300,7 @@ class SerialisableType(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsQueryFeatures(Protocol):  # pragma: no cover
-    @c3warn.deprecated_callable(
+    @snx_warn.deprecated_callable(
         version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
     )
     def __init_subclass__(cls): ...
@@ -359,7 +361,7 @@ class SupportsQueryFeatures(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsWriteFeatures(Protocol):  # pragma: no cover
-    @c3warn.deprecated_callable(
+    @snx_warn.deprecated_callable(
         version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
     )
     def __init_subclass__(cls): ...
@@ -3125,8 +3127,11 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
             msg = f"No files found matching pattern {path!r}"
             raise OSError(msg)
 
-        # Get UI context for progress display
-        series = kwargs["ui"].series(paths) if "ui" in kwargs else paths
+        # Get progress display
+        show_progress = kwargs.pop("show_progress", False)
+        kwargs.pop("ui", None)  # remove legacy ui kwarg
+        progress = get_progress(show_progress)
+        series = progress(paths, msg="Loading annotations")
 
         # Process each file, passing db from one to the next
         db_result: SqliteAnnotationDbMixin | None = cast(
@@ -3186,7 +3191,6 @@ def load_annotations(
     We DO NOT check if a provided db already contains records from a flatfile.
     """
     from cogent3._plugin import get_annotation_loader_plugin
-    from cogent3.util.progress_display import display_wrap
 
     if seqids is not None:
         seqids = {seqids} if isinstance(seqids, str) else set(seqids)
@@ -3211,10 +3215,7 @@ def load_annotations(
         file_suffix=suffix,
     )
 
-    # Wrap loader with progress display
-    func = display_wrap(loader.load)
-
-    return func(
+    return loader.load(
         path=path,
         seqids=seqids,
         db=db,

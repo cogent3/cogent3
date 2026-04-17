@@ -1,11 +1,11 @@
 import numpy
+from scinexus.misc import extend_docstring_from
 
 from cogent3.core.genetic_code import get_code
 from cogent3.core.moltype import get_moltype
 from cogent3.evolve.discrete_markov import PsubMatrixDefn
 from cogent3.evolve.predicate import MotifChange
 from cogent3.maths.optimisers import ParameterOutOfBoundsError
-from cogent3.util.misc import extend_docstring_from
 
 from .substitution_model import (
     Parametric,

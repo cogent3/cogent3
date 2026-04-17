@@ -6,6 +6,8 @@ from pickle import dumps
 
 import numpy
 import pytest
+from scinexus.deserialise import deserialise_object
+from scinexus.misc import get_object_provenance
 
 import cogent3
 from cogent3._version import __version__
@@ -14,8 +16,6 @@ from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core import sequence as c3_sequence
 from cogent3.core import slice_record as c3_slice_record
-from cogent3.util.deserialise import deserialise_object
-from cogent3.util.misc import get_object_provenance
 
 
 def close_dbs(*objs):

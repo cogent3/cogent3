@@ -8,10 +8,41 @@ import warnings
 from importlib.metadata import PackageNotFoundError, metadata
 from typing import TYPE_CHECKING
 
+from scinexus.composable import is_app, is_app_composable
+from scinexus.data_store import set_summary_display
+
 import cogent3
 from cogent3._plugin import get_app_manager
 
-from .composable import is_app, is_app_composable
+
+def _summary_to_table(data, *, name):
+    """Convert scinexus summary dicts to cogent3 Table objects.
+
+    Registered with scinexus.data_store.set_summary_display so that
+    scinexus data store summary properties return cogent3 Tables.
+    """
+    from cogent3.core.table import Table
+
+    if isinstance(data, dict):
+        rows = [[k, v] for k, v in data.items() if k != "title"]
+        return Table(
+            header=["Condition", "Value"],
+            data=rows,
+            title=data.get("title", name),
+            index_name="Condition",
+        )
+
+    if isinstance(data, list):
+        if not data:
+            return Table(header=[], data=[], title=name)
+        header = list(data[0].keys())
+        rows = [list(row.values()) for row in data]
+        return Table(header=header, data=rows, title=name)
+
+    return data
+
+
+set_summary_display(_summary_to_table)
 
 
 def __getattr__(name):
@@ -130,7 +161,7 @@ _type_hint = re.compile(r":.+?=\s*")
 
 
 def _make_signature(app: type) -> str:
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     if app is None:
         msg = "app cannot be None"

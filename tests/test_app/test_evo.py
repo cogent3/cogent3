@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from numpy.testing import assert_allclose, assert_raises
+from scinexus.composable import NotCompleted
+from scinexus.deserialise import deserialise_object
 
 from cogent3 import (
     get_app,
@@ -17,14 +19,12 @@ from cogent3 import (
 )
 from cogent3.app import evo as evo_app
 from cogent3.app import io
-from cogent3.app.composable import NotCompleted
 from cogent3.app.result import (
     hypothesis_result,
     model_collection_result,
     model_result,
 )
 from cogent3.evolve.models import get_model
-from cogent3.util.deserialise import deserialise_object
 
 data_dir = join(dirname(dirname(__file__)), "data")
 
@@ -207,7 +207,7 @@ class TestModel(TestCase):
 
     def test_discrete_time_model(self):
         """works with discrete-time submodel"""
-        from cogent3.app.composable import NotCompleted
+        from scinexus.composable import NotCompleted
 
         _data = {
             "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
@@ -624,7 +624,7 @@ class TestNatSel(TestCase):
 
     def test_zhang_mtseq(self):
         """genetic code setting should work"""
-        from cogent3.app.composable import NotCompleted
+        from scinexus.composable import NotCompleted
 
         opt = {"max_evaluations": 20, "limit_action": "ignore"}
         aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
@@ -675,7 +675,7 @@ class TestNatSel(TestCase):
 
     def test_neutral_mtdna(self):
         """test of neutrality, different genetic code"""
-        from cogent3.app.composable import NotCompleted
+        from scinexus.composable import NotCompleted
 
         opt = {"max_evaluations": 2, "limit_action": "ignore"}
         aln = load_aligned_seqs("data/ENSG00000198712.fa", moltype="dna")
@@ -1012,4 +1012,4 @@ def test_source_propagated():
     qtree = get_app("quick_tree")
     app = three + dcalc + qtree
     result = app(aln)
-    assert result.source == pathlib.Path(aln.source).name
+    assert result.source == pathlib.Path(aln.source).stem

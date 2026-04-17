@@ -9,9 +9,8 @@ from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, ov
 import numba
 import numpy
 import numpy.typing as npt
-
-from cogent3.util.deserialise import register_deserialiser
-from cogent3.util.misc import get_object_provenance
+from scinexus.deserialise import register_deserialiser
+from scinexus.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Sized

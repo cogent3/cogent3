@@ -10,11 +10,11 @@ from collections.abc import Callable
 from functools import singledispatch
 
 import numpy
+from scinexus.io_util import is_url, open_
 
 from cogent3.core.info import Info
 from cogent3.parse.record import RecordError
 from cogent3.parse.record_finder import LabeledRecordFinder
-from cogent3.util.io import is_url, open_
 
 _white_space = re.compile(r"\s+")
 strip = str.strip

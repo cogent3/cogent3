@@ -1,22 +1,22 @@
+from scinexus.progress import get_progress
+
 from cogent3 import get_app, get_model, make_unaligned_seqs
 from cogent3.core import alignment as c3_alignment
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.distance import EstimateDistances
 from cogent3.phylo import nj as NJ
-from cogent3.util import progress_display as UI
 
 SeqCollType = c3_alignment.SequenceCollection
 AlignType = c3_alignment.Alignment
 
 
-@UI.display_wrap
 def tree_align(
     model: str,
     seqs: SeqCollType,
     tree: PhyloNode | None = None,
     indel_rate: float = 1e-10,
     indel_length: float = 1e-1,
-    ui=None,
+    show_progress: bool = False,
     params_from_pairwise: bool = True,
     param_vals: dict | None = None,
     iters: int | None = None,
@@ -117,7 +117,7 @@ def tree_align(
             param_vals,
             seqs,
         )
-        tree = NJ.nj(dists.to_dict())
+        tree = NJ.nj(dists.to_dict(), show_progress=show_progress)
 
     tree = tree.bifurcating(name_unnamed=True)
     # makes sure all edges have non-zero length and whether we need to scale
@@ -125,7 +125,9 @@ def tree_align(
     fix_lengths = get_app("scale_branches", nuc_to_codon=num_states >= 60)
     tree = fix_lengths(tree)
 
-    ui.display("Doing progressive alignment")
+    progress = get_progress(show_progress)
+    ctx = progress.context(msg="Doing progressive alignment")
+    ctx.update(progress=0.0, msg="Doing progressive alignment")
     # this is the point at which we do the iterations
     align = _progressive_hmm(
         indel_length,
@@ -136,6 +138,7 @@ def tree_align(
         tree,
     )
     if iters is None:
+        ctx.close()
         return align, tree
 
     for _ in range(iters):
@@ -152,6 +155,7 @@ def tree_align(
             tree,
         )
 
+    ctx.close()
     return align, tree
 
 

@@ -1,10 +1,11 @@
 import pathlib
 
 import pytest
+from scinexus.data_store import DataMember
+from scinexus.deserialise import deserialise_object
 
 import cogent3
 from cogent3.app import evo as evo_app
-from cogent3.app.data_store import DataMember
 from cogent3.app.result import (
     generic_result,
     hypothesis_result,
@@ -12,7 +13,6 @@ from cogent3.app.result import (
     model_result,
     tabular_result,
 )
-from cogent3.util.deserialise import deserialise_object
 from cogent3.util.dict_array import DictArray
 
 
@@ -77,17 +77,17 @@ def test_infers_source():
         source=str(source),
     )
     gr = generic_result(aln)
-    assert gr.source == source.name
+    assert gr.source == source.stem
 
     # or Path
     aln.source = source
     gr = generic_result(aln)
-    assert str(gr.source) == source.name
+    assert str(gr.source) == source.stem
 
     # or DataMember
     aln.source = DataMember(data_store=None, unique_id=source.name)
     gr = generic_result(aln)
-    assert str(gr.source) == source.name
+    assert str(gr.source) == source.stem
 
     aln.source = None
     with pytest.raises(ValueError):

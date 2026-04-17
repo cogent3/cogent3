@@ -25,12 +25,9 @@ from cogent3.util.misc import (
     adjusted_gt_minprob,
     adjusted_within_bounds,
     curry,
-    docstring_to_summary_rest,
-    extend_docstring_from,
     get_independent_coords,
     get_merged_by_value_coords,
     get_merged_overlapping_coords,
-    get_object_provenance,
     get_run_start_indices,
     get_setting_from_environ,
     get_true_spans,
@@ -342,10 +339,9 @@ class UtilsTests(TestCase):
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
         assert get_merged_by_value_coords(data, digits=1) == [[20, 24, 0.1]]
 
-    def test_get_object_provenance(self):
-        """correctly deduce object provenance"""
-        result = get_object_provenance("abncd")
-        assert result == "str"
+    def test_get_object_provenance_cogent3(self):
+        """correctly deduce provenance for cogent3 objects"""
+        from scinexus.misc import get_object_provenance
 
         DNA = cogent3.get_moltype("dna")
         got = get_object_provenance(DNA)
@@ -364,24 +360,6 @@ class UtilsTests(TestCase):
         assert instance_prov == f"{instance.__module__}.SequenceCollection"
         type_prov = get_object_provenance(type(instance))
         assert instance_prov == type_prov
-
-    def test_get_object_provenance_builtins(self):
-        """allow identifying builtins too"""
-        from gzip import GzipFile, compress
-
-        obj_prov = get_object_provenance(compress)
-
-        assert obj_prov == "gzip.compress"
-
-        obj_prov = get_object_provenance(GzipFile)
-        assert obj_prov == "gzip.GzipFile"
-
-        d = {"a": 23, "b": 1}
-        obj_prov = get_object_provenance(d)
-        assert obj_prov == "dict"
-
-        obj_prov = get_object_provenance(dict)
-        assert obj_prov == "dict"
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""
@@ -1058,141 +1036,6 @@ class MappedDictTests(TestCase):
         assert "1" in d
         assert 1 in d
         assert "5" not in d
-
-
-def f():
-    """This is a function docstring."""
-
-
-@extend_docstring_from(f)
-def foo_append():
-    """I am foo."""
-
-
-@extend_docstring_from(f)
-def foo_mirror():
-    pass
-
-
-@extend_docstring_from(f, pre=True)
-def foo_prepend():
-    """I am foo."""
-
-
-class ExtendDocstringTests(TestCase):
-    @extend_docstring_from(f)
-    def foo_append(self):
-        """I am foo."""
-
-    @extend_docstring_from(f)
-    def foo_mirror(self):
-        pass
-
-    @extend_docstring_from(f, pre=True)
-    def foo_prepend(self):
-        """I am foo."""
-
-    class TemplateClass:
-        """This is a class docstring."""
-
-    @extend_docstring_from(TemplateClass)
-    class FooAppend:
-        """I am foo."""
-
-    @extend_docstring_from(TemplateClass)
-    class FooMirror:
-        pass
-
-    @extend_docstring_from(TemplateClass, pre=True)
-    class FooPrepend:
-        """I am foo."""
-
-    def test_function_append(self):
-        assert foo_append.__doc__ == "This is a function docstring.\nI am foo."
-
-    def test_function_mirror(self):
-        assert foo_mirror.__doc__ == "This is a function docstring.\n"
-
-    def test_function_prepend(self):
-        assert foo_prepend.__doc__ == "I am foo.\nThis is a function docstring."
-
-    def test_method_append(self):
-        assert self.foo_append.__doc__ == "This is a function docstring.\nI am foo."
-
-    def test_method_mirror(self):
-        assert self.foo_mirror.__doc__ == "This is a function docstring.\n"
-
-    def test_method_prepend(self):
-        assert self.foo_prepend.__doc__ == "I am foo.\nThis is a function docstring."
-
-    def test_class_append(self):
-        assert self.FooAppend.__doc__ == "This is a class docstring.\nI am foo."
-
-    def test_class_mirror(self):
-        assert self.FooMirror.__doc__ == "This is a class docstring.\n"
-
-    def test_class_prepend(self):
-        assert self.FooPrepend.__doc__ == "I am foo.\nThis is a class docstring."
-
-
-def test_not_in_jupyter():
-    from cogent3.util.misc import in_jupyter
-
-    assert not in_jupyter()
-
-
-def test_is_in_jupyter():
-    # an ugly hack, the in_jupyter function relies entirely on whether a
-    # get_ipython variable exists in the name space
-    import cogent3.util.misc as module
-    from cogent3.util.misc import in_jupyter
-
-    module.get_ipython = lambda x: x
-    assert in_jupyter()
-    del module.get_ipython
-
-
-def foo1():
-    """some text"""
-
-
-def foo2():
-    """some text
-
-    Notes
-    -----
-    body
-    """
-
-
-def foo3():
-    """
-    Notes
-    -----
-    body
-    """
-
-
-def foo4(): ...
-
-
-_sum_expect = "some text"
-_body_expect = ["Notes", "-----", "body"]
-
-
-@pytest.mark.parametrize(
-    ("foo", "sum_exp", "body_exp"),
-    [
-        (foo1, _sum_expect, []),
-        (foo2, _sum_expect, _body_expect),
-        (foo3, "", _body_expect),
-        (foo4, "", []),
-    ],
-)
-def test_docstring_to_summary_rest(foo, sum_exp, body_exp):
-    summary, body = docstring_to_summary_rest(foo.__doc__)
-    assert summary == sum_exp
-    assert body.split() == body_exp
 
 
 def test_get_true_spans_absolute():
