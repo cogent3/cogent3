@@ -16,10 +16,10 @@ from typing import Any, Self, TypeVar, cast, overload
 import numba
 import numpy
 from numpy.typing import NDArray
+from scinexus.misc import get_object_provenance
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import get_class, register_deserialiser
-from cogent3.util.misc import get_object_provenance
 
 strip = str.strip
 

@@ -4,6 +4,7 @@ from collections import defaultdict
 from copy import deepcopy
 
 import numpy
+from scinexus.misc import get_object_provenance
 
 import cogent3
 from cogent3._version import __version__
@@ -21,7 +22,7 @@ from cogent3.maths.measure import (
 from cogent3.recalculation.definition import ParameterController
 from cogent3.recalculation.scope import InvalidScopeError
 from cogent3.util.dict_array import DictArrayTemplate
-from cogent3.util.misc import adjusted_gt_minprob, get_object_provenance
+from cogent3.util.misc import adjusted_gt_minprob
 
 
 def _format_floats(val) -> str:

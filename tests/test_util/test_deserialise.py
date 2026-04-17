@@ -610,7 +610,7 @@ def test_dser_submodel(mn):
 
 
 def test_deserialise_old_to_new_type_alignment_1():
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     rd = {
         "seqs": {
@@ -714,7 +714,7 @@ def test_deserialise_old_to_new_type_alignment_1():
 
 
 def test_deserialise_old_to_new_type_alignment_2():
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     rd = {
         "seqs": {
@@ -815,7 +815,7 @@ def test_deserialise_old_to_new_type_alignment_2():
 
 
 def test_deserialise_old_to_new_type_seqcoll():
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     rd = {
         "seqs": {

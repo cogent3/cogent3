@@ -6,7 +6,7 @@ from functools import total_ordering
 from pathlib import Path
 
 import numpy
-from scinexus.misc import extend_docstring_from
+from scinexus.misc import extend_docstring_from, get_object_provenance
 from scipy.stats.distributions import chi2
 
 import cogent3
@@ -18,7 +18,6 @@ from cogent3.util.deserialise import (
     get_class,
     register_deserialiser,
 )
-from cogent3.util.misc import get_object_provenance
 
 
 class generic_result(MutableMapping):

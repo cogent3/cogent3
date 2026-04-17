@@ -28,7 +28,6 @@ from cogent3.util.misc import (
     get_independent_coords,
     get_merged_by_value_coords,
     get_merged_overlapping_coords,
-    get_object_provenance,
     get_run_start_indices,
     get_setting_from_environ,
     get_true_spans,
@@ -340,10 +339,9 @@ class UtilsTests(TestCase):
         data = [[20, 21, 0.11], [21, 22, 0.12], [22, 23, 0.13], [23, 24, 0.14]]
         assert get_merged_by_value_coords(data, digits=1) == [[20, 24, 0.1]]
 
-    def test_get_object_provenance(self):
-        """correctly deduce object provenance"""
-        result = get_object_provenance("abncd")
-        assert result == "str"
+    def test_get_object_provenance_cogent3(self):
+        """correctly deduce provenance for cogent3 objects"""
+        from scinexus.misc import get_object_provenance
 
         DNA = cogent3.get_moltype("dna")
         got = get_object_provenance(DNA)
@@ -362,24 +360,6 @@ class UtilsTests(TestCase):
         assert instance_prov == f"{instance.__module__}.SequenceCollection"
         type_prov = get_object_provenance(type(instance))
         assert instance_prov == type_prov
-
-    def test_get_object_provenance_builtins(self):
-        """allow identifying builtins too"""
-        from gzip import GzipFile, compress
-
-        obj_prov = get_object_provenance(compress)
-
-        assert obj_prov == "gzip.compress"
-
-        obj_prov = get_object_provenance(GzipFile)
-        assert obj_prov == "gzip.GzipFile"
-
-        d = {"a": 23, "b": 1}
-        obj_prov = get_object_provenance(d)
-        assert obj_prov == "dict"
-
-        obj_prov = get_object_provenance(dict)
-        assert obj_prov == "dict"
 
     def test_NestedSplitter(self):
         """NestedSplitter should make a function which return expected list"""

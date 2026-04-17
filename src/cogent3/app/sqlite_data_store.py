@@ -507,7 +507,7 @@ class DataStoreSqlite(DataStoreABC):
 
     @record_type.setter
     def record_type(self, obj) -> None:
-        from cogent3.util.misc import get_object_provenance
+        from scinexus.misc import get_object_provenance
 
         rt = self.record_type
         if self.mode is OVERWRITE and rt:

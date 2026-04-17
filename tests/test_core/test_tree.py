@@ -11,12 +11,12 @@ from typing import Any
 import pytest
 from numpy import array
 from numpy.testing import assert_allclose, assert_equal
+from scinexus.misc import get_object_provenance
 
 from cogent3 import get_dataset, load_tree, make_tree, open_
 from cogent3._version import __version__
 from cogent3.core.tree import PhyloNode, TreeBuilder, TreeError, split_name_and_support
 from cogent3.parse.tree import DndParser
-from cogent3.util.misc import get_object_provenance
 
 
 def test_make_tree():

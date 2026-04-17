@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any, Self, SupportsIndex, cast
 
 import numpy
 import numpy.typing as npt
+from scinexus.misc import get_object_provenance
 
 from cogent3._version import __version__
 from cogent3.core.location import IndelMap
 from cogent3.core.slice_record import SliceRecord, SliceRecordABC
-from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
     import cogent3.core.alphabet as c3_alphabet

@@ -465,8 +465,9 @@ def test_summary_logs(full_dstore_sqlite):
 
 
 def test_set_record_type(full_dstore_sqlite):
+    from scinexus.misc import get_object_provenance
+
     from cogent3 import make_table
-    from cogent3.util.misc import get_object_provenance
 
     assert full_dstore_sqlite.record_type is None
     t = make_table(data={"a": [0, 2]})

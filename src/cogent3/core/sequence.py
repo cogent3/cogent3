@@ -29,6 +29,7 @@ from typing import (
 import numba
 import numpy
 import numpy.typing as npt
+from scinexus.misc import get_object_provenance
 
 import cogent3._plugin as c3_plugin
 from cogent3._version import __version__
@@ -57,7 +58,6 @@ from cogent3.util.dict_array import DictArray
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
     DistanceFromMatrix,
-    get_object_provenance,
     get_setting_from_environ,
     is_float,
     is_int,

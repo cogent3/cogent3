@@ -6,6 +6,7 @@ from warnings import catch_warnings, filterwarnings
 
 import numpy
 import pytest
+from scinexus.misc import get_object_provenance
 
 from cogent3 import (
     get_app,
@@ -26,7 +27,6 @@ from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.core.location import FeatureMap, LostSpan, Span
 from cogent3.core.slice_record import SliceRecord
 from cogent3.util.deserialise import deserialise_object
-from cogent3.util.misc import get_object_provenance
 
 try:
     import cogent3_h5seqs

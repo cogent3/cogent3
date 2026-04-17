@@ -453,8 +453,9 @@ def test_pickled_compress_roundtrip(data):
 
 
 def test_write_db_load_db(fasta_dir, tmp_dir):
+    from scinexus.misc import get_object_provenance
+
     from cogent3.app.sqlite_data_store import DataStoreSqlite
-    from cogent3.util.misc import get_object_provenance
 
     orig_dstore = DataStoreDirectory(fasta_dir, suffix="fasta")
     data_store = DataStoreSqlite(tmp_dir / "test.sqlitedb", mode="w")

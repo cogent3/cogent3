@@ -964,7 +964,13 @@ def get_merged_by_value_coords(spans_value, digits=None):
     return data
 
 
-def get_object_provenance(obj: object) -> str:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.misc.get_object_provenance",
+    new="scinexus.misc.get_object_provenance",
+    is_discontinued=True,
+)
+def get_object_provenance(obj: object) -> str:  # pragma: no cover
     """returns string of complete object provenance"""
     # algorithm inspired by Greg Baacon's answer to
     # https://stackoverflow.com/questions/2020014/get-fully-qualified-class

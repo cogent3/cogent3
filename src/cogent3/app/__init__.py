@@ -130,7 +130,7 @@ _type_hint = re.compile(r":.+?=\s*")
 
 
 def _make_signature(app: type) -> str:
-    from cogent3.util.misc import get_object_provenance
+    from scinexus.misc import get_object_provenance
 
     if app is None:
         msg = "app cannot be None"
