@@ -5,15 +5,9 @@ from scinexus.io_util import open_
 
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
-    atomic_write,
     iter_line_blocks,
     iter_splitlines,
 )
-
-
-@pytest.fixture
-def tmp_dir(tmp_path_factory):
-    return tmp_path_factory.mktemp("test_io")
 
 
 @pytest.fixture
@@ -23,74 +17,6 @@ def home_file(DATA_DIR, HOME_TMP_DIR) -> str:
     contents = (DATA_DIR / fn).read_text()
     (HOME_TMP_DIR / fn).expanduser().write_text(contents)
     return str(HOME_TMP_DIR / fn)
-
-
-def test_does_not_write_if_exception(tmp_dir):
-    """file does not exist if an exception raised before closing"""
-    test_filepath = tmp_dir / "Atomic_write_test"
-    with pytest.raises(AssertionError), atomic_write(test_filepath, mode="w") as f:
-        f.write("abc")
-        raise AssertionError
-    assert not test_filepath.exists()
-
-
-def test_atomic_invalid_parent_dir():
-    with pytest.raises(OSError), atomic_write("invalid_dir/test.txt") as out:
-        out.write("will not work")
-
-
-def test_rename(tmp_dir):
-    """Renames file as expected"""
-    test_filepath = tmp_dir / "Atomic_write_test"
-    # touch the filepath so it exists
-    f = open(test_filepath, "w").close()
-    assert test_filepath.exists()
-    # file should overwrite file if file already exists
-    with atomic_write(test_filepath, mode="w") as f:
-        f.write("abc")
-
-
-def test_atomic_write_noncontext(tmp_dir):
-    """atomic write works as more regular file object"""
-    path = tmp_dir / "foo.txt"
-    zip_path = path.parent / f"{path.name}.zip"
-    aw = atomic_write(path, in_zip=zip_path, mode="w")
-    aw.write("some data")
-    aw.close()
-    with open_(zip_path) as ifile:
-        got = ifile.read()
-    assert got == "some data"
-
-
-def test_aw_zip_from_path(tmp_dir):
-    """supports inferring zip archive name from path"""
-    path = tmp_dir / "foo.txt"
-    zip_path = path.parent / f"{path.name}.zip"
-    aw = atomic_write(zip_path, in_zip=True, mode="w")
-    aw.write("some data")
-    aw.close()
-    with open_(zip_path) as ifile:
-        got = ifile.read()
-        assert got == "some data"
-
-    path = tmp_dir / "foo2.txt"
-    zip_path = path.parent / f"{path.name}.zip"
-    aw = atomic_write(path, in_zip=zip_path, mode="w")
-    aw.write("some data")
-    aw.close()
-    with open_(zip_path) as ifile:
-        got = ifile.read()
-        assert got == "some data"
-
-
-def test_expanduser(tmp_dir):
-    """expands user correctly"""
-    # create temp file directory
-    home = pathlib.Path("~").expanduser()
-    test_filepath = tmp_dir / "Atomic_write_test"
-    test_filepath = str(test_filepath).replace(str(home), "~")
-    with atomic_write(test_filepath, mode="w") as f:
-        f.write("abc")
 
 
 def test_path_relative_to_zip_parent():

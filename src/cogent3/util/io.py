@@ -236,9 +236,15 @@ def _path_relative_to_zip_parent(zip_path, member_path):
     return Path(*member_path.parts[member_path.parts.index(zip_name) :])
 
 
-class atomic_write:
+class atomic_write:  # pragma: no cover
     """performs atomic write operations, cleans up if fails"""
 
+    @deprecated_callable(
+        version="2026.9",
+        reason="Use scinexus.io_util.atomic_write",
+        new="scinexus.io_util.atomic_write",
+        is_discontinued=True,
+    )
     def __init__(
         self,
         path: PathType,

@@ -30,11 +30,12 @@ from typing import TYPE_CHECKING, Any, Protocol, Self, SupportsInt, TypeVar, cas
 
 import numpy
 import numpy.typing as npt
+from scinexus.io_util import atomic_write
 from scinexus.misc import get_object_provenance
 
 from cogent3._version import __version__
 from cogent3.util.deserialise import get_class, register_deserialiser
-from cogent3.util.io import PathType, atomic_write
+from cogent3.util.io import PathType
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table

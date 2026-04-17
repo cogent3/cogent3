@@ -72,7 +72,7 @@ class SequenceWriterBase(abc.ABC):
         kwargs
             additional arguments to pass to the formatter
         """
-        from cogent3.util.io import atomic_write
+        from scinexus.io_util import atomic_write
 
         output = self.formatted(seqcoll, **kwargs)
         with atomic_write(path, mode="wt") as f:
@@ -130,7 +130,7 @@ def save_to_filename(alignment, filename, format, **kw) -> None:
     - filename: name of the sequence alignment file
     - format: the multiple sequence file format
     """
-    from cogent3.util.io import atomic_write
+    from scinexus.io_util import atomic_write
 
     if format is None:
         msg = "format not known"
