@@ -1954,7 +1954,7 @@ class FeatureMap(MapABC):
         )
 
     # Overriding the InitVar causes an issue with type checkers
-    @property  # type: ignore[no-redef]
+    @property  # type: ignore[no-redef, misc]
     def spans(self) -> Iterator[SpanTypes]:
         yield from self._spans
 
