@@ -6,6 +6,13 @@ import warnings
 from collections.abc import Callable, Generator, Iterable, Sized
 from typing import Any, Generic, Literal, ParamSpec, TypeVar, cast
 
+warnings.warn(
+    "cogent3.util.parallel is discontinued and will be removed in version 2026.9, "
+    "use scinexus.parallel instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 import loky
 from scinexus.misc import extend_docstring_from
 
@@ -32,7 +39,7 @@ R = TypeVar("R")
 T = TypeVar("T")
 
 
-def get_rank() -> int:
+def get_rank() -> int:  # pragma: no cover
     """Returns the rank of the current process"""
     rank = 0
     if MPI is not None:
@@ -44,7 +51,7 @@ def get_rank() -> int:
     return rank
 
 
-def get_size() -> int:
+def get_size() -> int:  # pragma: no cover
     """Returns the num cpus"""
     return (
         COMM.Get_attr(MPI.UNIVERSE_SIZE) if USING_MPI else multiprocessing.cpu_count()
@@ -54,7 +61,7 @@ def get_size() -> int:
 SIZE = get_size()
 
 
-def is_master_process() -> bool:
+def is_master_process() -> bool:  # pragma: no cover
     """
     Evaluates if current process is master
 
@@ -78,7 +85,7 @@ def is_master_process() -> bool:
     return comm.Get_rank() == 0
 
 
-class PicklableAndCallable(Generic[P, R]):
+class PicklableAndCallable(Generic[P, R]):  # pragma: no cover
     def __init__(self, func: Callable[P, R]) -> None:
         self.func = func
 
@@ -86,14 +93,14 @@ class PicklableAndCallable(Generic[P, R]):
         return self.func(*args, **kw)
 
 
-def get_default_chunksize(s: Sized, max_workers: int) -> int:
+def get_default_chunksize(s: Sized, max_workers: int) -> int:  # pragma: no cover
     chunksize, remainder = divmod(len(s), max_workers * 4)
     if remainder:
         chunksize += 1
     return chunksize
 
 
-def imap(
+def imap(  # pragma: no cover
     f: Callable[[T], R],
     s: Iterable[T],
     max_workers: int | None = None,
@@ -187,7 +194,7 @@ def imap(
 
 
 @extend_docstring_from(imap)
-def map(
+def map(  # pragma: no cover
     f: Callable[[T], R],
     s: Iterable[T],
     max_workers: int | None = None,
@@ -198,7 +205,7 @@ def map(
     return list(imap(f, s, max_workers, use_mpi, if_serial, chunksize))
 
 
-def _as_completed_mpi(
+def _as_completed_mpi(  # pragma: no cover
     f: Callable[[T], R],
     s: Iterable[T],
     max_workers: int | None,
@@ -245,7 +252,7 @@ def _as_completed_mpi(
             yield result.result()
 
 
-def _as_completed_mproc(
+def _as_completed_mproc(  # pragma: no cover
     f: Callable[[T], R], s: Iterable[T], max_workers: int | None
 ) -> Generator[R]:
     """multiprocess version of as_completed"""
@@ -259,7 +266,7 @@ def _as_completed_mproc(
 
 
 @extend_docstring_from(imap, pre=True)
-def as_completed(
+def as_completed(  # pragma: no cover
     f: Callable[[T], R],
     s: Iterable[T],
     max_workers: int | None = None,

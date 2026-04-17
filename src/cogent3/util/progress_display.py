@@ -11,7 +11,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from tqdm import notebook, tqdm
 
 
-from cogent3.util import parallel as PAR
+from scinexus import parallel as PAR
+
 from cogent3.util.misc import in_jupyter
 
 P = ParamSpec("P")

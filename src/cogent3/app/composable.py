@@ -14,6 +14,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from citeable import Citation
+from scinexus import parallel as PAR
 from scinexus.deserialise import register_deserialiser
 from scinexus.misc import get_object_provenance
 from scitrack import CachingLogger
@@ -26,7 +27,6 @@ from cogent3.app.typing import (
     get_type_display_names,
     resolve_type_hint,
 )
-from cogent3.util import parallel as PAR
 from cogent3.util import progress_display as UI
 from cogent3.util.misc import docstring_to_summary_rest
 

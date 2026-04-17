@@ -3,13 +3,13 @@ from collections.abc import Callable, Iterable
 from copy import deepcopy
 from typing import Union
 
+from scinexus import parallel
 from scinexus.io_util import path_exists
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.models import get_model
 from cogent3.evolve.substitution_model import _SubstitutionModel
-from cogent3.util import parallel
 
 from ._citations import cite_cogent3
 from .composable import NotCompleted, define_app
