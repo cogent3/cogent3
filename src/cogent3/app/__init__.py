@@ -24,12 +24,11 @@ def _summary_to_table(data, *, name):
     from cogent3.core.table import Table
 
     if isinstance(data, dict):
-        title = data.pop("title", name)
-        rows = [[k, v] for k, v in data.items()]
+        rows = [[k, v] for k, v in data.items() if k != "title"]
         return Table(
             header=["Condition", "Value"],
             data=rows,
-            title=title,
+            title=data.get("title", name),
             index_name="Condition",
         )
 

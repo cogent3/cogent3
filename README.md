@@ -27,7 +27,7 @@
 <details>
   <summary>App foundations and more have a new home -- scinexus!</summary>
 
-The `cogent3` apps and plugin architecture remain the same but we have extracted the app infrastructure into a new project called [scinexus](https://pypi.org/project/scinexus/). The objective is to make this powerful framework available beyond cogent3. We also migrated the data stores and many generally useful utilities. e.g. `open_`, deserialisation of objects, and progress bars. Check out the documentation of scinexus to see what it provides.
+The `cogent3` apps and plugin architecture remain the same, but we have extracted the app infrastructure into a new project called [scinexus](https://pypi.org/project/scinexus/). The objective is to make this powerful framework available beyond cogent3. We also migrated the data stores and many generally useful utilities. e.g. `open_`, deserialisation of objects, and progress bars. Check out the documentation of scinexus to see what it provides.
 
 </details>
 
