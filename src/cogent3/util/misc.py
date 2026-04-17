@@ -17,6 +17,7 @@ from warnings import warn
 
 import numpy
 from numpy import array, finfo, float64, floating, integer, ndarray, zeros
+from scinexus.warning import deprecated_callable
 from typing_extensions import TypeIs
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -978,7 +979,13 @@ def get_object_provenance(obj: object) -> str:
     return name if mod is None or mod == "builtins" else f"{mod}.{name}"
 
 
-def extend_docstring_from(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.misc.extend_docstring_from",
+    new="scinexus.misc.extend_docstring_from",
+    is_discontinued=True,
+)
+def extend_docstring_from(  # pragma: no cover
     source: object, pre: bool = False
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
     def docstring_inheriting_decorator(dest: Callable[P, R]) -> Callable[P, R]:

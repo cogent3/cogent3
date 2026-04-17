@@ -26,6 +26,7 @@ from typing import (
 import numba
 import numpy
 import numpy.typing as npt
+from scinexus.misc import extend_docstring_from
 from typing_extensions import override
 
 import cogent3
@@ -55,7 +56,6 @@ from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes
 from cogent3.util.misc import (
-    extend_docstring_from,
     get_object_provenance,
     get_setting_from_environ,
     negate_condition,

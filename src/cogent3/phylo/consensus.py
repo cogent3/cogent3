@@ -7,8 +7,9 @@ from collections.abc import Iterable
 from itertools import product
 from typing import Literal, TypeAlias, cast
 
+from scinexus.misc import extend_docstring_from
+
 from cogent3.core.tree import PhyloNode, TreeBuilder
-from cogent3.util.misc import extend_docstring_from
 
 
 def majority_rule(trees: Iterable[PhyloNode], strict: bool = False) -> list[PhyloNode]:

@@ -39,6 +39,7 @@ from typing import TYPE_CHECKING
 
 import numpy
 from numpy.linalg import svd
+from scinexus.misc import extend_docstring_from
 
 import cogent3
 from cogent3._version import __version__
@@ -64,7 +65,7 @@ from cogent3.recalculation.definition import (
     SelectForDimension,
     WeightedPartitionDefn,
 )
-from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.tree import PhyloNode

@@ -9,6 +9,7 @@ import weakref
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from scinexus.misc import extend_docstring_from
 from scitrack import get_text_hexdigest
 
 from cogent3.app.data_store import (
@@ -23,7 +24,6 @@ from cogent3.app.data_store import (
     Mode,
     StrOrBytes,
 )
-from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:  # pragma: no cover
     from citeable import CitationBase

@@ -7,8 +7,7 @@ from collections.abc import Callable, Generator, Iterable, Sized
 from typing import Any, Generic, Literal, ParamSpec, TypeVar, cast
 
 import loky
-
-from cogent3.util.misc import extend_docstring_from
+from scinexus.misc import extend_docstring_from
 
 MPI: Any
 if os.environ.get("DONT_USE_MPI", 0):

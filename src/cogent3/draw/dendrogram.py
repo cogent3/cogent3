@@ -5,10 +5,10 @@ from math import floor
 from typing import Any, Literal, cast
 
 import numpy
+from scinexus.misc import extend_docstring_from
 
 from cogent3.core.tree import PhyloNode
 from cogent3.draw.drawable import Drawable
-from cogent3.util.misc import extend_docstring_from
 from cogent3.util.union_dict import UnionDict
 
 

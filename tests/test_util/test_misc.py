@@ -26,7 +26,6 @@ from cogent3.util.misc import (
     adjusted_within_bounds,
     curry,
     docstring_to_summary_rest,
-    extend_docstring_from,
     get_independent_coords,
     get_merged_by_value_coords,
     get_merged_overlapping_coords,
@@ -1058,81 +1057,6 @@ class MappedDictTests(TestCase):
         assert "1" in d
         assert 1 in d
         assert "5" not in d
-
-
-def f():
-    """This is a function docstring."""
-
-
-@extend_docstring_from(f)
-def foo_append():
-    """I am foo."""
-
-
-@extend_docstring_from(f)
-def foo_mirror():
-    pass
-
-
-@extend_docstring_from(f, pre=True)
-def foo_prepend():
-    """I am foo."""
-
-
-class ExtendDocstringTests(TestCase):
-    @extend_docstring_from(f)
-    def foo_append(self):
-        """I am foo."""
-
-    @extend_docstring_from(f)
-    def foo_mirror(self):
-        pass
-
-    @extend_docstring_from(f, pre=True)
-    def foo_prepend(self):
-        """I am foo."""
-
-    class TemplateClass:
-        """This is a class docstring."""
-
-    @extend_docstring_from(TemplateClass)
-    class FooAppend:
-        """I am foo."""
-
-    @extend_docstring_from(TemplateClass)
-    class FooMirror:
-        pass
-
-    @extend_docstring_from(TemplateClass, pre=True)
-    class FooPrepend:
-        """I am foo."""
-
-    def test_function_append(self):
-        assert foo_append.__doc__ == "This is a function docstring.\nI am foo."
-
-    def test_function_mirror(self):
-        assert foo_mirror.__doc__ == "This is a function docstring.\n"
-
-    def test_function_prepend(self):
-        assert foo_prepend.__doc__ == "I am foo.\nThis is a function docstring."
-
-    def test_method_append(self):
-        assert self.foo_append.__doc__ == "This is a function docstring.\nI am foo."
-
-    def test_method_mirror(self):
-        assert self.foo_mirror.__doc__ == "This is a function docstring.\n"
-
-    def test_method_prepend(self):
-        assert self.foo_prepend.__doc__ == "I am foo.\nThis is a function docstring."
-
-    def test_class_append(self):
-        assert self.FooAppend.__doc__ == "This is a class docstring.\nI am foo."
-
-    def test_class_mirror(self):
-        assert self.FooMirror.__doc__ == "This is a class docstring.\n"
-
-    def test_class_prepend(self):
-        assert self.FooPrepend.__doc__ == "I am foo.\nThis is a class docstring."
 
 
 def test_not_in_jupyter():

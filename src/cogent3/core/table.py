@@ -24,6 +24,7 @@ from typing import Self
 from xml.sax.saxutils import escape
 
 import numpy
+from scinexus.misc import extend_docstring_from
 
 from cogent3.format import bedgraph
 from cogent3.format import table as table_format
@@ -32,7 +33,7 @@ from cogent3.parse.table import load_delimited
 from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.io import atomic_write, get_format_suffixes, open_
-from cogent3.util.misc import extend_docstring_from, get_object_provenance
+from cogent3.util.misc import get_object_provenance
 from cogent3.util.union_dict import UnionDict
 
 if typing.TYPE_CHECKING:  # pragma: no cover

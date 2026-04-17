@@ -8,10 +8,10 @@ import numpy
 import numpy.typing as npt
 from numpy import array, digitize
 from numpy.random import random
+from scinexus.misc import extend_docstring_from
 
 from cogent3.maths.util import safe_log, safe_p_log_p, validate_freqs_array
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
-from cogent3.util.misc import extend_docstring_from
 
 if TYPE_CHECKING:
     import cogent3.core.sequence as c3_sequence
