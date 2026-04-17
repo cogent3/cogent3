@@ -5,7 +5,6 @@ from scinexus.io_util import open_
 
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
-    iter_line_blocks,
     iter_splitlines,
 )
 
@@ -98,42 +97,3 @@ def test_iter_splitlines_tilde(home_file, transform):
     expect = pathlib.Path(home_file).expanduser().read_text().splitlines()
     got = list(iter_splitlines(transform(home_file)))
     assert len(got) == len(expect)
-
-
-def test_iter_line_blocks_correct_size(tmp_path):
-    # correctly break up
-    path = tmp_path / "multi-line.txt"
-    value = ["We have some", "text on different lines", "which load"]
-    path.write_text("\n".join(value))
-    # we use a massive chunk size
-    got = list(iter_line_blocks(path, num_lines=2, chunk_size=5))
-    expect = [value[:2], value[-1:]]
-    assert got == expect
-
-
-def test_iter_line_blocks_empty(tmp_path):
-    path = tmp_path / "zero.txt"
-    path.write_text("")
-    # we use a massive chunk size
-    got = list(iter_line_blocks(path, num_lines=2))
-    assert not got
-
-
-def test_iter_line_blocks_one(tmp_path):
-    # file has a single line
-    path = tmp_path / "one-line.txt"
-    value = "We have text on one line."
-    path.write_text(value)
-    got = list(iter_line_blocks(path, num_lines=2))
-    assert got == [[value]]
-
-
-def test_iter_line_blocks_none_num_lines(tmp_path):
-    # correctly break up
-    path = tmp_path / "multi-line.txt"
-    value = ["We have some", "text on different lines", "which load"]
-    path.write_text("\n".join(value))
-    # we use a massive chunk size
-    got = list(iter_line_blocks(path, num_lines=None))
-    expect = [value]
-    assert got == expect

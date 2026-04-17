@@ -483,7 +483,13 @@ def iter_splitlines(
             yield from last.splitlines()
 
 
-def iter_line_blocks(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.iter_line_blocks",
+    new="scinexus.io_util.iter_line_blocks",
+    is_discontinued=True,
+)
+def iter_line_blocks(  # pragma: no cover
     path: PathType,
     num_lines: int | None = 1000,
     chunk_size: int | None = 5_000_000,

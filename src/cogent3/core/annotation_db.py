@@ -26,14 +26,14 @@ from typing import (
 import numpy
 import numpy.typing as npt
 from scinexus import warning as snx_warn
-from scinexus.io_util import get_format_suffixes
+from scinexus.io_util import get_format_suffixes, iter_line_blocks
 from scinexus.misc import extend_docstring_from, get_object_provenance
 
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
-from cogent3.util.io import PathType, iter_line_blocks
+from cogent3.util.io import PathType
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.table import Table
