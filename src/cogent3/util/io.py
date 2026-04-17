@@ -74,7 +74,13 @@ def _get_compression_open(
     return _compression_handlers.get(compression)
 
 
-def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.open_zip",
+    new="scinexus.io_util.open_zip",
+    is_discontinued=True,
+)
+def open_zip(filename: PathType, mode: str = "r", **kwargs) -> IO:  # pragma: no cover
     """open a single member zip-compressed file
 
     Note

@@ -292,25 +292,6 @@ def test_open_writes_zip(tmp_dir):
         assert got == b"any str"
 
 
-def test_open_zip_multi(tmp_dir):
-    """zip with multiple records cannot be opened using open_"""
-    text_path1 = tmp_dir / "foo.txt"
-    with open(text_path1, "w") as f:
-        f.write("any str")
-
-    text_path2 = tmp_dir / "bar.txt"
-    with open(text_path2, "w") as f:
-        f.write("any str")
-
-    zip_path = tmp_dir / "foo.zip"
-    with zipfile.ZipFile(zip_path, "w") as zip:
-        zip.write(text_path1)
-        zip.write(text_path2)
-
-    with pytest.raises(ValueError):
-        open_(zip_path)
-
-
 def test_iter_splitlines_one(tmp_path):
     # file has a single line
     path = tmp_path / "one-line.txt"

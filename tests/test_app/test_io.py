@@ -693,12 +693,6 @@ def test_to_json_combines():
     assert app(DNA) == DNA.to_json()
 
 
-def test_open_zipped(zipped_full):
-    got = open_data_store(zipped_full.source, mode="r", suffix="fasta")
-    assert len(got) == len(zipped_full)
-    assert isinstance(got, type(zipped_full))
-
-
 @pytest.fixture
 def relpath(DATA_DIR):
     # express the data path as relative to user home
