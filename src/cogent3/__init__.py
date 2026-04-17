@@ -10,6 +10,8 @@ import warnings
 from collections.abc import Callable
 from importlib import import_module
 
+from scinexus.io_util import open_
+
 from cogent3._version import __version__
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -68,7 +70,6 @@ _import_mapping = {
     "available_moltypes": "core.moltype",
     "get_moltype": "core.moltype",
     "MolTypeLiteral": "core.moltype",
-    "open_": "util.io",
     "available_models": "evolve.models",
     "get_model": "evolve.models",
     "available_codes": "core.genetic_code",

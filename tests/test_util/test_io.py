@@ -1,9 +1,7 @@
-import bz2
-import gzip
 import pathlib
-import zipfile
 
 import pytest
+from scinexus.io_util import open_
 
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
@@ -11,7 +9,6 @@ from cogent3.util.io import (
     get_format_suffixes,
     iter_line_blocks,
     iter_splitlines,
-    open_,
 )
 
 
@@ -29,16 +26,6 @@ def home_file(DATA_DIR, HOME_TMP_DIR) -> str:
     return str(HOME_TMP_DIR / fn)
 
 
-@pytest.mark.parametrize("transform", [str, pathlib.Path])
-def test_open_home(DATA_DIR, home_file, transform):
-    """expands tilde for opening / writing to home"""
-    data_path = DATA_DIR / "sample.tsv"
-    expect = data_path.read_text()
-    with open_(transform(home_file)) as infile:
-        got = infile.read()
-        assert got == expect
-
-
 def test_does_not_write_if_exception(tmp_dir):
     """file does not exist if an exception raised before closing"""
     test_filepath = tmp_dir / "Atomic_write_test"
@@ -46,21 +33,6 @@ def test_does_not_write_if_exception(tmp_dir):
         f.write("abc")
         raise AssertionError
     assert not test_filepath.exists()
-
-
-@pytest.mark.parametrize("suffix", ["gz", "bz2", "zip", "lmza", "xz"])
-def test_writes_compressed_formats(DATA_DIR, tmp_dir, suffix):
-    """correctly writes / reads different compression formats"""
-    fpath = DATA_DIR / "sample.tsv"
-    expect = pathlib.Path(fpath).read_text()
-    outpath = tmp_dir / f"{fpath.name}.{suffix}"
-    with atomic_write(outpath, mode="wt") as f:
-        f.write(expect)
-
-    with open_(outpath) as infile:
-        got = infile.read()
-
-    assert got == expect, f"write failed for {suffix}"
 
 
 def test_atomic_invalid_parent_dir():
@@ -89,41 +61,6 @@ def test_atomic_write_noncontext(tmp_dir):
     with open_(zip_path) as ifile:
         got = ifile.read()
     assert got == "some data"
-
-
-def test_open_handles_bom(tmp_dir):
-    """handle files with a byte order mark"""
-    text = "some text"
-
-    # plain text
-    textfile = tmp_dir / "sample.txt"
-    textfile.write_text(text, encoding="utf-8-sig")
-
-    # gzipped
-    gzip_file = tmp_dir / "sample.txt.gz"
-    with gzip.open(gzip_file, "wt", encoding="utf-8-sig") as outfile:
-        outfile.write(text)
-
-    # bzipped
-    bzip_file = tmp_dir / "sample.txt.bz2"
-    with bz2.open(bzip_file, "wt", encoding="utf-8-sig") as outfile:
-        outfile.write(text)
-
-    # zipped
-    zip_file = tmp_dir / "sample.zip"
-    with zipfile.ZipFile(zip_file, "w") as outfile:
-        outfile.write(textfile, "sample.txt")
-
-    for path in (bzip_file, gzip_file, textfile, zip_file):
-        with open_(path) as infile:
-            got = infile.read()
-            assert got == text, f"failed reading {path}"
-
-
-@pytest.mark.parametrize("non", [None, ""])
-def test_open_empty_raises(non):
-    with pytest.raises(ValueError):
-        open_(non)
 
 
 def test_aw_zip_from_path(tmp_dir):
@@ -211,33 +148,6 @@ def test_get_format_suffixes_pathlib(name, expect):
     """correctly return suffixes for compressed etc.. formats from pathlib"""
     suffixes = get_format_suffixes(pathlib.Path(name))
     assert suffixes == expect
-
-
-def test_open_reads_zip(tmp_dir):
-    """correctly reads a zip compressed file"""
-    text_path = tmp_dir / "foo.txt"
-    with open(text_path, "w") as f:
-        f.write("any str")
-
-    zip_path = tmp_dir / "foo.zip"
-    with zipfile.ZipFile(zip_path, "w") as zip:
-        zip.write(text_path)
-
-    with open_(zip_path) as got:
-        assert got.readline() == "any str"
-
-
-def test_open_writes_zip(tmp_dir):
-    """correctly writes a zip compressed file"""
-    zip_path = tmp_dir / "foo.txt.zip"
-
-    with open_(zip_path, "w") as f:
-        f.write("any str")
-
-    with zipfile.ZipFile(zip_path, "r") as zip:
-        name = zip.namelist()[0]
-        got = zip.open(name).read()
-        assert got == b"any str"
 
 
 def test_iter_splitlines_one(tmp_path):

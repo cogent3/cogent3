@@ -116,9 +116,7 @@ def deserialise_object(data: "PathType | str | dict[str, Any]") -> Any:
     The value of the "type" key is used to identify the specific function for recreating
     the original instance.
     """
-    from scinexus.io_util import path_exists
-
-    from cogent3.util.io import open_
+    from scinexus.io_util import open_, path_exists
 
     if path_exists(path := cast("PathType", data)):
         with open_(path) as infile:

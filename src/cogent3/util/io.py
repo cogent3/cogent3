@@ -17,6 +17,7 @@ from zipfile import ZipFile
 
 from charset_normalizer import detect
 from scinexus.io_util import is_url as _is_url
+from scinexus.io_util import open_ as _open_
 from scinexus.warning import deprecated_callable
 
 from cogent3.util.misc import _wout_period
@@ -121,7 +122,15 @@ _compression_handlers = {
 }
 
 
-def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.open_",
+    new="scinexus.io_util.open_",
+    is_discontinued=True,
+)
+def open_(
+    filename: PathType, mode: str = "rt", **kwargs: Any
+) -> IO[Any]:  # pragma: no cover
     """open that handles different compression
 
     Parameters
@@ -315,7 +324,7 @@ class atomic_write:
     def _get_fileobj(self) -> IO[Any]:
         """returns file to be written to"""
         if self._file is None:
-            self._file = open_(self._tmppath, self._mode, encoding=self._encoding)
+            self._file = _open_(self._tmppath, self._mode, encoding=self._encoding)
 
         return self._file
 
@@ -434,7 +443,7 @@ def iter_splitlines(
             # load it all
             chunk_size = None
 
-    with open_(path) as infile:
+    with _open_(path) as infile:
         last = ""
         while True:
             data = infile.read(chunk_size)

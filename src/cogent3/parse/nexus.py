@@ -7,8 +7,9 @@ parses Nexus formatted tree files and Branchlength info in log files
 import re
 from collections import defaultdict
 
+from scinexus.io_util import open_
+
 from cogent3.parse.record import RecordError
-from cogent3.util.io import open_
 
 strip = str.strip
 
