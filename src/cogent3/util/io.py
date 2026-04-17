@@ -431,7 +431,13 @@ def path_exists(path: PathType) -> bool:  # pragma: no cover
     return False
 
 
-def iter_splitlines(
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.iter_splitlines",
+    new="scinexus.io_util.iter_splitlines",
+    is_discontinued=True,
+)
+def iter_splitlines(  # pragma: no cover
     path: PathType,
     chunk_size: int | None = 1_000_000,
 ) -> Iterator[str]:

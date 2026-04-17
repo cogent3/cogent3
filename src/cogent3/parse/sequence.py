@@ -6,6 +6,8 @@ import os
 import pathlib
 import typing
 
+from scinexus.io_util import iter_splitlines
+
 from cogent3.parse import (
     clustal,
     fasta,
@@ -17,7 +19,6 @@ from cogent3.parse import (
     phylip,
     tinyseq,
 )
-from cogent3.util.io import iter_splitlines
 
 ParserOutputType = typing.Iterable[tuple[str, str] | dict]
 
