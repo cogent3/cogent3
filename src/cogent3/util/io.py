@@ -390,7 +390,13 @@ def remove_files(list_of_filepaths, error_on_missing=True) -> None:
         raise OSError(msg)
 
 
-def path_exists(path: PathType) -> bool:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.path_exists",
+    new="scinexus.io_util.path_exists",
+    is_discontinued=True,
+)
+def path_exists(path: PathType) -> bool:  # pragma: no cover
     """whether path is a valid path and it exists"""
     with contextlib.suppress(Exception):
         return Path(path).exists()

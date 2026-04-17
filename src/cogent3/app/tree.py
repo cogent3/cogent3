@@ -1,12 +1,11 @@
 import os
 from functools import singledispatch
 
-from scinexus.io_util import is_url
+from scinexus.io_util import is_url, path_exists
 
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode
 from cogent3.phylo.nj import gnj
-from cogent3.util.io import path_exists
 
 from ._citations import cite_cogent3
 from .composable import define_app

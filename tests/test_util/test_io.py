@@ -6,7 +6,6 @@ import zipfile
 
 import pytest
 
-from cogent3.app.composable import NotCompleted
 from cogent3.util.io import (
     _path_relative_to_zip_parent,
     atomic_write,
@@ -14,7 +13,6 @@ from cogent3.util.io import (
     iter_line_blocks,
     iter_splitlines,
     open_,
-    path_exists,
     remove_files,
 )
 
@@ -246,23 +244,6 @@ def test_get_format_suffixes_pathlib(name, expect):
     """correctly return suffixes for compressed etc.. formats from pathlib"""
     suffixes = get_format_suffixes(pathlib.Path(name))
     assert suffixes == expect
-
-
-@pytest.mark.parametrize(
-    ("val", "expect"),
-    [
-        ({}, False),
-        ("not an existing path", False),
-        ("(a,b,(c,d))", False),
-        ("(a:0.1,b:0.1,(c:0.1,d:0.1):0.1)", False),
-        (__file__, True),
-        (pathlib.Path(__file__), True),
-        (NotCompleted("FAIL", "test", message="none", source="unknown"), False),
-    ],
-)
-def test_path_exists(val, expect):
-    """robustly identifies whether an object is a valid path and exists"""
-    assert path_exists(val) == expect
 
 
 def test_open_reads_zip(tmp_dir):

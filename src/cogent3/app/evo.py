@@ -3,7 +3,8 @@ from collections.abc import Callable, Iterable
 from copy import deepcopy
 from typing import Union
 
-import cogent3.util.io
+from scinexus.io_util import path_exists
+
 from cogent3 import load_tree, make_tree
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.models import get_model
@@ -769,7 +770,7 @@ class natsel_neutral:
             msg = f"{sm} is not a codon model"
             raise ValueError(msg)
 
-        if cogent3.util.io.path_exists(tree):
+        if path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -902,7 +903,7 @@ class natsel_zhang:
             msg = "must provide at least a single tip name"
             raise ValueError(msg)
 
-        if cogent3.util.io.path_exists(tree):
+        if path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -1085,7 +1086,7 @@ class natsel_sitehet:
             msg = f"{sm} is not a codon model"
             raise ValueError(msg)
 
-        if cogent3.util.io.path_exists(tree):
+        if path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
@@ -1271,7 +1272,7 @@ class natsel_timehet:
             msg = "must provide at least a single tip name"
             raise ValueError(msg)
 
-        if cogent3.util.io.path_exists(tree):
+        if path_exists(tree):
             tree = load_tree(filename=tree, underscore_unmunge=True)
         elif type(tree) == str:
             tree = make_tree(treestring=tree, underscore_unmunge=True)
