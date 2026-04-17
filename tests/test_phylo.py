@@ -2,6 +2,7 @@ import os
 import pathlib
 import unittest
 import warnings
+from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from numpy import exp, log
@@ -17,7 +18,6 @@ from cogent3.phylo.tree_collection import (
     WeightedTreeCollection,
     make_trees,
 )
-from cogent3.util.io import remove_files
 
 warnings.filterwarnings("ignore", "Not using MPI as mpi4py not found")
 
@@ -487,7 +487,7 @@ class ConsensusTests(unittest.TestCase):
 
         # convert lnL into p
         eval_klass(WeightedTreeCollection([(exp(s), t) for s, t in self.scored_trees]))
-        remove_files(["sample.trees"], error_on_missing=False)
+        Path("sample.trees").unlink(missing_ok=True)
 
 
 class TreeReconstructionTests(unittest.TestCase):

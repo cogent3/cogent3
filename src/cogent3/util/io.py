@@ -376,7 +376,12 @@ def get_format_suffixes(filename: PathType) -> tuple[str | None, str | None]:
     return suffix, cmp_suffix
 
 
-def remove_files(list_of_filepaths, error_on_missing=True) -> None:
+@deprecated_callable(
+    version="2026.9",
+    reason="use shutil instead",
+    is_discontinued=True,
+)
+def remove_files(list_of_filepaths, error_on_missing=True) -> None:  # pragma: no cover
     """Remove list of filepaths, optionally raising an error if any are missing"""
     missing = []
     for fp in list_of_filepaths:

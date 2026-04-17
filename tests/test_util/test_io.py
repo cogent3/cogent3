@@ -1,7 +1,6 @@
 import bz2
 import gzip
 import pathlib
-import tempfile
 import zipfile
 
 import pytest
@@ -13,7 +12,6 @@ from cogent3.util.io import (
     iter_line_blocks,
     iter_splitlines,
     open_,
-    remove_files,
 )
 
 
@@ -165,37 +163,6 @@ def test_path_relative_to_zip_parent():
     for member in ("data/member.txt", "member.txt", "a/b/c/member.txt"):
         got = _path_relative_to_zip_parent(zip_path, pathlib.Path(member))
         assert got.parts[0] == "data"
-
-
-def test_remove_files():
-    """Remove files functions as expected"""
-    import os
-
-    # create list of temp file paths
-    test_filepaths = [
-        tempfile.NamedTemporaryFile(prefix="remove_files_test").name for i in range(5)
-    ]
-
-    # try to remove them with remove_files and verify that an IOError is
-    # raises
-    pytest.raises(OSError, remove_files, test_filepaths)
-    # now get no error when error_on_missing=False
-    remove_files(test_filepaths, error_on_missing=False)
-
-    # touch one of the filepaths so it exists
-    open(test_filepaths[2], "w").close()
-    # check that an error is raised on trying to remove the files...
-    pytest.raises(OSError, remove_files, test_filepaths)
-    # ... but that the existing file was still removed
-    assert not os.path.exists(test_filepaths[2])
-
-    # touch one of the filepaths so it exists
-    open(test_filepaths[2], "w").close()
-    # no error is raised on trying to remove the files
-    # (although 4 don't exist)...
-    remove_files(test_filepaths, error_on_missing=False)
-    # ... and the existing file was removed
-    assert not os.path.exists(test_filepaths[2])
 
 
 @pytest.mark.parametrize(
