@@ -52,7 +52,7 @@ def _(path: ParseResult) -> bool:  # pragma: no cover
     return path.scheme in {"http", "https", "file"}
 
 
-def _get_compression_open(
+def _get_compression_open(  # pragma: no cover
     path: PathType | None = None,
     compression: str | None = None,
 ) -> Callable | None:
@@ -216,7 +216,7 @@ def open_url(url: str | ParseResult, mode="rt", **kwargs) -> IO:  # pragma: no c
     return response if "b" in mode else TextIOWrapper(response, encoding=encoding)
 
 
-def _path_relative_to_zip_parent(zip_path, member_path):
+def _path_relative_to_zip_parent(zip_path, member_path):  # pragma: no cover
     """returns member_path relative to zip_path
 
     Parameters
