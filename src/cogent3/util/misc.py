@@ -190,7 +190,13 @@ def is_char_or_noniterable(x):
     return is_char(x) or not is_iterable(x)
 
 
-def is_url(text: str) -> bool:
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.is_url",
+    new="scinexus.io_util.is_url",
+    is_discontinued=True,
+)
+def is_url(text: str) -> bool:  # pragma: no cover
     _urls = re.compile("^(http[s]*|file)")
     r = urlparse(text)
     return _urls.search(r.scheme) is not None

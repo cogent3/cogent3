@@ -16,6 +16,7 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 from charset_normalizer import detect
+from scinexus.io_util import is_url as _is_url
 from scinexus.warning import deprecated_callable
 
 from cogent3.util.misc import _wout_period
@@ -23,24 +24,30 @@ from cogent3.util.misc import _wout_period
 PathType = str | PathLike[Any] | PurePath | Path
 
 
+@deprecated_callable(
+    version="2026.9",
+    reason="Use scinexus.io_util.is_url",
+    new="scinexus.io_util.is_url",
+    is_discontinued=True,
+)
 @functools.singledispatch
-def is_url(path: str | bytes | Path | PathLike) -> bool:
+def is_url(path: str | bytes | Path | PathLike) -> bool:  # pragma: no cover
     """whether a path is a url"""
     return False
 
 
 @is_url.register
-def _(path: str) -> bool:
+def _(path: str) -> bool:  # pragma: no cover
     return is_url(urlparse(path))
 
 
 @is_url.register
-def _(path: bytes) -> bool:
+def _(path: bytes) -> bool:  # pragma: no cover
     return is_url(urlparse(path.decode("utf8")))
 
 
 @is_url.register
-def _(path: ParseResult) -> bool:
+def _(path: ParseResult) -> bool:  # pragma: no cover
     return path.scheme in {"http", "https", "file"}
 
 
@@ -128,7 +135,7 @@ def open_(filename: PathType, mode: str = "rt", **kwargs: Any) -> IO[Any]:
         msg = f"{filename} not a valid file name or url"
         raise ValueError(msg)
 
-    if is_url(filename):
+    if _is_url(filename):
         return open_url(filename, mode=mode, **kwargs)
 
     mode = mode or "rt"
@@ -401,7 +408,7 @@ def iter_splitlines(
     -----
     Loads chunks of data from the file, yields one line at a time
     """
-    if is_url(path):
+    if _is_url(path):
         chunk_size = None
     else:
         path = Path(path).expanduser()
