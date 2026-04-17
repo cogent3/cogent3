@@ -10,8 +10,7 @@ import warnings
 from collections.abc import Callable
 from importlib import import_module
 
-from scinexus.io import open_data_store
-from scinexus.io_util import open_
+from scinexus import open_, open_data_store  # noqa: F401
 
 from cogent3._version import __version__
 
