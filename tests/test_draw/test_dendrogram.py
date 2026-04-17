@@ -1,5 +1,6 @@
 import pytest
 from numpy.testing import assert_allclose
+from scinexus.deserialise import deserialise_object
 
 from cogent3 import make_tree
 from cogent3.draw.dendrogram import (
@@ -7,7 +8,6 @@ from cogent3.draw.dendrogram import (
     Dendrogram,
     SquareTreeGeometry,
 )
-from cogent3.util.deserialise import deserialise_object
 from cogent3.util.union_dict import UnionDict
 
 

@@ -11,6 +11,7 @@ from gzip import decompress as gzip_decompress
 from pathlib import Path
 
 import numpy
+from scinexus.deserialise import deserialise_object
 
 import cogent3
 from cogent3.core import moltype as c3_moltype
@@ -20,7 +21,6 @@ from cogent3.core.profile import (
     make_pssm_from_tabular,
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
-from cogent3.util.deserialise import deserialise_object
 
 from ._citations import cite_cogent3
 from .composable import LOADER, WRITER, NotCompleted, define_app

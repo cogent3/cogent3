@@ -6,6 +6,7 @@ from functools import total_ordering
 from pathlib import Path
 
 import numpy
+from scinexus.deserialise import deserialise_object, get_class, register_deserialiser
 from scinexus.misc import extend_docstring_from, get_object_provenance
 from scipy.stats.distributions import chi2
 
@@ -13,11 +14,6 @@ import cogent3
 from cogent3._version import __version__
 from cogent3.app.data_store import get_data_source
 from cogent3.core.table import Table
-from cogent3.util.deserialise import (
-    deserialise_object,
-    get_class,
-    register_deserialiser,
-)
 
 
 class generic_result(MutableMapping):
@@ -106,7 +102,7 @@ class generic_result(MutableMapping):
 
     def deserialised_values(self) -> None:
         """deserialises any cogent3 members"""
-        from cogent3.util.deserialise import deserialise_object
+        from scinexus.deserialise import deserialise_object
 
         for key, value in self.items():
             if isinstance(value, dict):

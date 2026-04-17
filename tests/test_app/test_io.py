@@ -9,6 +9,7 @@ import tempfile
 import numpy
 import pytest
 from numpy.testing import assert_allclose
+from scinexus.deserialise import deserialise_object
 
 import cogent3
 from cogent3 import get_app, get_moltype, open_data_store
@@ -27,7 +28,6 @@ from cogent3.core.table import Table
 from cogent3.evolve.fast_distance import DistanceMatrix
 from cogent3.maths.util import safe_log
 from cogent3.parse.sequence import PARSERS
-from cogent3.util.deserialise import deserialise_object
 
 DNA = get_moltype("dna")
 

@@ -3,12 +3,12 @@ from unittest import TestCase
 import numpy
 import pytest
 
+# Complete version of manipulating sequence annotations
+from scinexus.deserialise import deserialise_object
+
 import cogent3
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import BasicAnnotationDb, GffAnnotationDb
-
-# Complete version of manipulating sequence annotations
-from cogent3.util.deserialise import deserialise_object
 
 ASCII = cogent3.get_moltype("text")
 DNA = cogent3.get_moltype("dna")

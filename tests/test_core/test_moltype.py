@@ -651,7 +651,7 @@ def test_moltype_coerce_seqs():
     ["protein", "text", "bytes", "protein_with_stop", "dna", "rna"],
 )
 def test_json_roundtrip_moltype(moltype):
-    from cogent3.util.deserialise import deserialise_object
+    from scinexus.deserialise import deserialise_object
 
     mt = c3_moltype.get_moltype(moltype)
     got = deserialise_object(mt.to_json())

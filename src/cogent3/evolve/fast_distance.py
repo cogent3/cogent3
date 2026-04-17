@@ -7,12 +7,12 @@ import numba
 import numpy
 from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
+from scinexus.deserialise import register_deserialiser
 from scinexus.misc import get_object_provenance
 
 import cogent3
 from cogent3._version import __version__
 from cogent3.core import moltype as c3_moltype
-from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.progress_display import display_wrap
 

@@ -1,8 +1,16 @@
 import json
 import re
+import warnings
 from collections.abc import Callable
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, cast
+
+warnings.warn(
+    "cogent3.util.deserialise is discontinued and will be removed in version 2026.9, "
+    "use scinexus.deserialise instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType
@@ -13,7 +21,7 @@ R = TypeVar("R")
 _deserialise_func_map: dict[str, Callable[..., Any]] = {}
 
 
-class register_deserialiser:
+class register_deserialiser:  # pragma: no cover
     """
     registration decorator for functions to inflate objects that were
     serialised using json.
@@ -44,7 +52,7 @@ class register_deserialiser:
         return func
 
 
-def get_class(provenance: str) -> type:
+def get_class(provenance: str) -> type:  # pragma: no cover
     index = provenance.rfind(".")
     assert index > 0
     klass = provenance[index + 1 :]
@@ -57,47 +65,14 @@ def get_class(provenance: str) -> type:
 _pat = re.compile("[a-z]")
 
 
-def str_to_version(v):
+def str_to_version(v):  # pragma: no cover
     letter = _pat.search(v)
     return tuple(f"{v[: letter.start()]}.{letter.group()}.{letter.end():}".split("."))
 
 
-@register_deserialiser("cogent3.evolve.parameter_controller")
-def deserialise_likelihood_function(data):
-    """returns a cogent3 likelihood function instance"""
-    data.pop("version", None)
-    model = deserialise_object(data.pop("model"))
-    tree = deserialise_object(data.pop("tree"))
-    constructor_args = data.pop("likelihood_construction")
-    motif_probs = data.pop("motif_probs")
-    param_rules = data.pop("param_rules")
-    name = data.pop("name", None)
-    lf = model.make_likelihood_function(tree, **constructor_args)
-    lf.set_name(name)
-    lf = model.make_likelihood_function(tree, **constructor_args)
-
-    if isinstance(constructor_args["loci"], list):
-        locus_names = constructor_args["loci"]
-        align = data["alignment"]
-        aln = [deserialise_object(align[k]) for k in locus_names]
-        if locus_names[0] in motif_probs:
-            mprobs = [motif_probs[k] for k in motif_probs]
-        else:
-            mprobs = [motif_probs]
-    else:
-        aln = deserialise_object(data.pop("alignment"))
-        mprobs = [motif_probs]
-
-    lf.set_alignment(aln)
-    with lf.updates_postponed():
-        for motif_probs in mprobs:
-            lf.set_motif_probs(motif_probs)
-        for rule in param_rules:
-            lf.set_param_rule(**rule)
-    return lf
-
-
-def deserialise_object(data: "PathType | str | dict[str, Any]") -> Any:
+def deserialise_object(
+    data: "PathType | str | dict[str, Any]",
+) -> Any:  # pragma: no cover
     """
     deserialises from json
 

@@ -1071,7 +1071,7 @@ def test_indel_map_sliced_with_negative():
 
 
 def test_indelmap_roundtrip_json():
-    from cogent3.util.deserialise import deserialise_object
+    from scinexus.deserialise import deserialise_object
 
     imap = IndelMap(
         gap_pos=numpy.array([0, 9]),
@@ -1085,7 +1085,7 @@ def test_indelmap_roundtrip_json():
 
 
 def test_featuremap_roundtrip_json():
-    from cogent3.util.deserialise import deserialise_object
+    from scinexus.deserialise import deserialise_object
 
     fmap = FeatureMap.from_locations(
         locations=[[0, 9], [20, 23]],

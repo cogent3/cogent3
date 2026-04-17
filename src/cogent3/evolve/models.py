@@ -12,6 +12,7 @@ from itertools import permutations
 
 # The models are constructed in a strait forward manner with no attempt to condense
 import numpy
+from scinexus.deserialise import deserialise_object, get_class, register_deserialiser
 
 import cogent3
 from cogent3.core.table import Table
@@ -21,11 +22,6 @@ from cogent3.evolve.solved_models import _solved_nucleotide
 from cogent3.evolve.substitution_model import _SubstitutionModel
 from cogent3.evolve.substitution_model import kappa_r as _kappa_r
 from cogent3.evolve.substitution_model import kappa_y as _kappa_y
-from cogent3.util.deserialise import (
-    deserialise_object,
-    get_class,
-    register_deserialiser,
-)
 
 nucleotide_models = []
 codon_models = []

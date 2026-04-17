@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from numpy.testing import assert_allclose, assert_raises
+from scinexus.deserialise import deserialise_object
 
 from cogent3 import (
     get_app,
@@ -24,7 +25,6 @@ from cogent3.app.result import (
     model_result,
 )
 from cogent3.evolve.models import get_model
-from cogent3.util.deserialise import deserialise_object
 
 data_dir = join(dirname(dirname(__file__)), "data")
 

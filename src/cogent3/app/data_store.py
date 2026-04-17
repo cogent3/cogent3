@@ -15,10 +15,10 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from scinexus.deserialise import deserialise_object
 from scinexus.io_util import get_format_suffixes, open_
 from scitrack import get_text_hexdigest
 
-from cogent3.util.deserialise import deserialise_object
 from cogent3.util.parallel import is_master_process
 
 if TYPE_CHECKING:  # pragma: no cover

@@ -1,6 +1,7 @@
 import pathlib
 
 import pytest
+from scinexus.deserialise import deserialise_object
 
 import cogent3
 from cogent3.app import evo as evo_app
@@ -12,7 +13,6 @@ from cogent3.app.result import (
     model_result,
     tabular_result,
 )
-from cogent3.util.deserialise import deserialise_object
 from cogent3.util.dict_array import DictArray
 
 

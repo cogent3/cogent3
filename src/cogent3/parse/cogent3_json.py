@@ -4,10 +4,9 @@ import json
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
+from scinexus.deserialise import deserialise_object
 from scinexus.io_util import open_
 from scinexus.misc import get_object_provenance
-
-from cogent3.util.deserialise import deserialise_object
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.util.io import PathType

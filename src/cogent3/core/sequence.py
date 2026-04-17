@@ -29,6 +29,7 @@ from typing import (
 import numba
 import numpy
 import numpy.typing as npt
+from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes
 from scinexus.misc import get_object_provenance
 
@@ -54,7 +55,6 @@ from cogent3.core.location import (
 from cogent3.core.seqview import SeqView, SeqViewABC
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.number import CategoryCounter
-from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray
 from cogent3.util.misc import (
     DistanceFromMatrix,

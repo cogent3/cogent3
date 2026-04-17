@@ -48,6 +48,7 @@ from typing import (
 
 import numpy
 import numpy.typing as npt
+from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes, open_
 from scinexus.misc import get_object_provenance
 
@@ -55,7 +56,6 @@ from cogent3._version import __version__
 from cogent3.parse.cogent3_json import load_from_json
 from cogent3.parse.newick import parse_string as newick_parse_string
 from cogent3.phylo.tree_distance import get_tree_distance_measure
-from cogent3.util.deserialise import register_deserialiser
 
 if TYPE_CHECKING:  # pragma: no cover
     import os

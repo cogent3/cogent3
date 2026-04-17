@@ -26,6 +26,7 @@ from typing import (
 import numba
 import numpy
 import numpy.typing as npt
+from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes
 from scinexus.misc import extend_docstring_from, get_object_provenance
 from typing_extensions import override
@@ -53,7 +54,6 @@ from cogent3.core.seq_storage import (
 from cogent3.core.slice_record import SliceRecord
 from cogent3.maths.stats.number import CategoryCounter
 from cogent3.util import progress_display as UI
-from cogent3.util.deserialise import register_deserialiser
 from cogent3.util.dict_array import DictArray, DictArrayTemplate
 from cogent3.util.misc import (
     get_setting_from_environ,
