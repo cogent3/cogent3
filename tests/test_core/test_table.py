@@ -2210,7 +2210,6 @@ def test_group_by_iter():
 
 
 def test_group_by_repr():
-
     t = _make_group_table()
     gb = t.group_by("cat")
     r = repr(gb)
