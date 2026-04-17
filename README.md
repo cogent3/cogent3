@@ -22,7 +22,14 @@
 
 `cogent3` is a mature python library for analysis of genomic sequence data. We endeavour to provide a first-class experience within Jupyter notebooks, but the algorithms also support parallel execution on compute systems with 1000's of processors. A plugin system enables custom extensions to expand the library capabilities.
 
-## 📣 Feature Announcements 📣
+## 📣 Features & Announcements 📣
+
+<details>
+  <summary>App foundations and more have a new home -- scinexus!</summary>
+
+The `cogent3` apps and plugin architecture remain the same but we have extracted the app infrastructure into a new project called [scinexus](https://pypi.org/project/scinexus/). The objective is to make this powerful framework available beyond cogent3. We also migrated the data stores and many generally useful utilities. e.g. `open_`, deserialisation of objects, and progress bars. Check out the documentation of scinexus to see what it provides.
+
+</details>
 
 <details>
   <summary>Tracking citations of apps</summary>
