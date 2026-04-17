@@ -41,6 +41,7 @@ def test_profile_first_import_no_circular_error():
     """Importing cogent3.core.profile first must not trigger a circular import."""
     result = subprocess.run(
         [sys.executable, "-c", "import cogent3.core.profile"],
+        check=False,
         capture_output=True,
         text=True,
         timeout=60,
@@ -61,6 +62,7 @@ def test_profile_import_then_make_seq():
             "seq = DNA.make_seq(seq='ACGT', name='t')\n"
             "assert str(seq) == 'ACGT'\n",
         ],
+        check=False,
         capture_output=True,
         text=True,
         timeout=60,
@@ -102,6 +104,7 @@ def test_no_circular_imports(module):
     """Each subpackage must be importable in a fresh process without circular import errors."""
     result = subprocess.run(
         [sys.executable, "-c", f"import {module}"],
+        check=False,
         capture_output=True,
         text=True,
         timeout=60,
