@@ -5,6 +5,12 @@ from typing import Any, Literal, ParamSpec, TypeVar, cast
 from warnings import catch_warnings, simplefilter
 from warnings import warn as _warn
 
+_warn(
+    "cogent3.util.warning is deprecated. Use scinexus.warning instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 
 def deprecated(
     _type: Literal["class", "method", "function", "argument", "module"],
@@ -13,7 +19,7 @@ def deprecated(
     version: str,
     reason: str | None = None,
     stack_level: int = 3,
-) -> None:
+) -> None:  # pragma: no cover
     """a convenience function for deprecating classes, functions, arguments.
 
     Parameters
@@ -46,7 +52,7 @@ def discontinued(
     version: str,
     reason: str | None = None,
     stack_level: int = 3,
-) -> None:
+) -> None:  # pragma: no cover
     """convenience func to warn about discontinued attributes
 
     Parameters
@@ -85,7 +91,7 @@ def deprecated_args(
     old_new: Sequence[tuple[str, str]] | None = None,
     discontinued: Sequence[str] | None = None,
     stack_level: int = 2,
-) -> Callable[..., Any]:
+) -> Callable[..., Any]:  # pragma: no cover
     """
     A decorator that marks specific arguments of a function as deprecated.
 
@@ -185,7 +191,7 @@ def deprecated_callable(
     new: str | None = None,
     is_discontinued: bool = False,
     stack_level: int = 2,
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
+) -> Callable[[Callable[P, R]], Callable[P, R]]:  # pragma: no cover
     """
     A decorator that marks callables (function or method) as deprecated or discontinued..
     Parameters

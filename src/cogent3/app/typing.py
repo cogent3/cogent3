@@ -19,8 +19,9 @@ from typing import (
     runtime_checkable,
 )
 
+from scinexus.warning import deprecated_callable
+
 from cogent3.app.data_store import DataMemberABC
-from cogent3.util.warning import deprecated_callable
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.app.result import (

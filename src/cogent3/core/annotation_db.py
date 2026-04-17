@@ -25,11 +25,11 @@ from typing import (
 
 import numpy
 import numpy.typing as npt
+from scinexus import warning as snx_warn
 
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
 from cogent3.parse.gff import GffRecordABC, merged_gff_records
-from cogent3.util import warning as c3warn
 from cogent3.util.deserialise import deserialise_object, register_deserialiser
 from cogent3.util.io import PathType, get_format_suffixes, iter_line_blocks
 from cogent3.util.misc import extend_docstring_from, get_object_provenance
@@ -298,7 +298,7 @@ class SerialisableType(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsQueryFeatures(Protocol):  # pragma: no cover
-    @c3warn.deprecated_callable(
+    @snx_warn.deprecated_callable(
         version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
     )
     def __init_subclass__(cls): ...
@@ -359,7 +359,7 @@ class SupportsQueryFeatures(Protocol):  # pragma: no cover
 
 @runtime_checkable
 class SupportsWriteFeatures(Protocol):  # pragma: no cover
-    @c3warn.deprecated_callable(
+    @snx_warn.deprecated_callable(
         version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
     )
     def __init_subclass__(cls): ...
