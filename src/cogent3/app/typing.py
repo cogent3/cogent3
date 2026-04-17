@@ -19,6 +19,7 @@ from typing import (
     runtime_checkable,
 )
 
+from scinexus.typing import register_type_namespace as _register_type_namespace
 from scinexus.warning import deprecated_callable
 
 from cogent3.app.data_store import DataMemberABC
@@ -251,6 +252,12 @@ def _get_resolution_namespace() -> dict[str, type]:
         "tabular_result": tabular_result,
     }
     return _resolution_ns
+
+
+# expose cogent3's type namespace to scinexus.typing.resolve_type_hint so
+# scinexus-based apps can resolve cogent3 forward refs (e.g. "PhyloNode")
+# without needing the referencing module to import them explicitly.
+_register_type_namespace(_get_resolution_namespace)
 
 
 def _resolve_name(name: str, module_globals: dict | None = None) -> type:

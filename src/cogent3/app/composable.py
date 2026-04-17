@@ -9,12 +9,12 @@ import types
 import typing
 from collections.abc import Generator
 from copy import deepcopy
-from enum import Enum
 from pathlib import Path
 from uuid import uuid4
 
 from citeable import Citation
 from scinexus import parallel as PAR
+from scinexus.composable import AppType
 from scinexus.data_store import (
     DataMember,
     DataStoreABC,
@@ -114,13 +114,6 @@ class NotCompleted(int):
     def to_json(self):
         """returns json string"""
         return json.dumps(self.to_rich_dict())
-
-
-class AppType(Enum):
-    LOADER = "loader"
-    WRITER = "writer"
-    GENERIC = "generic"
-    NON_COMPOSABLE = "non_composable"
 
 
 # Aliases to use Enum easily
