@@ -29,7 +29,7 @@ from scinexus import warning as snx_warn
 from scinexus.deserialise import deserialise_object, register_deserialiser
 from scinexus.io_util import get_format_suffixes, iter_line_blocks
 from scinexus.misc import extend_docstring_from, get_object_provenance
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 from cogent3._version import __version__
 from cogent3.core.location import Strand, deserialise_map_spans
@@ -3130,7 +3130,11 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
         # Get progress display
         show_progress = kwargs.pop("show_progress", False)
         kwargs.pop("ui", None)  # remove legacy ui kwarg
-        progress = get_progress(show_progress)
+        progress = (
+            get_progress(show_progress=True, **show_progress)
+            if isinstance(show_progress, dict)
+            else get_progress(show_progress)
+        )
         series = progress(paths, msg="Loading annotations")
 
         # Process each file, passing db from one to the next
@@ -3153,7 +3157,7 @@ def load_annotations(
     db: AnnotationDbABC | None = None,
     write_path: PathType = ":memory:",
     lines_per_block: int | None = 500_000,
-    show_progress: bool = False,
+    show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
     format_name: str | None = None,
     storage_backend: str | None = None,
 ) -> AnnotationDbABC:

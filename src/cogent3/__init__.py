@@ -10,13 +10,14 @@ import warnings
 from collections.abc import Callable
 from importlib import import_module
 
-from scinexus import open_, open_data_store  # noqa: F401
+from scinexus import open_, open_data_store, set_parallel_backend  # noqa: F401
 
 from cogent3._version import __version__
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import numpy
     import numpy.typing as npt
+    from scinexus.progress import Progress
 
     from cogent3.core.alignment import Alignment, SequenceCollection
     from cogent3.core.annotation_db import AnnotationDbABC
@@ -26,6 +27,8 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 __copyright__ = "Copyright 2007-date, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
+
+set_parallel_backend("loky")
 
 
 def __getattr__(name: str) -> typing.Any:  # noqa: ANN401
@@ -163,7 +166,7 @@ def _load_files_to_unaligned_seqs(
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    show_progress: bool = False,
+    show_progress: "bool | Progress | dict[str, typing.Any]" = False,  # type: ignore[type-arg]
     **kwargs: typing.Any,  # noqa: ANN401
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
@@ -171,7 +174,11 @@ def _load_files_to_unaligned_seqs(
 
     from cogent3.core.alignment import make_unaligned_seqs
 
-    progress = get_progress(show_progress)
+    progress = (
+        get_progress(show_progress=True, **show_progress)
+        if isinstance(show_progress, dict)
+        else get_progress(show_progress)
+    )
     file_names = list(path.parent.glob(path.name))
     seqs = [
         load_seq(

@@ -13,6 +13,8 @@ from cogent3.evolve.pairwise_distance_numba import index_to_lower_tri
 from cogent3.util import dict_array
 
 if typing.TYPE_CHECKING:  # pragma: no cover
+    from scinexus.progress import Progress
+
     from cogent3.core.alignment import Alignment
 
 
@@ -818,7 +820,7 @@ def coevolution_matrix(
     stat: str = "nmi",
     parallel: bool = False,
     par_kw: dict | None = None,
-    show_progress: bool = False,
+    show_progress: "bool | Progress | dict[str, typing.Any]" = False,  # type: ignore[type-arg]
 ) -> dict_array.DictArray:
     """measure pairwise coevolution
 

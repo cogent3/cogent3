@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import itertools
+from typing import Any
 
 import numpy
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
@@ -153,7 +154,7 @@ class TreeEvaluator:
         return_all=False,
         filename=None,
         interval=None,
-        show_progress=False,
+        show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
     ):
         """TrexML policy for tree sampling - all trees up to size 'a' and
         then keep no more than 'k' best trees at each tree size.
@@ -238,7 +239,11 @@ class TreeEvaluator:
                 for edge in range(n * 2 - 5)
             ]
 
-            progress = get_progress(show_progress)
+            progress = (
+                get_progress(show_progress=True, **show_progress)
+                if isinstance(show_progress, dict)
+                else get_progress(show_progress)
+            )
             candidates = (
                 grown_tree(spec)
                 for spec in progress(specs, total=len(specs), msg=f"{n} leaf tree")

@@ -1,9 +1,12 @@
 import contextlib
 from collections.abc import Callable, Iterable
 from copy import deepcopy
-from typing import Union
+from typing import TYPE_CHECKING, Any, Union
 
 from scinexus import get_id_from_source, parallel
+
+if TYPE_CHECKING:  # pragma: no cover
+    from scinexus.progress import Progress
 from scinexus.composable import ComposableApp, NotCompleted
 from scinexus.io_util import path_exists
 
@@ -76,7 +79,7 @@ class model(ComposableApp, cite=cite_cogent3):
         lower: float = 1e-6,
         upper: float = 50,
         split_codons: bool = False,
-        show_progress: bool = False,
+        show_progress: "bool | Progress | dict[str, Any]" = False,  # type: ignore[type-arg]
         verbose: bool = False,
     ) -> None:
         """
@@ -729,7 +732,7 @@ class natsel_neutral(ComposableApp, cite=cite_cogent3):
         optimise_motif_probs=False,
         lf_args=None,
         opt_args=None,
-        show_progress=False,
+        show_progress: "bool | Progress | dict[str, Any]" = False,  # type: ignore[type-arg]
         verbose=False,
     ) -> None:
         """
@@ -838,7 +841,7 @@ class natsel_zhang(ComposableApp, cite=cite_cogent3):
         lf_args=None,
         upper_omega=20,
         opt_args=None,
-        show_progress=False,
+        show_progress: "bool | Progress | dict[str, Any]" = False,  # type: ignore[type-arg]
         verbose=False,
     ) -> None:
         """
@@ -1041,7 +1044,7 @@ class natsel_sitehet(ComposableApp, cite=cite_cogent3):
         upper_omega=20.0,
         lf_args=None,
         opt_args=None,
-        show_progress=False,
+        show_progress: "bool | Progress | dict[str, Any]" = False,  # type: ignore[type-arg]
         verbose=False,
     ) -> None:
         """
@@ -1206,7 +1209,7 @@ class natsel_timehet(ComposableApp, cite=cite_cogent3):
         lf_args=None,
         upper_omega=20,
         opt_args=None,
-        show_progress=False,
+        show_progress: "bool | Progress | dict[str, Any]" = False,  # type: ignore[type-arg]
         verbose=False,
     ) -> None:
         """

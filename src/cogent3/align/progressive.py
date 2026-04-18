@@ -1,4 +1,6 @@
-from scinexus.progress import get_progress
+from typing import Any
+
+from scinexus.progress import Progress, get_progress
 
 from cogent3 import get_app, get_model, make_unaligned_seqs
 from cogent3.core import alignment as c3_alignment
@@ -16,7 +18,7 @@ def tree_align(
     tree: PhyloNode | None = None,
     indel_rate: float = 1e-10,
     indel_length: float = 1e-1,
-    show_progress: bool = False,
+    show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
     params_from_pairwise: bool = True,
     param_vals: dict | None = None,
     iters: int | None = None,
@@ -125,7 +127,11 @@ def tree_align(
     fix_lengths = get_app("scale_branches", nuc_to_codon=num_states >= 60)
     tree = fix_lengths(tree)
 
-    progress = get_progress(show_progress)
+    progress = (
+        get_progress(show_progress=True, **show_progress)
+        if isinstance(show_progress, dict)
+        else get_progress(show_progress)
+    )
     ctx = progress.context(msg="Doing progressive alignment")
     ctx.update(progress=0.0, msg="Doing progressive alignment")
     # this is the point at which we do the iterations

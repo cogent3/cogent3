@@ -21,8 +21,7 @@ license = { file = "LICENSE" }
 dependencies = [
     "charset_normalizer",
     "citeable",
-    "loky!=3.5.0",
-    # prevent release candidate of numpy 2.4 
+    # prevent release candidate of numpy 2.4
     # until numba modified to handle removal
     # of numpy.trapz
     "numpy<2.5",
@@ -31,7 +30,7 @@ dependencies = [
     "numba>=0.61.0; python_version=='3.13'",
     "numba>=0.63.0rc1; python_version=='3.14'",
     "scipy",
-    "scinexus",
+    "scinexus[loky]",
     "stevedore",
     "tqdm",
     "typeguard>=4.0,<5",

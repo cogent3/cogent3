@@ -9,7 +9,7 @@ from numpy import array, diag, dot, eye, float64, int32, log, sqrt, zeros
 from numpy.linalg import det, inv
 from scinexus.deserialise import register_deserialiser
 from scinexus.misc import get_object_provenance
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 import cogent3
 from cogent3._version import __version__
@@ -390,7 +390,11 @@ class _PairwiseDistance:
     def func() -> None:
         pass  # over ride in subclasses
 
-    def run(self, alignment=None, show_progress=False) -> None:
+    def run(
+        self,
+        alignment=None,
+        show_progress: bool | Progress | dict[str, typing.Any] = False,  # type: ignore[type-arg]
+    ) -> None:
         """computes the pairwise distances"""
         self._dupes = None
         self._duped = None
@@ -408,7 +412,11 @@ class _PairwiseDistance:
         ]
         off_diag = tuple(tuple(a) for a in zip(*off_diag, strict=False))
 
-        progress = get_progress(show_progress)
+        progress = (
+            get_progress(show_progress=True, **show_progress)
+            if isinstance(show_progress, dict)
+            else get_progress(show_progress)
+        )
         ctx = progress.context(msg="Pairwise distances")
         done = 0.0
         to_do = (len(names) ** 2 - 1) / 2

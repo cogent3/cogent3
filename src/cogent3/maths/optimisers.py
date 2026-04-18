@@ -6,7 +6,7 @@ import warnings
 from functools import singledispatch
 
 import numpy
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 from .scipy_optimisers import Powell
 from .simannealingoptimiser import SimulatedAnnealing
@@ -142,7 +142,7 @@ def maximise(
     max_evaluations=None,
     tolerance=1e-6,
     global_tolerance=1e-1,
-    show_progress=False,
+    show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
     return_eval_count=False,
     warn=False,
     **kw,
@@ -225,7 +225,11 @@ def maximise(
 
     f = bounds_exception_catching_function(f)
 
-    progress = get_progress(show_progress)
+    progress = (
+        get_progress(show_progress=True, **show_progress)
+        if isinstance(show_progress, dict)
+        else get_progress(show_progress)
+    )
     with progress.context(msg="Optimising") as ctx:
         try:
             # Global optimisation

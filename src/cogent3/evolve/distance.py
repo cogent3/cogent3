@@ -2,9 +2,10 @@
 
 import os
 from itertools import combinations
+from typing import Any
 from warnings import warn
 
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 from cogent3 import make_tree
 from cogent3.core import table
@@ -185,7 +186,11 @@ class EstimateDistances:
         return result
 
     def run(
-        self, dist_opt_args=None, aln_opt_args=None, show_progress=False, **kwargs
+        self,
+        dist_opt_args=None,
+        aln_opt_args=None,
+        show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
+        **kwargs,
     ) -> None:
         """Start estimating the distances between sequences. Distance estimation
         is done using the Powell local optimiser. This can be changed using the
@@ -222,7 +227,11 @@ class EstimateDistances:
         else:
             combination_aligns = get_name_combinations(self._seq_collection.names, 2)
 
-        progress = get_progress(show_progress)
+        progress = (
+            get_progress(show_progress=True, **show_progress)
+            if isinstance(show_progress, dict)
+            else get_progress(show_progress)
+        )
         results = (
             (comp, self._doset(comp, dist_opt_args, aln_opt_args))
             for comp in combination_aligns
