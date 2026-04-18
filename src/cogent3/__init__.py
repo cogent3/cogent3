@@ -10,7 +10,7 @@ import warnings
 from collections.abc import Callable
 from importlib import import_module
 
-from scinexus import open_, open_data_store  # noqa: F401
+from scinexus import open_, open_data_store, set_parallel_backend  # noqa: F401
 
 from cogent3._version import __version__
 
@@ -27,6 +27,8 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 __copyright__ = "Copyright 2007-date, The Cogent Project"
 __credits__ = "https://github.com/cogent3/cogent3/graphs/contributors"
 __license__ = "BSD-3"
+
+set_parallel_backend("loky")
 
 
 def __getattr__(name: str) -> typing.Any:  # noqa: ANN401
