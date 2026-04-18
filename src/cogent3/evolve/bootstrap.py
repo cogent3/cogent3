@@ -23,8 +23,9 @@ the EstimateProbability class.
 """
 
 import random
+from typing import Any
 
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 
 class ParametricBootstrapCore:
@@ -42,7 +43,11 @@ class ParametricBootstrapCore:
     def set_seed(self, seed) -> None:
         self.seed = seed
 
-    def run(self, show_progress=False, **opt_args) -> None:
+    def run(
+        self,
+        show_progress: bool | Progress | dict[str, Any] = False,
+        **opt_args,  # type: ignore[type-arg]
+    ) -> None:
         # Sets self.observed and self.results (a list _numreplicates long) to
         # whatever is returned from self.simplify([LF result from each PC]).
         # self.simplify() is used as the entire LF result might not be picklable
@@ -64,7 +69,11 @@ class ParametricBootstrapCore:
             concise_result = self.simplify(*self.parameter_controllers)
             return (memos, concise_result)
 
-        progress = get_progress(show_progress)
+        progress = (
+            get_progress(show_progress=True, **show_progress)
+            if isinstance(show_progress, dict)
+            else get_progress(show_progress)
+        )
         ctx = progress.context(msg="Bootstrap")
 
         ctx.update(progress=0.0, msg="Original data")

@@ -1,6 +1,9 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
+
+if TYPE_CHECKING:  # pragma: no cover
+    from scinexus.progress import Progress
 
 from cogent3 import get_moltype
 from cogent3.align.pycompare import (
@@ -138,7 +141,7 @@ class Dotplot(Drawable):
         ytitle=None,
         title=None,
         width=500,
-        show_progress=False,
+        show_progress: "bool | Progress | dict[str, Any]" = False,  # type: ignore[type-arg]
     ) -> None:
         """
         Parameters

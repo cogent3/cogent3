@@ -29,7 +29,7 @@ import numpy.typing as npt
 from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes
 from scinexus.misc import extend_docstring_from, get_object_provenance
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 from typing_extensions import override
 
 import cogent3
@@ -681,7 +681,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         title: str | None = None,
         rc: bool = False,
         biotype: str | tuple[str] | None = None,
-        show_progress: bool = False,
+        show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
     ) -> Dotplot | AnnotatedDrawable:
         """make a dotplot between two sequences.
 
@@ -2132,7 +2132,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         background: NumpyFloatArrayType | None = None,
         pseudocount: int = 0,
         names: list[str] | str | None = None,
-        show_progress: bool = False,
+        show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
     ) -> NumpyFloatArrayType:
         """scores sequences using the specified pssm
 
@@ -2170,7 +2170,11 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         assert set(pssm.motifs) == set(self.moltype)
 
         seqs = [self.seqs[n] for n in names] if names else self.seqs
-        progress = get_progress(show_progress)
+        progress = (
+            get_progress(show_progress=True, **show_progress)
+            if isinstance(show_progress, dict)
+            else get_progress(show_progress)
+        )
         result = [pssm.score_seq(seq) for seq in progress(seqs, msg="Scoring")]
 
         return numpy.array(result)
@@ -4576,7 +4580,7 @@ class Alignment(CollectionBase[Aligned]):
         stat: str = "nmi",
         segments: list[tuple[int, int]] | None = None,
         drawable: str | None = None,
-        show_progress: bool = False,
+        show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
         parallel: bool = False,
         par_kw: dict[str, Any] | None = None,
     ) -> DictArray:

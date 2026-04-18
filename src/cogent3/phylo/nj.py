@@ -11,9 +11,10 @@ Generalised as described by Pearson, Robins & Zhang, 1999.
 
 import contextlib
 from collections import deque
+from typing import Any
 
 import numpy
-from scinexus.progress import get_progress
+from scinexus.progress import Progress, get_progress
 
 from cogent3.core.tree import TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
@@ -161,7 +162,12 @@ def uniq_neighbour_joins(trees, encode_partition):
         topologies.add(topology)
 
 
-def gnj(dists, keep=None, dkeep=0, show_progress=False):
+def gnj(
+    dists,
+    keep=None,
+    dkeep=0,
+    show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
+):
     """Arguments:
         - dists: dict of (name1, name2): distance
         - keep: number of best partial trees to keep at each iteration,
@@ -219,7 +225,11 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
         max_candidates = min(all_keep, max_candidates * L * (L - 1) // 2)
         total_work += max_candidates
 
-    progress = get_progress(show_progress)
+    progress = (
+        get_progress(show_progress=True, **show_progress)
+        if isinstance(show_progress, dict)
+        else get_progress(show_progress)
+    )
     ctx = progress.context(msg="GNJ")
 
     def _show_progress() -> None:
@@ -288,7 +298,7 @@ def gnj(dists, keep=None, dkeep=0, show_progress=False):
     return ScoredTreeCollection(result)
 
 
-def nj(dists, show_progress=True):
+def nj(dists, show_progress: bool | Progress | dict[str, Any] = True):  # type: ignore[type-arg]
     """Arguments:
     - dists: dict of (name1, name2): distance
     """
