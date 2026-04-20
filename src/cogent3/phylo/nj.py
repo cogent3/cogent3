@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Generalised Neighbour Joining phylogenetic tree estimation.
 
 By default negative branch lengths are reset to 0.0 during the calculations.
@@ -16,7 +15,7 @@ from typing import Any
 import numpy
 from scinexus.progress import Progress, get_progress
 
-from cogent3.core.tree import TreeBuilder
+from cogent3.core.tree import PhyloNode, TreeBuilder
 from cogent3.phylo.tree_collection import ScoredTreeCollection
 from cogent3.phylo.util import distance_dict_to_2D
 
@@ -167,7 +166,7 @@ def gnj(
     keep=None,
     dkeep=0,
     show_progress: bool | Progress | dict[str, Any] = False,  # type: ignore[type-arg]
-):
+) -> ScoredTreeCollection:
     """Arguments:
         - dists: dict of (name1, name2): distance
         - keep: number of best partial trees to keep at each iteration,
@@ -240,7 +239,7 @@ def gnj(
             msg=f" size {L}/{n_names}  trees {t:{tree_width}d}",
         )
 
-    for L in range(n_names, 3, -1):
+    for _ in range(n_names, 3, -1):
         # Generator of candidate joins, best first.
         # Note that with dkeep>0 this generator is used up a bit at a time
         # by 2 different interupted 'for' loops below.
@@ -298,10 +297,10 @@ def gnj(
     return ScoredTreeCollection(result)
 
 
-def nj(dists, show_progress: bool | Progress | dict[str, Any] = True):  # type: ignore[type-arg]
+def nj(dists, show_progress: bool | Progress | dict[str, Any] = True) -> PhyloNode:  # type: ignore[type-arg]
     """Arguments:
     - dists: dict of (name1, name2): distance
     """
     (result,) = gnj(dists, keep=1, show_progress=show_progress)
-    (score, tree) = result
+    (_, tree) = result
     return tree
