@@ -13,19 +13,12 @@ What are apps?
 
 Apps are ready-made "functions" that you can apply to your data without needing to know all the technical details. They are easy to use, even if you're not an expert programmer. Multiple apps can be naturally composed into "pipelines", which are fully equipped for robust and reproducible application to data. In fact, apps and app pipelines can be applied to a single, or thousands, of data file(s) without writing loops or conditionals.
 
-The composable app infrastructure is provided by the `scinexus <https://pypi.org/project/scinexus/>`_ package. See the scinexus documentation for details on composability rules, type checking, batch processing, parallel execution, and progress tracking.
-
-.. todo::
-
-    Link to scinexus composable apps documentation once available.
-
-..
-    Placeholder: <scinexus composable apps docs URL>
+The composable app infrastructure is provided by the ``scinexus`` package. See the |scinexus| documentation for details on composability rules, type checking, batch processing, parallel execution, and progress tracking.
 
 .. _app_start:
 
-How do I start to use apps?
----------------------------
+How do I start to use ``cogent3`` apps?
+---------------------------------------
 
 Three top-level functions are very useful:
 
@@ -35,15 +28,13 @@ Three top-level functions are very useful:
 
 Two other crucial concepts concern:
 
-- :ref:`data stores <data_stores>` and
-- :ref:`tracking failures <not_completed>`
-
-.. _app_types:
+- |data_stores|
+- |track_failures|
 
 Types of apps
 -------------
 
-There are 3 types of apps:
+There are 3 |app_types|:
 
 #. loaders (by convention, names starts with ``load_<data type>``)
 #. writers (by convention, names starts with ``write_<data type>``)
@@ -90,7 +81,7 @@ The resulting alignment ``just3rd`` will be written into the ``out_dstore`` dire
 
 .. note::
 
-    ``m`` is a :ref:`DataMember <data_member>` of ``out_dstore``.
+    ``m`` is a |data_member| of ``out_dstore``.
 
 2. Composing several apps into a multi-step "process"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -105,7 +96,7 @@ We can make this simpler by creating a single composed function.
 Applying a process to multiple data records
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To apply a composed function to multiple files requires a :ref:`data store <data_stores>`. Using ``open_data_store()`` we identify all data files in a directory that we want to analyse, in the following case, all fasta file in the data directory. ``process`` can be then applied to all records in the data store without having to loop.
+To apply a composed function to multiple files requires a |data_stores|. Using ``open_data_store()`` we identify all data files in a directory that we want to analyse, in the following case, all fasta file in the data directory. ``process`` can be then applied to all records in the data store without having to loop.
 
 .. jupyter-execute::
 

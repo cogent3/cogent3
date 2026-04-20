@@ -30,7 +30,7 @@ dependencies = [
     "numba>=0.61.0; python_version=='3.13'",
     "numba>=0.63.0rc1; python_version=='3.14'",
     "scipy",
-    "scinexus[loky]",
+    "scinexus[loky]>=2026.4.20b0",
     "stevedore",
     "tqdm",
     "typeguard>=4.0,<5",
