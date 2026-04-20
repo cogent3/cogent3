@@ -1,4 +1,42 @@
 
+<a id='changelog-2026.4.20a0'></a>
+# Changes in release "2026.4.20a0"
+
+Major refactor underway! All of the app infrastructure has been moved into
+a new project -- scinexus.
+
+## Contributors
+
+- @GavinHuttley
+
+## Discontinued
+
+The following modules, classes and functions are deprecated in favour of
+their `scinexus` equivalents and will be removed in version 2026.9.
+
+- `cogent3.util.warning` module -- use `scinexus.warning`
+- `cogent3.util.misc.extend_docstring_from` -- use `scinexus.misc.extend_docstring_from`
+- `cogent3.util.misc.docstring_to_summary_rest` -- use `scinexus.misc.docstring_to_summary_rest`
+- `cogent3.util.misc.get_object_provenance` -- use `scinexus.misc.get_object_provenance`
+- `cogent3.util.misc.in_jupyter` -- use `scinexus.misc.in_jupyter`
+- `cogent3.util.misc.is_url` -- use `scinexus.io_util.is_url`
+- `cogent3.util.io.open_url` -- use `scinexus.io_util.open_url`
+- `cogent3.util.io.is_url` -- use `scinexus.io_util.is_url`
+- `cogent3.util.io.open_zip` -- use `scinexus.io_util.open_zip`
+- `cogent3.util.io.path_exists` -- use `scinexus.io_util.path_exists`
+- `cogent3.util.io.remove_files` -- use `shutil` instead
+- `cogent3.util.io.open_` -- use `scinexus.io_util.open_`
+- `cogent3.util.io.get_format_suffixes` -- use `scinexus.io_util.get_format_suffixes`
+- `cogent3.util.io.atomic_write` class -- use `scinexus.io_util.atomic_write`
+- `cogent3.util.io.iter_line_blocks` -- use `scinexus.io_util.iter_line_blocks`
+- `cogent3.util.io.iter_splitlines` -- use `scinexus.io_util.iter_splitlines`
+- `cogent3.util.parallel` module -- use `scinexus.parallel`
+- `cogent3.util.progress_display` module -- use `scinexus.progress`
+- `cogent3.util.deserialise` module -- use `scinexus.deserialise`
+- `cogent3.app.composable` module -- use `scinexus.composable`
+- `cogent3.app.data_store` module -- use `scinexus.data_store`
+- `cogent3.app.sqlite_data_store` module -- use `scinexus.sqlite_data_store`
+
 <a id='changelog-2026.4.13a0'></a>
 # Changes in release "2026.4.13a0"
 
