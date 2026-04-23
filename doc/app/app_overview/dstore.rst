@@ -1,7 +1,7 @@
 Data stores -- collections of data records
 ==========================================
 
-The ``scinexus`` package provides |data_stores|. A :index:`data store` is a collection of data members of the same type (e.g. all ``.fasta`` files in a directory). Data stores allow you to apply an app or composed pipeline to many data records without writing loops.
+The ``scinexus`` package provides |data_store|. A :index:`data store` is a collection of data members of the same type (e.g. all ``.fasta`` files in a directory). Data stores allow you to apply an app or composed pipeline to many data records without writing loops.
 
 Using data stores with cogent3
 ------------------------------

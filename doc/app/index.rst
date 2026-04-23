@@ -40,15 +40,6 @@ Pre-defined "apps" simplify complex tasks. They provide capabilities that can be
 
         Using apps to solve more extensive problems.
 
-    .. grid-item-card::
-        :link: index-custom.html
-        :link-type: url
-        :class-header: bg-info
-
-        Custom Apps
-        ^^^^^^^^^^^
-        Writing and publishing you own apps.
-        
 .. toctree::
     :maxdepth: 2
     :hidden:
