@@ -103,6 +103,30 @@ html_theme_options = {
 
 nbsphinx_thumbnails = make_nbsphinx_thumbnails()
 
+
+rst_prolog = """
+.. |scinexus| replace:: `scinexus`
+.. _scinexus: https://scinexus.readthedocs.io
+.. |define_app| replace:: ``define_app``
+.. _define_app: https://scinexus.readthedocs.io/en/latest/explanation/app-lifecycle.html
+.. |data_store| replace:: data store
+.. _data_store: https://scinexus.readthedocs.io/en/latest/howto/use-data-stores.html
+.. |data_member| replace:: DataMember
+.. _data_member: https://scinexus.readthedocs.io/en/latest/reference/data-stores.html#scinexus.data_store.DataMember
+.. |not_completed| replace:: ``NotCompleted``
+.. _not_completed: https://scinexus.readthedocs.io/en/latest/howto/handle-failures.html
+.. |track_failures| replace:: track failures
+.. _track_failures: https://scinexus.readthedocs.io/en/latest/howto/handle-failures.html
+.. |app_types| replace:: app types
+.. _app_types: https://scinexus.readthedocs.io/en/latest/explanation/app-lifecycle.html
+.. |citation| replace:: citation
+.. _citation: https://scinexus.readthedocs.io/en/latest/howto/log-and-cite.html
+.. |citations| replace:: citations
+.. _citations: https://scinexus.readthedocs.io/en/latest/howto/log-and-cite.html
+.. |dstore_cites| replace:: data store citations
+.. _dstore_cites: https://scinexus.readthedocs.io/en/latest/howto/log-and-cite.html#extracting-citations-from-a-data-store
+"""
+
 # -- Options for LaTeX output --------------------------------------------------
 latex_documents = [
     ("index", "cogent3.tex", "cogent3 Documentation", "cogent3 Team", "manual"),

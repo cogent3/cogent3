@@ -30,7 +30,7 @@ dependencies = [
     "numba>=0.61.0; python_version=='3.13'",
     "numba>=0.63.0rc1; python_version=='3.14'",
     "scipy",
-    "scinexus[loky]",
+    "scinexus[loky]>=2026.4.20b1",
     "stevedore",
     "tqdm",
     "typeguard>=4.0,<5",
@@ -59,9 +59,9 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
 test = [
-    "cogent3-h5seqs>=0.7.3",
+    "cogent3-h5seqs>=0.8.0",
     "piqtree>=0.8.0; python_version > '3.11'",
-    "ruff==0.15.10",
+    "ruff==0.15.11",
     "kaleido",
     "pandas",
     "plotly",
@@ -75,7 +75,7 @@ typing = ["mypy==1.20.1"]
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs>=0.7.3",
+    "cogent3-h5seqs>=0.8.0",
     "jupyter-sphinx",
     "jupyter_client",
     "jupytext",
@@ -90,7 +90,7 @@ doc = [
     "sphinx_design",
     "sphinxcontrib-bibtex",
     "sphinxcontrib-video",
-    "iplotx>=0.6.8",
+    "iplotx>=1.7.1",
 ]
 extra = [
     "ipykernel",

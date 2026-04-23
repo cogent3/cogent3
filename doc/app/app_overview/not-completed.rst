@@ -3,14 +3,7 @@
 Tracking records that could not be processed
 =============================================
 
-``NotCompleted`` is a special result type provided by the `scinexus <https://pypi.org/project/scinexus/>`_ package. Apps return a ``NotCompleted`` result when a condition is not met (``FALSE`` type) or an unexpected error occurs (``ERROR`` type). These objects evaluate to ``False``, carry information about the failure, and propagate through composed pipelines so that subsequent steps are skipped.
-
-.. todo::
-
-    Link to scinexus NotCompleted documentation once available.
-
-..
-    Placeholder: <scinexus NotCompleted docs URL>
+``NotCompleted`` is a special result type provided by the ``scinexus`` package. Apps return a ``NotCompleted`` result when a condition is not met (``FALSE`` type) or an unexpected error occurs (``ERROR`` type). These objects evaluate to ``False``, carry information about the failure, and propagate through composed pipelines so that subsequent steps are skipped.
 
 A cogent3 example
 -----------------
@@ -51,13 +44,3 @@ and the reason for the failure
 
     result.message
 
-Composed functions propagate ``NotCompleted`` results
------------------------------------------------------
-
-If you have a composed function and an error occurs, the ``NotCompleted`` result is returned without any subsequent steps being applied.
-
-.. jupyter-execute::
-
-    app = reader + select_seqs
-    result = app("data/primate_brca1.fasta")
-    result

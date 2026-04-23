@@ -101,4 +101,4 @@ There were 10 data files to which the process was successfully applied. However,
 
 Looks like the first two failed because they are protein sequences and ``load_unaligned`` expected DNA sequences. 
 
-Interestingly, another file failed in the ``keep_translatable`` step. By design, these failures did not stop the rest of the pipeline from being run. In fact, the data store collects the :ref:`NotCompleted objects <not_completed>`, which store traceback information, allowing you to interrogate any failings. 
+Interestingly, another file failed in the ``keep_translatable`` step. By design, these failures did not stop the rest of the pipeline from being run. In fact, the data store collects the |not_completed|, which store traceback information, allowing you to interrogate any failings. 

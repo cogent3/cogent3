@@ -100,35 +100,3 @@ Major cogent3 Data Types
     alphabet/alphabet
     table/table
     tree/tree
-
-***************
-Composable Apps
-***************
-
-.. toctree::
-    :maxdepth: 1
-
-    app/composable/define_app
-
-*********
-Datastore
-*********
-
-.. toctree::
-    :maxdepth: 1
-
-    app/io/classes/cogent3.app.io.register_datastore_reader
-    app/data_store/classes/cogent3.app.data_store.DataMember
-    app/data_store/classes/cogent3.app.data_store.DataStoreDirectory
-    app/data_store/classes/cogent3.app.data_store.ReadOnlyDataStoreZipped
-    app/sqlite_data_store/classes/cogent3.app.sqlite_data_store.DataStoreSqlite
-    
-*************
-Deserialising
-*************
-
-.. toctree::
-    :maxdepth: 1
-
-    util/deserialise/deserialise_object    
-    util/deserialise/classes/cogent3.util.deserialise.register_deserialiser

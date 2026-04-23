@@ -3,18 +3,9 @@
 Writing your own apps
 =====================
 
-The app infrastructure is provided by the `scinexus <https://pypi.org/project/scinexus/>`_ package. See the scinexus documentation for full details on ``define_app``, app types, handling ``NotCompleted``, and citations.
-
-.. todo::
-
-    Link to scinexus custom app documentation once available.
-
-..
-    Placeholder: <scinexus custom app docs URL>
+The app infrastructure is provided by the ``scinexus`` package. See the |scinexus| documentation for full details on |define_app|, |app_types|, handling |not_completed|, and |citations|.
 
 Below are cogent3-specific examples showing how to write apps that work with cogent3 data types.
-
-.. _app_types_custom:
 
 Available cogent3 types
 -----------------------
@@ -36,7 +27,7 @@ We write a function that takes a cogent3 alignment and returns the first *n* pos
 
 .. jupyter-execute::
 
-    from cogent3.app.composable import define_app
+    from scinexus.composable import define_app
     from cogent3.app.typing import AlignedSeqsType
 
     @define_app
@@ -74,7 +65,7 @@ Defining a cogent3 app from a class
 
 .. jupyter-execute::
 
-    from cogent3.app.composable import define_app
+    from scinexus.composable import define_app
     from cogent3.app.typing import AlignedSeqsType
 
     @define_app
@@ -113,33 +104,12 @@ If you will make your app available on the Python package index, we recommend pr
 
 .. _app_citations:
 
-Add a citation to your app
----------------------------
+See ``scinexus`` documentation for how to add a |citation| to your app.
 
-Correctly attributing the authors of algorithms and software is a requirement of good scientific practice. cogent3 makes this easy by letting app authors declare citations that are automatically tracked through composed pipelines.
+How to get the citations for the apps you use
+---------------------------------------------
 
-Use the ``cite`` parameter of ``define_app`` to attach a citation to your own app. The ``citeable`` library provides several classes for this purpose.
-
-.. jupyter-execute::
-
-    from citeable import Software
-    from cogent3.app.composable import define_app
-    from cogent3.app.typing import AlignedSeqsType
-
-    my_cite = Software(
-        author=["Doe, J", "Smith, A"],
-        title="My Sequence Filter",
-        year=2025,
-        url="https://example.com/my-filter",
-        version="0.1.0",
-    )
-
-    @define_app(cite=my_cite)
-    def strict_filter(val: AlignedSeqsType) -> AlignedSeqsType:
-        """Remove sequences shorter than the alignment."""
-        return val.omit_bad_seqs()
-
-The ``.citations`` property on an app instance returns its citations as a tuple.
+Correctly attributing the authors of algorithms and software is a requirement of good scientific practice. The ``.citations`` property on an app instance returns its citations as a tuple.
 
 .. jupyter-execute::
 
@@ -173,5 +143,5 @@ You can get the BibTeX string directly via the ``.bib`` property.
 .. note::
 
     When a composed pipeline is run via ``apply_to()``, citations are
-    automatically saved in the output data store. See
-    :ref:`data_store_citations` for how to inspect and export them.
+    automatically saved in the output data store. See |dstore_cites|
+    for how to inspect and export them.
