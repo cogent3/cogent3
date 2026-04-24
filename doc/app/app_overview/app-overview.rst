@@ -28,7 +28,7 @@ Three top-level functions are very useful:
 
 Two other crucial concepts concern:
 
-- |data_stores|
+- |data_store|
 - |track_failures|
 
 Types of apps
@@ -96,7 +96,7 @@ We can make this simpler by creating a single composed function.
 Applying a process to multiple data records
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To apply a composed function to multiple files requires a |data_stores|. Using ``open_data_store()`` we identify all data files in a directory that we want to analyse, in the following case, all fasta file in the data directory. ``process`` can be then applied to all records in the data store without having to loop.
+To apply a composed function to multiple files requires a |data_store|. Using ``open_data_store()`` we identify all data files in a directory that we want to analyse, in the following case, all fasta file in the data directory. ``process`` can be then applied to all records in the data store without having to loop.
 
 .. jupyter-execute::
 

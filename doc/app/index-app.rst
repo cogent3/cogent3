@@ -12,3 +12,5 @@ The fundamentals of using apps.
     app_overview/available-apps
     app_overview/dstore
     app_overview/not-completed
+    app_overview/user_function
+

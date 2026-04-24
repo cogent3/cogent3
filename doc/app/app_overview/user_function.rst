@@ -112,8 +112,28 @@ How to get the citations for the apps you use
 Correctly attributing the authors of algorithms and software is a requirement of good scientific practice. The ``.citations`` property on an app instance returns its citations as a tuple.
 
 .. jupyter-execute::
+    :hide-code:
 
-    app = strict_filter()
+    from citeable import Software
+    from cogent3.app.composable import define_app
+    from cogent3.app.typing import AlignedSeqsType
+
+    my_cite = Software(
+        author=["Doe, J", "Smith, A"],
+        title="My Sequence Filter",
+        year=2025,
+        url="https://example.com/my-filter",
+        version="0.1.0",
+    )
+
+    @define_app(cite=my_cite)
+    def some_app(val: AlignedSeqsType) -> AlignedSeqsType:
+        """Remove sequences shorter than the alignment."""
+        return val.omit_bad_seqs()
+
+.. jupyter-execute::
+
+    app = some_app()
     app.citations
 
 You can get the BibTeX string directly via the ``.bib`` property.
@@ -131,7 +151,7 @@ You can get the BibTeX string directly via the ``.bib`` property.
         from cogent3 import get_app
 
         loader = get_app("load_aligned", moltype="dna", format_name="fasta")
-        pipeline = loader + strict_filter()
+        pipeline = loader + some_app()
         pipeline.citations
 
     The ``.bib`` property gives the combined BibTeX for the whole pipeline.
