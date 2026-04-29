@@ -224,6 +224,13 @@ def test_add_bad():
         _ = seq1 + "s8d3j%31 s-']"
 
 
+def test_add_mismatched_moltype_raises():
+    dna = c3_moltype.DNA.make_seq(seq="ACGT", name="d")
+    rna = c3_moltype.RNA.make_seq(seq="ACGU", name="r")
+    with pytest.raises(ValueError, match="MolTypes don't match"):
+        _ = dna + rna
+
+
 @pytest.mark.parametrize(
     ("moltype", "label"),
     [
@@ -2326,6 +2333,14 @@ def test_to_rich_dict():
     assert got == expect
 
 
+def test_to_rich_dict_with_annotation_db_serialises():
+    """to_rich_dict includes the annotation_db when exclude_annotations=False"""
+    seq = c3_moltype.DNA.make_seq(seq="ACGTACGT", name="s1")
+    seq.add_feature(biotype="exon", name="e1", spans=[(0, 4)])
+    rd = seq.to_rich_dict(exclude_annotations=False)
+    assert "annotation_db" in rd
+
+
 def test_sequence_to_json():
     """to_json roundtrip recreates to_dict"""
     dna = c3_moltype.DNA
@@ -2857,6 +2872,15 @@ def test_seqview_parent_offset(offset, dna_alphabet):
     got = sv[offset:]
     # parent offset is not a slice offset
     assert got.parent_offset == 0
+
+
+def test_seqview_parent_offset_seqsdata_parent():
+    # parent is a SeqsDataABC: parent_offset must read from its offset dict
+    from cogent3 import make_unaligned_seqs
+
+    sc = make_unaligned_seqs({"s1": "ACGT"}, moltype="dna")
+    sv = sc.get_seq("s1")._seq  # noqa: SLF001
+    assert sv.parent_offset == 0
 
 
 @pytest.mark.parametrize("offset", [0, 4])

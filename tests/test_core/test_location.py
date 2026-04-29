@@ -276,6 +276,19 @@ class MapTests(TestCase):
         assert dict(got) == {0: 1, 2: 2, 4: 1, 7: 2}
 
 
+def test_span_lt_orders_by_indices():
+    a = Span(start=0, end=10)
+    b = Span(start=5, end=10)
+    assert a < b
+    assert not (b < a)
+
+
+def test_span_lt_with_non_span_raises():
+    s = Span(start=0, end=10)
+    with pytest.raises(TypeError, match="Unsupported type"):
+        _ = s < object()
+
+
 def test_map_plus_position():
     # seq is 9 long
     # plus coords  012345678

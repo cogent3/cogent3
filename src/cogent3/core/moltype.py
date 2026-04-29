@@ -671,8 +671,9 @@ class MolType(Generic[TStrOrBytes]):
         string will be converted via that callable into a character set
         compatible with the moltype. Only applies to nucleic acid moltypes.
         """
-        if hasattr(seq, "moltype"):
-            seq = cast("c3_sequence.Sequence", seq)
+        from cogent3.core import sequence as c3_sequence
+
+        if isinstance(seq, c3_sequence.Sequence):
             return seq if seq.moltype is self else seq.to_moltype(self)
 
         seq = cast("str | bytes | SeqViewABC", seq)

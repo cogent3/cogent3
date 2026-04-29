@@ -960,10 +960,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             sequences to add
         """
         assign_names = _SeqNamer()
-        named_seqs = cast(
-            "dict[str, str | bytes | NumpyIntArrayType]",
-            _make_name_seq_mapping(seqs, assign_names),
-        )
+        named_seqs = _make_name_seq_mapping(seqs, assign_names)
         name_map = make_name_map(named_seqs)
         data, offsets, _ = prep_for_seqs_data(
             named_seqs,
@@ -5268,32 +5265,27 @@ def _make_name_seq_mapping(
 
         return {seq_namer(seq=record): record for record in data}
 
-    if not hasattr(data, "seqs"):
+    if not isinstance(data, CollectionBase):
         msg = f"_make_name_seq_mapping not implemented for {type(data)}"
         raise NotImplementedError(msg)
 
-    return {
-        seq_namer(seq=record): record
-        for record in cast("SequenceCollection", data).seqs
-    }
+    return {seq_namer(seq=record): record for record in data.seqs}
 
 
 def _seqname_parent_name(
     record: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned,
     name: str | None = None,
 ) -> tuple[str, str]:
-    if hasattr(record, "parent_coordinates"):
-        record = cast("c3_sequence.Sequence | Aligned", record)
+    if isinstance(record, (c3_sequence.Sequence, Aligned)):
         parent_name, *_ = record.parent_coordinates()
         return name or cast("str", record.name), parent_name or cast("str", name)
-    if hasattr(record, "name"):
-        record = cast("Aligned", record)
-        return name or record.name, name or record.name
     name = cast("str", name)
     return name, name
 
 
-def make_name_map(data: dict[str, str | bytes | NumpyIntArrayType]) -> dict[str, str]:
+def make_name_map(
+    data: dict[str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned],
+) -> dict[str, str]:
     """returns a dict mapping names to parent names
 
     Parameters
@@ -5430,7 +5422,9 @@ def coerce_to_raw_seq_data(
 
 
 def prep_for_seqs_data(
-    data: Mapping[str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence],
+    data: Mapping[
+        str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned
+    ],
     moltype: c3_moltype.MolType[Any],
     seq_namer: _SeqNamer,
 ) -> tuple[dict[str, bytes | NumpyIntArrayType], dict[str, int], set[str]]:
@@ -5471,7 +5465,9 @@ def prep_for_seqs_data(
 
 
 def make_unaligned_storage(
-    data: dict[str, str | bytes | NumpyIntArrayType],
+    data: Mapping[
+        str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned
+    ],
     *,
     moltype: MolTypes,
     label_to_name: Callable[[str], str] | None = None,
@@ -5623,15 +5619,12 @@ def make_unaligned_seqs(
 
     annotation_db = annotation_db or merged_db_collection(data)
     assign_names = _SeqNamer(name_func=label_to_name)
-    data = cast(
-        "dict[str, str | bytes | NumpyIntArrayType]",
-        _make_name_seq_mapping(data, assign_names),
-    )
+    named_seqs = _make_name_seq_mapping(data, assign_names)
     if name_map is None:
-        name_map = make_name_map(data) or None
+        name_map = make_name_map(named_seqs) or None
 
     seqs_data = make_unaligned_storage(
-        data,
+        named_seqs,
         label_to_name=label_to_name,
         moltype=moltype,
         offset=offset,
@@ -5688,7 +5681,9 @@ def deserialise_old_to_new_type_seqcoll(
 
 
 def make_aligned_storage(
-    data: Mapping[str, str | bytes | NumpyIntArrayType],
+    data: Mapping[
+        str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned
+    ],
     *,
     moltype: MolTypes,
     label_to_name: Callable[[str], str] | None = None,
@@ -5840,15 +5835,12 @@ def make_aligned_seqs(
     # the AlignedSeqsData object - however, if a name_map is provided, we assume that it
     # corrects for any naming differences in data and skip this step
     assign_names = _SeqNamer(name_func=label_to_name)
-    data = cast(
-        "dict[str, str | bytes | NumpyIntArrayType]",
-        _make_name_seq_mapping(data, assign_names),
-    )
+    named_seqs = _make_name_seq_mapping(data, assign_names)
     if name_map is None:
-        name_map = make_name_map(data) or None
+        name_map = make_name_map(named_seqs) or None
 
     seqs_data = make_aligned_storage(
-        data,
+        named_seqs,
         moltype=moltype,
         label_to_name=label_to_name,
         offset=offset,

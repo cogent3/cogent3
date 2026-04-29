@@ -2098,12 +2098,11 @@ class SqliteAnnotationDbMixin:
         if not isinstance(other_db, AnnotationDbABC):
             msg = f"{type(other_db)} does not support features"
             raise TypeError(msg)
-        if not hasattr(other_db, "table_names"):
+        if not isinstance(other_db, SqliteAnnotationDbMixin):
             return False
 
-        other = cast("SqliteAnnotationDbMixin", other_db)
         mine = set(self.table_names)
-        theirs = set(other.table_names)
+        theirs = set(other_db.table_names)
         return mine <= theirs or mine > theirs if symmetric else mine >= theirs
 
     def update(

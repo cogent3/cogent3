@@ -57,11 +57,11 @@ class SeqViewABC(ABC):
         If from storage with an offset attribute, returns
         that value or 0
         """
-        return (
-            cast("SeqsDataABC", self.parent).offset.get(cast("str", self.seqid), 0)
-            if hasattr(self.parent, "offset")
-            else 0
-        )
+        from cogent3.core.seq_storage import SeqsDataABC
+
+        if isinstance(self.parent, SeqsDataABC):
+            return self.parent.offset.get(cast("str", self.seqid), 0)
+        return 0
 
     @property
     @abstractmethod
