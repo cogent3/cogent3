@@ -452,7 +452,7 @@ class Span(SpanI):
 
     def __lt__(self, other: SpanI) -> bool:
         """Compares indices of self with indices of other."""
-        if hasattr(other, "start") and hasattr(other, "end"):
+        if isinstance(other, SpanI):
             s = (self.start, self.end, self.reverse)
             o = (other.start, other.end, other.reverse)
             return s < o

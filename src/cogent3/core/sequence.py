@@ -42,6 +42,7 @@ from cogent3.core.annotation_db import (
     AnnotatableMixin,
     AnnotationDbABC,
     FeatureDataType,
+    SqliteAnnotationDbMixin,
 )
 from cogent3.core.info import Info as InfoClass
 from cogent3.core.location import (
@@ -321,9 +322,7 @@ class Sequence(AnnotatableMixin):
 
         if make_seqlabel is not None:
             label = make_seqlabel(self)
-        elif hasattr(self, "label") and self.label:
-            label = self.label
-        elif hasattr(self, "name") and self.name:
+        elif self.name:
             label = self.name
         return seqs_to_fasta({label: str(self)}, block_size=block_size)
 
@@ -357,14 +356,12 @@ class Sequence(AnnotatableMixin):
             "type": get_object_provenance(self),
             "version": __version__,
         }
-        if hasattr(self, "annotation_offset"):
-            offset = int(self._seq.slice_record.parent_start)
-            data |= {"annotation_offset": offset}
+        data["annotation_offset"] = int(self._seq.slice_record.parent_start)
 
         if (
             self.has_annotation_db()
             and not exclude_annotations
-            and hasattr(self.annotation_db, "to_rich_dict")
+            and isinstance(self.annotation_db, SqliteAnnotationDbMixin)
         ):
             data["annotation_db"] = self.annotation_db.to_rich_dict()
 
@@ -1079,7 +1076,7 @@ class Sequence(AnnotatableMixin):
 
     def __add__(self, other: Self) -> Self:
         """Adds two sequences (other can be a string as well)."""
-        if hasattr(other, "moltype") and self.moltype != other.moltype:
+        if isinstance(other, Sequence) and self.moltype != other.moltype:
             msg = f"MolTypes don't match: ({self.moltype},{other.moltype})"
             raise ValueError(
                 msg,
@@ -1657,8 +1654,7 @@ class Sequence(AnnotatableMixin):
             msg = "cannot slice using float"
             raise TypeError(msg)
 
-        if hasattr(self, "_repr_policy"):
-            new._repr_policy.update(self._repr_policy)
+        new._repr_policy.update(self._repr_policy)
 
         return new
 

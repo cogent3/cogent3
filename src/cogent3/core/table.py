@@ -17,7 +17,7 @@ import pickle
 import re
 import typing
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Iterator, Mapping, MutableMapping
+from collections.abc import Callable, Iterable, Iterator, Mapping, MutableMapping, Sized
 from collections.abc import Sequence as PySeq
 from itertools import product
 from typing import Self
@@ -112,14 +112,14 @@ def _group_indices(table: "Table", columns: list[str]) -> dict[tuple, numpy.ndar
     if len(columns) == 1:
         col_data = table.columns[columns[0]]
         unique_keys, inverse = numpy.unique(col_data, return_inverse=True)
-        keys = [(k.item() if hasattr(k, "item") else k,) for k in unique_keys]
+        keys = [(k.item() if isinstance(k, numpy.generic) else k,) for k in unique_keys]
     else:
         col_arrays = [table.columns[c] for c in columns]
         if any(arr.dtype.kind == "O" for arr in col_arrays):
             combined = numpy.empty(table.shape[0], dtype="O")
             for i in range(table.shape[0]):
                 combined[i] = tuple(
-                    v.item() if hasattr(v, "item") else v
+                    v.item() if isinstance(v, numpy.generic) else v
                     for v in (arr[i] for arr in col_arrays)
                 )
             unique_keys, inverse = numpy.unique(combined, return_inverse=True)
@@ -129,7 +129,10 @@ def _group_indices(table: "Table", columns: list[str]) -> dict[tuple, numpy.ndar
             rec = numpy.rec.fromarrays(col_arrays, dtype=dtypes)
             unique_keys, inverse = numpy.unique(rec, return_inverse=True)
             keys = [
-                tuple(v.item() if hasattr(v, "item") else v for v in unique_keys[i])
+                tuple(
+                    v.item() if isinstance(v, numpy.generic) else v
+                    for v in unique_keys[i]
+                )
                 for i in range(len(unique_keys))
             ]
 
@@ -582,7 +585,7 @@ class Table:
                 msg,
             )
 
-        if len(data) if hasattr(data, "__len__") else 0:
+        if isinstance(data, Sized) and data:
             row_order = kwargs.get("row_order")
             data = cast_to_1d_dict(data, row_order=row_order)
             if has_index:
@@ -663,7 +666,7 @@ class Table:
             rows, _ = self._template.interpret_index(rows)
             rows = rows[0]
 
-        if not hasattr(rows, "__len__") and not isinstance(rows, slice):
+        if not isinstance(rows, (Sized, slice)):
             rows = (rows,)
 
         if isinstance(rows, numpy.ndarray):

@@ -12,12 +12,13 @@ import numpy.typing as npt
 from scinexus.deserialise import register_deserialiser
 from scinexus.misc import get_object_provenance
 
+from cogent3.core.seqview import SeqViewABC
+
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator, Sized
     from collections.abc import Sequence as PySeq
 
     from cogent3.core.moltype import MolType, MolTypeLiteral
-    from cogent3.core.seqview import SeqViewABC
 
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 
@@ -530,10 +531,9 @@ class CharAlphabet(
         if isinstance(seq, numpy.ndarray):
             return bool(seq.min() >= 0 and seq.max() < len(self) if len(seq) else True)
 
-        # refactor: design
-        if hasattr(seq, "alphabet"):
-            # assume a SeqView instance
-            return cast("SeqViewABC", seq).alphabet == self
+        if isinstance(seq, SeqViewABC):
+            return seq.alphabet == self
+
         msg = f"{type(seq)} is invalid"
         raise TypeError(msg)
 

@@ -168,6 +168,23 @@ def test_is_valid_typerror():
         _ = alpha.is_valid(list("ACGT"))
 
 
+def test_is_valid_seqview():
+    from cogent3.core.sequence import SeqView
+
+    alpha = c3_alphabet.CharAlphabet(list("TCAG"))
+    sv = SeqView(parent="ACGT", parent_len=4, alphabet=alpha)
+    assert alpha.is_valid(sv)
+
+
+def test_is_valid_seqview_wrong_alphabet():
+    from cogent3.core.sequence import SeqView
+
+    alpha1 = c3_alphabet.CharAlphabet(list("TCAG"))
+    alpha2 = c3_alphabet.CharAlphabet(list("UCAG"))
+    sv = SeqView(parent="ACGU", parent_len=4, alphabet=alpha2)
+    assert not alpha1.is_valid(sv)
+
+
 @pytest.mark.parametrize(("num_states", "ndim"), [(2, 1), (4, 2), (4, 4)])
 def test_interconversion_of_coords_indices(num_states, ndim):
     # make sure match numpy functions
