@@ -1310,7 +1310,9 @@ class MolType(Generic[TStrOrBytes]):
         assert self.degen_gapped_alphabet is not None
         return numpy.sum(seq == self.degen_gapped_alphabet.gap_index)
 
-    def count_degenerate(self, seq: str | bytes, validate: bool = True) -> int:
+    def count_degenerate(
+        self, seq: NumpyIntArrayType | str | bytes, validate: bool = True
+    ) -> int:
         """returns the number of degenerate characters in a sequence
 
         Parameters
@@ -1328,6 +1330,9 @@ class MolType(Generic[TStrOrBytes]):
         c3_alphabet.AlphabetError
             if invalid characters present
         """
+        if isinstance(seq, numpy.ndarray):
+            return self._count_degenerate(seq)
+
         if isinstance(seq, str):
             seq = seq.encode("utf8")
 
@@ -1343,7 +1348,7 @@ class MolType(Generic[TStrOrBytes]):
     def _count_degenerate(self, seq: NumpyIntArrayType) -> int:
         assert self.degen_gapped_alphabet is not None
         assert self.degen_gapped_alphabet.gap_index is not None
-        return int(numpy.sum(seq >= self.degen_gapped_alphabet.gap_index))
+        return int(numpy.sum(seq > self.degen_gapped_alphabet.gap_index))
 
     def count_variants(self, seq: str | bytes) -> int:
         """Counts number of possible sequences matching the sequence, given

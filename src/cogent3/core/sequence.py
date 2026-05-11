@@ -492,9 +492,7 @@ class Sequence(AnnotatableMixin):
 
     def count_ambiguous(self) -> int:
         """Returns the number of ambiguous characters in the sequence."""
-        data = numpy.array(self)
-        gap_index = cast("int", self.moltype.most_degen_alphabet().gap_index)
-        return int(numpy.sum(data > gap_index))
+        return self.moltype.count_degenerate(self.to_array())
 
     def count_kmers(
         self,
