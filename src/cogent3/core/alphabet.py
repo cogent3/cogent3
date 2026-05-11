@@ -299,9 +299,9 @@ class array_to_bytes:
 
 class CharAlphabet(
     tuple[TStrOrBytes, ...],
-    Generic[TStrOrBytes],
     AlphabetABC[TStrOrBytes],
     MonomerAlphabetABC[TStrOrBytes],
+    Generic[TStrOrBytes],
 ):
     """representing fundamental monomer character sets.
 
@@ -1029,9 +1029,9 @@ class KmerAlphabetABC(ABC, Generic[TStrOrBytes]):
 
 class KmerAlphabet(
     tuple[TStrOrBytes, ...],
-    Generic[TStrOrBytes],
     AlphabetABC[TStrOrBytes],
     KmerAlphabetABC[TStrOrBytes],
+    Generic[TStrOrBytes],
 ):
     """k-mer alphabet represents complete non-monomer alphabets
 

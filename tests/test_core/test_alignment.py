@@ -2515,20 +2515,20 @@ def ambigs_coll():
 def test_sequence_collection_get_lengths(ambigs_coll):
     got = ambigs_coll.get_lengths()
     expect = {"a": 4, "b": 6}
-    assert got == expect
+    assert got.to_dict() == expect
 
 
 def test_sequence_collection_get_lengths_include_ambiguity(ambigs_coll):
-    # NOTE '?' is excluded as it could be a gap
     got = ambigs_coll.get_lengths(include_ambiguity=True)
-    expect = {"a": 4, "b": 8}
-    assert got == expect
+    # '?' now included in ambiguity
+    expect = {"a": 10, "b": 8}
+    assert got.to_dict() == expect
 
 
 def test_sequence_collection_get_lengths_allow_gap(ambigs_coll):
     got = ambigs_coll.get_lengths(include_ambiguity=True, allow_gap=True)
     expect = {"a": 10, "b": 10}
-    assert got == expect
+    assert got.to_dict() == expect
 
 
 @pytest.mark.parametrize(

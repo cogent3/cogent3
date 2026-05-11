@@ -3400,14 +3400,15 @@ class AnnotatableMixin:
             Ccan be None, an annotation db instance or a list containing an annotation
             db instance.
         """
+        if isinstance(value, list):
+            return value
 
         if value is None:
-            value = []
-        elif not isinstance(value, list):
-            # if annotation_db is not a list, assume it is a single
-            # annotation database instance
-            value = [value]
-        return value
+            return []
+
+        # if annotation_db is not a list, assume it is a single
+        # annotation database instance
+        return [value]
 
     @property
     def annotation_db(self) -> AnnotationDbABC:
@@ -3447,6 +3448,10 @@ class AnnotatableMixin:
         -----
         The check can be very expensive, so if you're confident set it to False
         """
+        if not value and isinstance(value, list):
+            self._annotation_db = value
+            return
+
         if isinstance(value, list) and len(value) > 0:
             value = value[0]
 
@@ -3455,10 +3460,6 @@ class AnnotatableMixin:
 
         if value is None:
             self._annotation_db = self._init_annot_db_value(None)
-            return
-
-        if not value and isinstance(value, list):
-            self._annotation_db = value
             return
 
         if check and value and not isinstance(value, AnnotationDbABC):
