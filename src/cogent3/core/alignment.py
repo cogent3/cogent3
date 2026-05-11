@@ -106,8 +106,8 @@ class Aligned(AnnotatableMixin):
         self._data = data
         self._moltype = moltype
         self._name = name or data.seqid
-        self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
-            annotation_db
+        self._annotation_db: list[AnnotationDbABC] = (
+            [] if annotation_db is None else self._init_annot_db_value(annotation_db)
         )
 
     @classmethod
@@ -3561,7 +3561,6 @@ class Alignment(CollectionBase[Aligned]):
         gap_index = cast("int", self.moltype.most_degen_alphabet().gap_index)
         ambigs_pos = self.array_seqs > gap_index
         ambigs = ambigs_pos.sum(axis=1)
-
         return DictArray.from_array_names(ambigs, self.names)
 
     def strand_symmetry(self, motif_length: int = 1) -> dict[str, TestResult]:
