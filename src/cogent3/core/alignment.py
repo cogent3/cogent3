@@ -1349,12 +1349,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             if True, motifs containing a gap character are included.
 
         """
-        counts = self.counts_per_seq(
-            motif_length=1,
-            include_ambiguity=include_ambiguity,
-            allow_gap=allow_gap,
-        )
-        return cast("MotifCountsArray", counts).row_sum()
+        msg = "get_lengths not implemented yet"
+        raise NotImplementedError(msg)
 
     def pad_seqs(self, pad_length: int | None = None) -> Self:
         """Returns copy in which sequences are padded with the gap character to same length.
@@ -2380,6 +2376,23 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             len({self._seqs_data.get_seq_length(n) for n in self._name_map.values()})
             > 1
         )
+
+    def get_lengths(
+        self,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+    ) -> DictArray:
+        counts = numpy.zeros(len(self.names), dtype=int)
+        for idx, n in enumerate(self.names):
+            seq = self.seqs[n]
+            length = len(seq)
+            if not allow_gap:
+                length -= seq.count_gaps()
+            if not include_ambiguity:
+                length -= seq.count_ambiguous()
+            counts[idx] = length
+
+        return DictArray.from_array_names(counts, self.names)
 
     def count_kmers(
         self,
@@ -3496,6 +3509,28 @@ class Alignment(CollectionBase[Aligned]):
         """by definition False for an Alignment"""
         return False
 
+    def get_lengths(
+        self,
+        include_ambiguity: bool = False,
+        allow_gap: bool = False,
+    ) -> DictArray:
+        counts = numpy.zeros(len(self.names), dtype=int)
+        if not allow_gap:
+            gap_counts = self.count_gaps_per_seq()
+
+        if not include_ambiguity:
+            amb_counts = self.count_ambiguous_per_seq()
+        aln_len = len(self)
+        for idx, n in enumerate(self.names):
+            length = aln_len
+            if not allow_gap:
+                length -= cast("int", gap_counts[n])
+            if not include_ambiguity:
+                length -= cast("int", amb_counts[n])
+            counts[idx] = length
+
+        return DictArray.from_array_names(counts, self.names)
+
     def counts_per_seq(
         self,
         motif_length: int = 1,
@@ -3557,8 +3592,11 @@ class Alignment(CollectionBase[Aligned]):
 
     def count_ambiguous_per_seq(self) -> DictArray:
         """Return the counts of ambiguous characters per sequence as a DictArray."""
-
         gap_index = cast("int", self.moltype.most_degen_alphabet().gap_index)
+        if gap_index is None:
+            counts = numpy.zeros(len(self.names), dtype=int)
+            return DictArray.from_array_names(counts, self.names)
+
         ambigs_pos = self.array_seqs > gap_index
         ambigs = ambigs_pos.sum(axis=1)
         return DictArray.from_array_names(ambigs, self.names)
