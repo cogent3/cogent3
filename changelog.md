@@ -1,4 +1,26 @@
 
+<a id='changelog-2026.5.14a0'></a>
+# Changes in release "2026.5.14a0"
+
+A bug fix and enhancement release.
+
+## Contributors
+
+- GavinHuttley
+
+## Enhancements
+
+- Performance of `<seq coll>.get_lengths()` on the sequence
+  container classes now much more efficient.
+
+## Bug fixes
+
+- Addressed errors affecting extremely large gff3 files
+  where there could be duplications of id's occur if the
+  feature straddled multiple blocks. These were associated
+  with `sqlite3.OperationalError: too many SQL variables`
+  exceptions.
+
 <a id='changelog-2026.4.20a0'></a>
 # Changes in release "2026.4.20a0"
 
