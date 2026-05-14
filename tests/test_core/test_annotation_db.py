@@ -2261,3 +2261,77 @@ def test_upgrade_annotation_db_migrates_columns(tmp_path):
     assert len(features) == 1
 
     loaded_db.close()
+
+
+@pytest.fixture
+def chunked_vs_single_gff_dbs(DATA_DIR):
+    """Yields (single_block_db, chunked_db) for the c_elegans GFF.
+
+    ``CDS:B0019.1`` spans three lines in this file, so a ``num_lines=2`` chunk
+    size is guaranteed to straddle the boundary. The reference 'expected' DB
+    loads the same file in a single block.
+    """
+    from cogent3.core.annotation_db import _db_from_gff
+
+    path = DATA_DIR / "c_elegans_WS199_shortened_gff.gff3"
+    expected = load_annotations(path=path)
+    chunked = _db_from_gff(
+        path=path, seqids=None, db=None, write_path=":memory:", num_lines=2
+    )
+    yield expected, chunked
+    expected.close()
+    chunked.close()
+
+
+def test_chunked_load_no_duplicate_rows(chunked_vs_single_gff_dbs):
+    # make sure we avoid issues where a feature whose lines straddle
+    # a block boundary is re-inserted as a duplicate row.
+
+    expected, chunked = chunked_vs_single_gff_dbs
+
+    assert len(chunked) == len(expected)
+
+    cds_rows = chunked.db.execute(
+        "SELECT COUNT(*) FROM gff WHERE name = ?", ("CDS:B0019.1",)
+    ).fetchone()[0]
+    assert cds_rows == 1, f"CDS:B0019.1 appears {cds_rows} times in gff table"
+
+
+def test_chunked_load_hierarchy_attached_to_canonical_row(
+    chunked_vs_single_gff_dbs,
+):
+    # make sure name lookup points to the canonical row.
+
+    _, chunked = chunked_vs_single_gff_dbs
+
+    canonical_cds_rowid = chunked.db.execute(
+        "SELECT MIN(rowid) FROM gff WHERE name = ?", ("CDS:B0019.1",)
+    ).fetchone()[0]
+
+    edge_targets = {
+        row[0]
+        for row in chunked.db.execute(
+            "SELECT child_id FROM feature_hierarchy WHERE child_id IN "
+            "(SELECT rowid FROM gff WHERE name = ?)",
+            ("CDS:B0019.1",),
+        ).fetchall()
+    }
+    assert canonical_cds_rowid in edge_targets, (
+        f"hierarchy edge missing for canonical CDS rowid {canonical_cds_rowid}; "
+        f"edges instead attached to: {edge_targets}"
+    )
+
+
+def test_chunked_load_preserves_forward_parent_references(
+    chunked_vs_single_gff_dbs,
+):
+    # make sure we handle the case where a parent occurs after a child
+    expected, chunked = chunked_vs_single_gff_dbs
+
+    expected_children = sorted(
+        c["name"] for c in expected.get_feature_children(name="Gene:WBGene00000138")
+    )
+    chunked_children = sorted(
+        c["name"] for c in chunked.get_feature_children(name="Gene:WBGene00000138")
+    )
+    assert chunked_children == expected_children
