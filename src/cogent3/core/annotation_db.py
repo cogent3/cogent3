@@ -1288,37 +1288,7 @@ class SqliteAnnotationDbMixin:
             by_table[table].append((child_rowid, pid_str))
         self._pending_hierarchy.clear()
         for table_name, entries in by_table.items():
-            parent_names: set[str] = {
-                p for _, pid in entries for p in pid.replace(" ", "").split(",") if p
-            }
-            self.db.execute("DROP TABLE IF EXISTS _parent_lookup")
-            self.db.execute("CREATE TEMP TABLE _parent_lookup (name TEXT PRIMARY KEY)")
-            self.db.executemany(
-                "INSERT OR IGNORE INTO _parent_lookup VALUES (?)",
-                [(n,) for n in parent_names],
-            )
-            # CROSS JOIN forces _parent_lookup as the driver so the planner
-            # probes the indexed name column on the larger feature table
-            name_to_rowid: dict[str, int] = dict(
-                self.db.execute(
-                    f"SELECT p.name, t.rowid "
-                    f"FROM _parent_lookup p "
-                    f"CROSS JOIN {table_name} t ON t.name = p.name"
-                ).fetchall()
-            )
-            self.db.execute("DROP TABLE _parent_lookup")
-            rows = [
-                (child_rowid, name_to_rowid[p], table_name)
-                for child_rowid, pid in entries
-                for p in pid.replace(" ", "").split(",")
-                if p and p in name_to_rowid
-            ]
-            if rows:
-                self.db.executemany(
-                    "INSERT OR IGNORE INTO feature_hierarchy "
-                    "(child_id, parent_id, table_name) VALUES (?, ?, ?)",
-                    rows,
-                )
+            _resolve_and_insert_hierarchy_edges(self.db, table_name, entries)
         self.db.commit()
 
     def _get_lookup_ids(
