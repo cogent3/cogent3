@@ -840,79 +840,46 @@ def _make_db_connection(
     return conn
 
 
-def _get_name_to_rowid_batch(
-    conn: sqlite3.Connection,
-    table_name: str,
-    names: set[str],
-) -> dict[str, int]:
-    """Get rowids for multiple features by name in a single query.
-
-    Parameters
-    ----------
-    conn
-        Database connection
-    table_name
-        Name of table to query
-    names
-        Set of feature names to look up
-
-    Returns
-    -------
-    Dict mapping feature name to rowid
-    """
-    if not names:
-        return {}
-    placeholders = ",".join("?" * len(names))
-    names_list = list(names)
-    sql = f"SELECT name, rowid FROM {table_name} WHERE name IN ({placeholders})"
-    cursor = conn.execute(sql, tuple(names_list))
-    return {row[0]: row[1] for row in cursor.fetchall()}
-
-
-def _populate_hierarchy_table(
+def _resolve_and_insert_hierarchy_edges(
     conn: sqlite3.Connection,
     table_name: str,
     entries: list[tuple[int, str]],
 ) -> None:
-    """Populate the feature_hierarchy table from child-parent entries.
-
-    Parameters
-    ----------
-    conn
-        Database connection with feature_hierarchy table
-    table_name
-        Name of feature table (gff, gb, user)
-    entries
-        List of (child_rowid, parent_id_string) tuples where parent_id_string
-        may contain comma-separated parent names
-    """
+    # resolve (child_rowid, parent_id_string) tuples to (child_rowid,
+    # parent_rowid, table_name) edges and insert into feature_hierarchy
     if not entries:
         return
-
-    # Collect all parent names for batch lookup
-    parent_names: set[str] = set()
-    for _, parent_id in entries:
-        for p in parent_id.replace(" ", "").split(","):
-            if p := p.strip():
-                parent_names.add(p)
-
-    # Batch lookup parent names to rowids
-    name_to_rowid = _get_name_to_rowid_batch(conn, table_name, parent_names)
-
-    # Build hierarchy rows
-    hierarchy_rows = []
-    for child_rowid, parent_id in entries:
-        for p in parent_id.replace(" ", "").split(","):
-            p = p.strip()
-            if p and p in name_to_rowid:
-                hierarchy_rows.append((child_rowid, name_to_rowid[p], table_name))
-
-    if hierarchy_rows:
+    parent_names: set[str] = {
+        p for _, pid in entries for p in pid.replace(" ", "").split(",") if p
+    }
+    conn.execute("DROP TABLE IF EXISTS _parent_lookup")
+    conn.execute("CREATE TEMP TABLE _parent_lookup (name TEXT PRIMARY KEY)")
+    conn.executemany(
+        "INSERT OR IGNORE INTO _parent_lookup VALUES (?)",
+        [(n,) for n in parent_names],
+    )
+    # CROSS JOIN forces _parent_lookup as the driver so the planner probes
+    # the indexed name column on the larger feature table
+    name_to_rowid: dict[str, int] = dict(
+        conn.execute(
+            f"SELECT p.name, t.rowid "
+            f"FROM _parent_lookup p "
+            f"CROSS JOIN {table_name} t ON t.name = p.name"
+        ).fetchall()
+    )
+    conn.execute("DROP TABLE _parent_lookup")
+    rows = [
+        (child_rowid, name_to_rowid[p], table_name)
+        for child_rowid, pid in entries
+        for p in pid.replace(" ", "").split(",")
+        if p and p in name_to_rowid
+    ]
+    if rows:
         conn.executemany(
-            "INSERT OR IGNORE INTO feature_hierarchy (child_id, parent_id, table_name) VALUES (?, ?, ?)",
-            hierarchy_rows,
+            "INSERT OR IGNORE INTO feature_hierarchy "
+            "(child_id, parent_id, table_name) VALUES (?, ?, ?)",
+            rows,
         )
-        conn.commit()
 
 
 def _migrate_to_normalized_schema(
@@ -3351,24 +3318,16 @@ def upgrade_annotation_db(
     _migrate_to_normalized_schema(conn, table_names, lookup_cache)
 
     for table_name in table_names:
-        # Get all records from this table
         cursor = conn.execute(f"SELECT rowid, * FROM {table_name}")
-        records = cursor.fetchall()
-
-        # Build hierarchy entries as (child_rowid, parent_id_string) tuples
         hierarchy_entries: list[tuple[int, str]] = []
-
-        for row in records:
+        for row in cursor.fetchall():
             row_dict = dict(zip(row.keys(), row, strict=False))
             rowid = row_dict.get("rowid")
             parent_id = row_dict.get("parent_id")
-
-            # Collect hierarchy entries
             if parent_id and rowid is not None:
                 hierarchy_entries.append((rowid, parent_id))
-
-        # Populate hierarchy table using shared helper
-        _populate_hierarchy_table(conn, table_name, hierarchy_entries)
+        _resolve_and_insert_hierarchy_edges(conn, table_name, hierarchy_entries)
+    conn.commit()
 
     # Set schema version
     _set_schema_version(conn, SCHEMA_VERSION)
