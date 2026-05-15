@@ -10,7 +10,7 @@ from collections.abc import Callable
 from functools import singledispatch
 
 import numpy
-from scinexus.io_util import is_url, open_
+from scinexus.io_util import is_url, iter_record_chunks, open_, path_exists
 
 from cogent3.core.info import Info
 from cogent3.parse.record import RecordError
@@ -257,6 +257,36 @@ def iter_fasta_records(
     raise TypeError(msg)
 
 
+def _process_fasta_record(
+    record: bytes,
+    converter: typing.Callable[[bytes], OutTypes],
+    label_to_name: RenamerType,
+) -> tuple[str, OutTypes] | None:
+    if not record:
+        return None
+    eol = record.find(b"\n")
+    if eol == -1:
+        return None
+    label = record[:eol].strip().decode("utf8")
+    if label_to_name:
+        label = label_to_name(label)
+    return label, converter(record[eol + 1 :])
+
+
+def _iter_fasta_records_from_path(
+    path: str | pathlib.Path,
+    converter: OptConverterType,
+    label_to_name: RenamerType,
+    chunk_size: int | None,
+) -> typing.Iterable[tuple[str, OutTypes]]:
+    if converter is None:
+        converter = minimal_converter()
+    for record in iter_record_chunks(path=path, delimiter=b">", chunk_size=chunk_size):
+        result = _process_fasta_record(record, converter, label_to_name)
+        if result is not None:
+            yield result
+
+
 @iter_fasta_records.register
 def _(
     data: bytes,
@@ -265,36 +295,25 @@ def _(
 ) -> typing.Iterable[tuple[str, OutTypes]]:
     if converter is None:
         converter = minimal_converter()
-
-    records = data.split(b">")
-    for record in records:
-        if not len(record):
-            continue
-
-        eol = record.find(b"\n")
-        if eol == -1:
-            continue
-        label = record[:eol].strip().decode("utf8")
-        if label_to_name:
-            label = label_to_name(label)
-        seq = converter(record[eol + 1 :])
-        yield label, seq
+    for record in data.split(b">"):
+        result = _process_fasta_record(record, converter, label_to_name)
+        if result is not None:
+            yield result
 
 
 @iter_fasta_records.register
-def _(data: str, converter: OptConverterType = None, label_to_name: RenamerType = str):
-    if not is_url(data):
-        try:
-            os.stat(data)
-        except OSError:
-            msg = "data is a string but not a file path, directly provided data must be bytes"
-            raise TypeError(
-                msg,
-            )
-
-    with open_(data, mode="rb") as infile:
-        data: bytes = infile.read()
-    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
+def _(
+    data: str,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
+    chunk_size: int | None = 5_000_000,
+) -> typing.Iterable[tuple[str, OutTypes]]:
+    if not is_url(data) and not path_exists(data):
+        msg = (
+            "data is a string but not a file path, directly provided data must be bytes"
+        )
+        raise TypeError(msg)
+    yield from _iter_fasta_records_from_path(data, converter, label_to_name, chunk_size)
 
 
 @iter_fasta_records.register
@@ -302,10 +321,9 @@ def _(
     data: pathlib.Path,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
-):
-    with open_(data, mode="rb") as infile:
-        data: bytes = infile.read()
-    return iter_fasta_records(data, converter=converter, label_to_name=label_to_name)
+    chunk_size: int | None = 5_000_000,
+) -> typing.Iterable[tuple[str, OutTypes]]:
+    yield from _iter_fasta_records_from_path(data, converter, label_to_name, chunk_size)
 
 
 @iter_fasta_records.register

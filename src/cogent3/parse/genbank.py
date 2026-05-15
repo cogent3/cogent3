@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy
 import numpy.typing as npt
+from scinexus.io_util import iter_record_chunks
 
 from cogent3.core import alphabet as c3_alphabet
 
@@ -607,6 +608,37 @@ def iter_genbank_records(
     raise TypeError(msg)
 
 
+def _process_genbank_record(
+    record: bytes,
+    converter: SeqConverterType,
+    convert_features: OptFeatureConverterType,
+) -> tuple[str, OutTypes, Any] | None:
+    if record.isspace():
+        return None
+    features, seq = record.split(b"\nORIGIN")
+    line = features[: features.find(b"\n")].split()
+    locus = line[1].decode("utf8")
+    seq = converter(seq) if converter else seq
+    features = features.decode("utf8")
+    if convert_features:
+        features = convert_features(features)
+    return locus, seq, features
+
+
+def _iter_genbank_records_from_path(
+    path: str | pathlib.Path,
+    converter: SeqConverterType,
+    convert_features: OptFeatureConverterType,
+    chunk_size: int | None,
+) -> Iterator[tuple[str, OutTypes, Any]]:
+    for record in iter_record_chunks(
+        path=path, delimiter=b"\n//", chunk_size=chunk_size
+    ):
+        result = _process_genbank_record(record, converter, convert_features)
+        if result is not None:
+            yield result
+
+
 @iter_genbank_records.register
 def _(
     data: bytes,
@@ -614,22 +646,9 @@ def _(
     convert_features: OptFeatureConverterType = default_parse_metadata,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
     for record in data.split(b"\n//"):
-        if record.isspace():
-            # trailing newline
-            continue
-        # split on the delimiter between feature data and sequence
-        features, seq = record.split(b"\nORIGIN")
-        # we get the locus data
-        line = features[: features.find(b"\n")].split()
-        locus = line[1].decode("utf8")
-        # processing the seq
-        seq = converter(seq)
-        # then the features
-        features = features.decode("utf8")
-        if convert_features:
-            features = convert_features(features)
-
-        yield locus, seq, features
+        result = _process_genbank_record(record, converter, convert_features)
+        if result is not None:
+            yield result
 
 
 @iter_genbank_records.register
@@ -637,16 +656,10 @@ def _(
     data: str,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
-    from scinexus.io_util import open_
-
-    with open_(data, mode="rb") as infile:
-        data: bytes = infile.read()
-
-    return iter_genbank_records(
-        data,
-        converter=converter,
-        convert_features=convert_features,
+    yield from _iter_genbank_records_from_path(
+        data, converter, convert_features, chunk_size
     )
 
 
@@ -655,16 +668,10 @@ def _(
     data: pathlib.Path,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
-    from scinexus.io_util import open_
-
-    with open_(data, mode="rb") as infile:
-        data: bytes = infile.read()
-
-    return iter_genbank_records(
-        data,
-        converter=converter,
-        convert_features=convert_features,
+    yield from _iter_genbank_records_from_path(
+        data, converter, convert_features, chunk_size
     )
 
 
