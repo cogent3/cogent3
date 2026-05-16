@@ -732,6 +732,7 @@ def rich_parser(
     skip_contigs=False,
     db: "GenbankAnnotationDb | None" = None,
     just_seq: bool = False,
+    **kwargs: Any,
 ):
     """Returns annotated sequences from GenBank formatted file.
 
@@ -751,6 +752,7 @@ def rich_parser(
         return only the sequence, excludes include any feature data and
         does not create an annotation_db. Overrides db argument.
     """
+    kwargs.pop("converter", None)
     from cogent3.core.annotation_db import GenbankAnnotationDb
     from cogent3.core.info import Info
     from cogent3.core.moltype import get_moltype
