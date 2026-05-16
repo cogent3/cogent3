@@ -431,7 +431,7 @@ class CharAlphabet(
             seq = self._bytes2arr(seq)
 
         if isinstance(seq, numpy.ndarray):
-            seq = seq.astype(self.dtype)
+            seq = seq.astype(self.dtype, copy=False)
             if validate and not self.is_valid(seq):
                 msg = "sequence has invalid characters"
                 raise AlphabetError(msg)

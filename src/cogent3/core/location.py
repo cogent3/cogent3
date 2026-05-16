@@ -984,8 +984,8 @@ class IndelMap(MapABC):
             )
 
         # force all to int32
-        self.gap_pos = self.gap_pos.astype(numpy.int32)
-        self.cum_gap_lengths = self.cum_gap_lengths.astype(numpy.int32)
+        self.gap_pos = self.gap_pos.astype(numpy.int32, copy=False)
+        self.cum_gap_lengths = self.cum_gap_lengths.astype(numpy.int32, copy=False)
         # make gap array immutable
         self.gap_pos.flags.writeable = False
         self.cum_gap_lengths.flags.writeable = False

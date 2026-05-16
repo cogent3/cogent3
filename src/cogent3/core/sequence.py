@@ -2388,7 +2388,7 @@ def _coerce_to_seqview(
 
     if isinstance(data, numpy.ndarray):
         return SeqView(
-            parent=data.astype(alphabet.dtype),
+            parent=data.astype(alphabet.dtype, copy=False),
             parent_len=len(data),
             seqid=seqid,
             alphabet=alphabet,
