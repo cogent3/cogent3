@@ -56,6 +56,17 @@ class SequenceParserBase(abc.ABC):
         return True
 
     @property
+    def accepts_converter(self) -> bool:
+        """True if the loader accepts a converter keyword argument.
+
+        Notes
+        -----
+        Default is False. Override and return True when the loader accepts a
+        converter kwarg that maps record bytes to an alphabet-indexed ndarray.
+        """
+        return False
+
+    @property
     @abc.abstractmethod
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         """a callable for loading from a file"""
@@ -130,6 +141,10 @@ class FastaParser(SequenceParserBase):
     @property
     def supported_suffixes(self) -> set[str]:
         return {"fasta", "fa", "fna", "faa", "mfa"}
+
+    @property
+    def accepts_converter(self) -> bool:
+        return True
 
     @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
@@ -226,6 +241,10 @@ class GenbankParser(SequenceParserBase):
     @property
     def supported_suffixes(self) -> set[str]:
         return {"gb", "gbk", "gbff", "genbank"}
+
+    @property
+    def accepts_converter(self) -> bool:
+        return True
 
     @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:

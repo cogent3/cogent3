@@ -800,7 +800,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             msg = "Number of names must match number of rows in data."
             raise ValueError(msg)
 
-        gapped_seqs = data.astype(alphabet.dtype)
+        gapped_seqs = data.astype(alphabet.dtype, copy=False)
         gapped_seqs.flags.writeable = False
         return cls(
             gapped_seqs=gapped_seqs,
@@ -1298,7 +1298,7 @@ def decompose_gapped_seq(
         else:
             missing_index = -1
         return decompose_gapped_seq_array(
-            seq.astype(alphabet.dtype),
+            seq.astype(alphabet.dtype, copy=False),
             cast("int", alphabet.gap_index),
             missing_index=missing_index,
         )

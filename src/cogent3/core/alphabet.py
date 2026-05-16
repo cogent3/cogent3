@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import itertools
 import json
+import string
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, overload
 
@@ -430,7 +431,7 @@ class CharAlphabet(
             seq = self._bytes2arr(seq)
 
         if isinstance(seq, numpy.ndarray):
-            seq = seq.astype(self.dtype)
+            seq = seq.astype(self.dtype, copy=False)
             if validate and not self.is_valid(seq):
                 msg = "sequence has invalid characters"
                 raise AlphabetError(msg)
@@ -1006,6 +1007,30 @@ def kmer_indices_to_seq(
             result[index + k - 1] = coord[-1]
 
     return result
+
+
+class alphabet_converter:
+    """maps record bytes to an alphabet-indexed ndarray.
+
+    Notes
+    -----
+    Uppercases the input bytes, strips configured characters, then uses the
+    supplied alphabet to map the result to uint8 indices.
+    """
+
+    def __init__(
+        self,
+        alphabet: CharAlphabet[Any],
+        delete: bytes = b"\n\r\t 0123456789",
+    ) -> None:
+        lc = string.ascii_lowercase.encode("utf8")
+        self._translate = b"".maketrans(lc, lc.upper())
+        self._delete = delete
+        self._alphabet = alphabet
+
+    def __call__(self, text: bytes) -> NumpyIntArrayType:
+        cleaned = text.translate(self._translate, delete=self._delete)
+        return self._alphabet.to_indices(cleaned, validate=False)
 
 
 class KmerAlphabetABC(ABC, Generic[TStrOrBytes]):

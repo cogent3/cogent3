@@ -258,7 +258,7 @@ class SeqView(SeqViewABC):
     ) -> NumpyIntArrayType:
         arr = self.array_value
         if dtype is not None:
-            arr = arr.astype(dtype)
+            arr = arr.astype(dtype, copy=False)
         return arr
 
     def __bytes__(self) -> bytes:
@@ -650,7 +650,7 @@ class AlignedDataView(AlignedDataViewABC):
     ) -> NumpyIntArrayType:
         arr = self.gapped_array_value
         if dtype:
-            arr = arr.astype(dtype)
+            arr = arr.astype(dtype, copy=False)
         return arr
 
     def __bytes__(self) -> bytes:
