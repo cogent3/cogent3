@@ -230,7 +230,7 @@ def load_seq(
     filename: os.PathLike | str,
     annotation_path: os.PathLike | str | None = None,
     format_name: str | None = None,
-    moltype: "MolTypeLiteral | None" = None,
+    moltype: "MolTypeLiteral" = "text",
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
@@ -292,6 +292,18 @@ def load_seq(
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 
+    parser = get_seq_format_parser_plugin(
+        format_name=format_name,
+        file_suffix=file_suffix,
+        unaligned_seqs=True,
+    )
+    if parser.accepts_converter:
+        from cogent3.core.alphabet import alphabet_converter
+        from cogent3.core.moltype import get_moltype
+
+        mt = get_moltype(moltype)
+        parser_kw.setdefault("converter", alphabet_converter(mt.most_degen_alphabet()))
+
     if is_genbank(format_name or file_suffix):
         name, seq, db = _load_genbank_seq(
             pathlib.Path(filename),
@@ -300,11 +312,6 @@ def load_seq(
         )
     else:
         db = None
-        parser = get_seq_format_parser_plugin(
-            format_name=format_name,
-            file_suffix=file_suffix,
-            unaligned_seqs=True,
-        )
         if parser.result_is_storage:
             msg = (
                 "Cannot reliably derive single sequence from multi-sequence storage. "
@@ -336,7 +343,7 @@ def load_seq(
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: "MolTypeLiteral | None" = None,
+    moltype: "MolTypeLiteral" = "text",
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
@@ -404,6 +411,12 @@ def load_unaligned_seqs(
         unaligned_seqs=True,
     )
     parser_kw = parser_kw or {}
+    if parser.accepts_converter:
+        from cogent3.core.alphabet import alphabet_converter
+        from cogent3.core.moltype import get_moltype
+
+        mt = get_moltype(moltype)
+        parser_kw.setdefault("converter", alphabet_converter(mt.most_degen_alphabet()))
     if parser.result_is_storage:
         data = parser.loader(path=filename, **parser_kw)
     else:
@@ -422,7 +435,7 @@ def load_unaligned_seqs(
 def load_aligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
-    moltype: "MolTypeLiteral | None" = None,
+    moltype: "MolTypeLiteral" = "text",
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
@@ -469,6 +482,12 @@ def load_aligned_seqs(
         unaligned_seqs=False,
     )
     parser_kw = parser_kw or {}
+    if parser.accepts_converter:
+        from cogent3.core.alphabet import alphabet_converter
+        from cogent3.core.moltype import get_moltype
+
+        mt = get_moltype(moltype)
+        parser_kw.setdefault("converter", alphabet_converter(mt.most_degen_alphabet()))
     if parser.result_is_storage:
         data = parser.loader(path=filename, **parser_kw)
     else:
