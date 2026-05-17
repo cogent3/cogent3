@@ -285,10 +285,26 @@ def load_seq(
     file_suffix, _ = get_format_suffixes(filename)
     parser_kw = parser_kw or {}
     if file_suffix == "json":
-        from cogent3.core.sequence import Sequence
-        from cogent3.core.sequence import Sequence as OldSeq
+        from cogent3.core.sequence import (
+            ByteSequence,
+            DnaSequence,
+            ProteinSequence,
+            ProteinWithStopSequence,
+            RnaSequence,
+            Sequence,
+        )
 
-        seq = load_from_json(filename, (Sequence, OldSeq))
+        seq = load_from_json(
+            filename,
+            (
+                Sequence,
+                DnaSequence,
+                RnaSequence,
+                ProteinSequence,
+                ProteinWithStopSequence,
+                ByteSequence,
+            ),
+        )
         seq.name = label_to_name(seq.name) if label_to_name else seq.name
         return seq
 

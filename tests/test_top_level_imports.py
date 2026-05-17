@@ -37,6 +37,50 @@ def test_toplevel_types(name, expected_type):
     assert isinstance(attr, expected_type), f"cogent3.{name} is not a {expected_type}"
 
 
+def test_getattr_returns_cached_module():
+    # os is bound at the top of cogent3/__init__.py, so __getattr__
+    # short-circuits via the globals() cache without consulting _import_mapping
+    import os as _os
+
+    assert cogent3.__getattr__("os") is _os
+
+
+def test_getattr_fallback_imports_stdlib_module():
+    # names not in _import_mapping should fall through to __import__
+    import json as _json
+
+    assert "json" not in cogent3._import_mapping
+    assert cogent3.__getattr__("json") is _json
+
+
+def test_getattr_unknown_name_raises():
+    with pytest.raises(AttributeError):
+        cogent3.__getattr__("definitely_not_a_real_module_xyz")
+
+
+def test_warnings_env_var_applied():
+    """COGENT3_WARNINGS env var registers a simplefilter on import."""
+    import os
+
+    env = {**os.environ, "COGENT3_WARNINGS": "error"}
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import cogent3\n"
+            "import warnings\n"
+            "warnings.warn('triggered', UserWarning)\n",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env=env,
+    )
+    assert result.returncode != 0
+    assert "UserWarning" in result.stderr
+
+
 def test_profile_first_import_no_circular_error():
     """Importing cogent3.core.profile first must not trigger a circular import."""
     result = subprocess.run(

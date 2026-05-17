@@ -3212,3 +3212,50 @@ def test_sequence_write_json(tmp_path):
     with open(path) as fn:
         got = json.loads(fn.read())
     assert got == seq.to_rich_dict()
+
+
+def test_load_seq_from_json(tmp_path):
+    # load_seq's JSON path validates against the base Sequence class only, so
+    # the round-trip uses moltype="text" which yields a plain Sequence
+    seq = cogent3.make_seq("ACGT", name="x", moltype="text")
+    path = tmp_path / "x.json"
+    seq.write(str(path))
+    got = cogent3.load_seq(path)
+    assert str(got) == "ACGT"
+    assert got.name == "x"
+
+
+def test_load_seq_from_json_with_label_to_name(tmp_path):
+    seq = cogent3.make_seq("ACGT", name="x", moltype="text")
+    path = tmp_path / "x.json"
+    seq.write(str(path))
+    got = cogent3.load_seq(path, label_to_name=str.upper)
+    assert got.name == "X"
+
+
+def test_load_seq_empty_genbank_raises(tmp_path):
+    path = tmp_path / "empty.gb"
+    path.write_bytes(b"   \n  \n")
+    with pytest.raises(ValueError):
+        cogent3.load_seq(path)
+
+
+class _StorageOnlyParserStub:
+    accepts_converter = False
+    result_is_storage = True
+
+    @property
+    def loader(self):  # pragma: no cover - load_seq raises before reaching loader
+        msg = "loader must not be called when result_is_storage is True"
+        raise AssertionError(msg)
+
+
+def test_load_seq_storage_only_parser_raises(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        "cogent3._plugin.get_seq_format_parser_plugin",
+        lambda **_: _StorageOnlyParserStub(),
+    )
+    path = tmp_path / "x.fasta"
+    path.write_text("dummy")
+    with pytest.raises(ValueError):
+        cogent3.load_seq(path, moltype="dna")
