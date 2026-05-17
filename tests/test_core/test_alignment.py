@@ -63,11 +63,6 @@ def close_dbs(*objs):
         db.close()
 
 
-@pytest.fixture(scope="session")
-def tmp_path(tmpdir_factory):
-    return tmpdir_factory.mktemp("tmp_path")
-
-
 @pytest.fixture
 def seq1():
     return "ACTG"
@@ -6595,3 +6590,78 @@ def test_load_unaligned_glob(DATA_DIR):
     assert isinstance(seqcoll, c3_alignment.SequenceCollection)
     assert len(seqcoll.names) > 1
     assert not seqcoll.has_annotation_db()
+
+
+def test_load_unaligned_seqs_from_json(tmp_path):
+    data = {"a": "ACGT", "b": "TTTT"}
+    coll = c3_alignment.make_unaligned_seqs(data, moltype="dna")
+    path = tmp_path / "unaligned_from_json.json"
+    coll.write(str(path))
+    got = load_unaligned_seqs(path)
+    assert isinstance(got, c3_alignment.SequenceCollection)
+    assert got.to_dict() == data
+
+
+def test_load_aligned_seqs_from_json(tmp_path):
+    data = {"a": "ACGT", "b": "TT-T"}
+    aln = c3_alignment.make_aligned_seqs(data, moltype="dna")
+    path = tmp_path / "aligned_from_json.json"
+    aln.write(str(path))
+    got = load_aligned_seqs(path)
+    assert isinstance(got, c3_alignment.Alignment)
+    assert got.to_dict() == data
+
+
+def test_load_unaligned_seqs_no_format_raises(tmp_path):
+    # path with no suffix and no format_name should be rejected
+    path = tmp_path / "noext_unaligned_seqs"
+    path.write_text("irrelevant")
+    with pytest.raises(ValueError):
+        load_unaligned_seqs(path)
+
+
+class _StorageParserStub:
+    accepts_converter = False
+    result_is_storage = True
+
+    def __init__(self, storage) -> None:
+        self._storage = storage
+
+    def loader(self, *, path, **kwargs):  # noqa: ARG002
+        return self._storage
+
+
+def test_load_unaligned_seqs_result_is_storage_branch(monkeypatch, tmp_path):
+    mt = c3_moltype.get_moltype("dna")
+    storage = c3_seq_storage.SeqsData.from_seqs(
+        data={"a": "ACGT"},
+        alphabet=mt.most_degen_alphabet(),
+    )
+    stub = _StorageParserStub(storage)
+    monkeypatch.setattr(
+        "cogent3._plugin.get_seq_format_parser_plugin",
+        lambda **_: stub,
+    )
+    path = tmp_path / "unaligned_storage.fasta"
+    path.write_text("dummy")
+    got = load_unaligned_seqs(path, moltype="dna")
+    assert isinstance(got, c3_alignment.SequenceCollection)
+    assert got.names == ("a",)
+
+
+def test_load_aligned_seqs_result_is_storage_branch(monkeypatch, tmp_path):
+    mt = c3_moltype.get_moltype("dna")
+    storage = c3_seq_storage.AlignedSeqsData.from_seqs(
+        data={"a": "ACGT", "b": "TT-T"},
+        alphabet=mt.most_degen_alphabet(),
+    )
+    stub = _StorageParserStub(storage)
+    monkeypatch.setattr(
+        "cogent3._plugin.get_seq_format_parser_plugin",
+        lambda **_: stub,
+    )
+    path = tmp_path / "aligned_storage.fasta"
+    path.write_text("dummy")
+    got = load_aligned_seqs(path, moltype="dna")
+    assert isinstance(got, c3_alignment.Alignment)
+    assert got.names == ("a", "b")
