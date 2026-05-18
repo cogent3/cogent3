@@ -1,4 +1,40 @@
 
+<a id='changelog-2026.5.19a0'></a>
+# Changes in release "2026.5.19a0"
+
+This is a feature enhancement release.
+
+## API
+
+- added a `SequenceParserBase.accepts_converter` property. By default,
+  this returns False. The cogent3 iterative parsers (fasta and genbank)
+  are modified so its True. The top level sequence load_* functions
+  use this to conditionally inject a converter into the `parser_kw`
+  which directly converts plain text into the `numpy.uint8` consistent
+  with the moltypes most degenerate alphabet.
+- added `alphabet.bytes_to_array(dest=None)` optional keryword argument.
+  This takes the explicit destination bytes. The default behaviour
+  (takes only non-redundant source alphabet characters and maps to
+  ordered characters for conversion to numpy.uint8) is unchanged. This
+  new argument allows redundancy in the input / destination character
+  values. It's being used by the revised parser behaviour to streamline
+  ingesting sequence data from files.
+
+## Contributors
+
+- GavinHuttley
+
+## Enhancements
+
+- the fasta and genbank iterating sequence format parsers
+  use the new scinexus.io_util.iter_record_chunks streaming parser.
+  This reduces peak RAM while retaining speed.
+- improve generality of `load_seq` for json files, accepts all sequence classes
+- `alphabet.make_text_to_array_converter()` function, returns
+  a `bytes_to_array` instance that directly transforms sequence
+  text file contents into a `numpy.uint8` array. This avoids multiple
+  bytes translation calls, improving speed and reducing peak RAM.
+
 <a id='changelog-2026.5.14a0'></a>
 # Changes in release "2026.5.14a0"
 
