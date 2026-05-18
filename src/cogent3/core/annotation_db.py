@@ -2974,6 +2974,7 @@ class SqliteAnnotationDbLoader(AnnotationDbLoaderBase):
             ".gbk",
             ".gbff",
             ".json",
+            ".genbank",
             f".{ANNDB_SUFFIX_GENBANK}",
             f".{ANNDB_SUFFIX_GFF}",
             f".{ANNDB_SUFFIX_BASIC}",
@@ -3149,8 +3150,21 @@ def load_annotations(
 
     # Determine file suffix for format detection
     if format_name:
-        # Explicit format specified - map to suffix
-        suffix = format_name if format_name.startswith(".") else f".{format_name}"
+        # Map known format names to a canonical suffix the plugin recognises
+        _format_to_suffix = {
+            "gff": ".gff",
+            "gff3": ".gff",
+            "genbank": ".gb",
+            "json": ".json",
+        }
+        fmt = format_name.lower().lstrip(".")
+        if fmt not in _format_to_suffix:
+            msg = (
+                f"Unknown format_name {format_name!r}; "
+                f"expected one of {sorted(_format_to_suffix)}"
+            )
+            raise ValueError(msg)
+        suffix = _format_to_suffix[fmt]
     else:
         # Auto-detect from file suffix
         suffix, _ = get_format_suffixes(path)
