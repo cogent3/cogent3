@@ -70,6 +70,111 @@ def test_bytes2arr():
     assert (got == numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8)).all()
 
 
+def test_bytes2arr_dest_explicit_matches_default():
+    explicit = c3_alphabet.bytes_to_array(
+        b"TCAG", dtype=numpy.uint8, dest=bytes(bytearray(range(4)))
+    )
+    default = c3_alphabet.bytes_to_array(b"TCAG", dtype=numpy.uint8)
+    seq = b"AAGTA"
+    assert (explicit(seq) == default(seq)).all()
+
+
+def test_bytes2arr_dest_length_mismatch():
+    with pytest.raises(ValueError):
+        c3_alphabet.bytes_to_array(b"TCAG", dtype=numpy.uint8, dest=b"\x00\x01")
+
+
+def test_bytes2arr_dest_with_duplicate_src():
+    # collapse case variants onto the same indices
+    chars = b"tcag" + b"TCAG"
+    dest = bytes(bytearray(range(4))) * 2
+    b2a = c3_alphabet.bytes_to_array(chars, dtype=numpy.uint8, dest=dest)
+    got = b2a(b"AaCcGgTt")
+    expect = numpy.array([2, 2, 1, 1, 3, 3, 0, 0], dtype=numpy.uint8)
+    assert (got == expect).all()
+
+
+def test_bytes2arr_dest_with_delete():
+    chars = b"tcag" + b"TCAG"
+    dest = bytes(bytearray(range(4))) * 2
+    b2a = c3_alphabet.bytes_to_array(
+        chars, dtype=numpy.uint8, delete=b"-", dest=dest
+    )
+    got = b2a(b"A-aC-cG-g")
+    expect = numpy.array([2, 2, 1, 1, 3, 3], dtype=numpy.uint8)
+    assert (got == expect).all()
+
+
+def test_make_text_to_array_converter_basic():
+    alpha = c3_moltype.DNA.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha)
+    upper = conv(b"ACGT")
+    lower = conv(b"acgt")
+    assert (upper == lower).all()
+    assert (upper == alpha.to_indices(b"ACGT", validate=False)).all()
+
+
+def test_make_text_to_array_converter_strips_default_delete():
+    alpha = c3_moltype.DNA.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha)
+    got = conv(b" A\tC\n G\r123T")
+    expect = alpha.to_indices(b"ACGT", validate=False)
+    assert (got == expect).all()
+
+
+def test_make_text_to_array_converter_custom_delete():
+    alpha = c3_moltype.DNA.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha, delete=b"X")
+    got = conv(b"AXCXGXT")
+    expect = alpha.to_indices(b"ACGT", validate=False)
+    assert (got == expect).all()
+
+
+@pytest.mark.parametrize(
+    "moltype", [c3_moltype.DNA, c3_moltype.RNA, c3_moltype.PROTEIN]
+)
+def test_make_text_to_array_converter_handles_non_letter_chars(moltype):
+    # most-degen alphabets include gap/missing/stop chars that have no
+    # distinct case form, so case-folded variants must still map correctly
+    alpha = moltype.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha)
+    seq = alpha.as_bytes()
+    expect = alpha.to_indices(seq, validate=False)
+    assert (conv(seq) == expect).all()
+    assert (conv(seq.lower()) == expect).all()
+    assert (conv(seq.upper()) == expect).all()
+
+
+def test_make_text_to_array_converter_ascii_folds_lower_to_upper():
+    # ASCII alphabet contains both cases as distinct chars; the converter
+    # must fold lower-case input onto the upper-case index, matching the
+    # legacy uppercase-then-index behaviour
+    alpha = c3_moltype.ASCII.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha)
+    upper_idx = alpha.to_indices(b"ABC", validate=False)
+    assert (conv(b"abc") == upper_idx).all()
+    assert (conv(b"ABC") == upper_idx).all()
+
+
+def test_make_text_to_array_converter_returns_correct_dtype():
+    alpha = c3_moltype.DNA.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha)
+    assert conv(b"ACGT").dtype == alpha.dtype
+
+
+def test_make_text_to_array_converter_max_size_alphabet():
+    # BYTES alphabet has exactly 256 chars; the guard should not trip and
+    # construction should succeed at the boundary
+    alpha = c3_moltype.BYTES.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha, delete=b"")
+    assert isinstance(conv, c3_alphabet.bytes_to_array)
+
+
+def test_make_text_to_array_converter_oversize_alphabet_raises():
+    with pytest.raises(ValueError, match="exceeds 256"):
+        c3_alphabet.make_text_to_array_converter("a" * 300)
+
+
 def test_arr2bytes():
     a2b = c3_alphabet.array_to_bytes(b"TCAG")
     got = a2b(numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))

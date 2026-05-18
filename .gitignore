@@ -66,3 +66,7 @@
 !tests/data/*.json
 !tests/data/*.psl
 !tests/data/*.sff
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

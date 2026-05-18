@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 import itertools
 import json
-import string
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, Literal, Self, TypeVar, cast, overload
 
@@ -258,26 +257,76 @@ class bytes_to_array:
         chars: bytes,
         dtype: type[numpy.unsignedinteger],
         delete: bytes | None = None,
+        dest: bytes | None = None,
     ) -> None:
         """
         Parameters
         ----------
         chars
-            unique series of characters
+            series of characters in the source alphabet
         delete
             characters to be deleted from the result
+        dest
+            destination bytes that ``chars`` are mapped to. If None (the
+            default), uses ``bytes(bytearray(range(len(chars))))`` and requires
+            ``chars`` to be unique. If provided, must have the same length as
+            ``chars``; duplicates in ``chars`` are permitted so callers can
+            collapse multiple source characters (eg case variants) onto the
+            same index.
         """
-        # we want a bytes translation map
+        if dest is None:
+            dest = bytes(bytearray(range(len(chars))))
+            allow_duplicates = False
+        else:
+            if len(dest) != len(chars):
+                msg = f"length of dest={len(dest)} != length of chars {len(chars)}"
+                raise ValueError(msg)
+            allow_duplicates = True
         self._converter = convert_alphabet(
             chars,
-            bytes(bytearray(range(len(chars)))),
+            dest,
             delete=delete,
+            allow_duplicates=allow_duplicates,
         )
         self.dtype = dtype
 
     def __call__(self, seq: bytes) -> NumpyIntArrayType:
         b = self._converter(seq)
         return numpy.array(memoryview(b), dtype=self.dtype)
+
+
+def make_text_to_array_converter(
+    alphabet: CharAlphabet[Any],
+    delete: bytes = b"\n\r\t 0123456789",
+) -> bytes_to_array:
+    """make a converter from text bytes to alphabet indices.
+
+    Parameters
+    ----------
+    alphabet
+        the target character alphabet; must have at most 256 elements
+    delete
+        bytes stripped from the input before mapping
+
+    Notes
+    -----
+    The returned converter performs case folding, deletion, and char-to-index
+    mapping in a single ``bytes.translate`` call. Indices are packed as single
+    bytes in the translation table, which is why ``len(alphabet)`` cannot
+    exceed 256.
+    """
+    # indices are packed into a bytes object below, so each index must fit
+    # in a single byte
+    if len(alphabet) > 256:
+        msg = (
+            f"alphabet size {len(alphabet)} exceeds 256; cannot represent "
+            "indices in a byte-level translation table"
+        )
+        raise ValueError(msg)
+    alpha_bytes = alphabet.as_bytes()
+    chars = alpha_bytes.lower() + alpha_bytes.upper()
+    dest = bytes(bytearray(range(len(alphabet)))) * 2
+    return bytes_to_array(chars, dtype=alphabet.dtype, delete=delete, dest=dest)
 
 
 class array_to_bytes:
@@ -1007,30 +1056,6 @@ def kmer_indices_to_seq(
             result[index + k - 1] = coord[-1]
 
     return result
-
-
-class alphabet_converter:
-    """maps record bytes to an alphabet-indexed ndarray.
-
-    Notes
-    -----
-    Uppercases the input bytes, strips configured characters, then uses the
-    supplied alphabet to map the result to uint8 indices.
-    """
-
-    def __init__(
-        self,
-        alphabet: CharAlphabet[Any],
-        delete: bytes = b"\n\r\t 0123456789",
-    ) -> None:
-        lc = string.ascii_lowercase.encode("utf8")
-        self._translate = b"".maketrans(lc, lc.upper())
-        self._delete = delete
-        self._alphabet = alphabet
-
-    def __call__(self, text: bytes) -> NumpyIntArrayType:
-        cleaned = text.translate(self._translate, delete=self._delete)
-        return self._alphabet.to_indices(cleaned, validate=False)
 
 
 class KmerAlphabetABC(ABC, Generic[TStrOrBytes]):
