@@ -12,7 +12,7 @@ This is a feature enhancement release.
   use this to conditionally inject a converter into the `parser_kw`
   which directly converts plain text into the `numpy.uint8` consistent
   with the moltypes most degenerate alphabet.
-- added `alphabet.bytes_to_array(dest=None)` optional keryword argument.
+- added `alphabet.bytes_to_array(dest=None)` as an optional keyword argument.
   This takes the explicit destination bytes. The default behaviour
   (takes only non-redundant source alphabet characters and maps to
   ordered characters for conversion to numpy.uint8) is unchanged. This
