@@ -137,6 +137,16 @@ filterwarnings = [
 [tool.uv]
 reinstall-package = ["cogent3"]
 
+[tool.uv.pip]
+exclude-newer = "7 days"
+
+[tool.uv.pip.exclude-newer-package]
+# but we allow other cogent3 packages to be more recent
+scinexus = false
+cogent3-h5seqs = false
+citeable = false
+piqtree = false
+
 [tool.scriv]
 format = "md"
 categories = [
