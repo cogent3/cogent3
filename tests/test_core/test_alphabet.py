@@ -162,6 +162,19 @@ def test_make_text_to_array_converter_returns_correct_dtype():
     assert conv(b"ACGT").dtype == alpha.dtype
 
 
+def test_make_text_to_array_converter_max_size_alphabet():
+    # BYTES alphabet has exactly 256 chars; the guard should not trip and
+    # construction should succeed at the boundary
+    alpha = c3_moltype.BYTES.most_degen_alphabet()
+    conv = c3_alphabet.make_text_to_array_converter(alpha, delete=b"")
+    assert isinstance(conv, c3_alphabet.bytes_to_array)
+
+
+def test_make_text_to_array_converter_oversize_alphabet_raises():
+    with pytest.raises(ValueError, match="exceeds 256"):
+        c3_alphabet.make_text_to_array_converter("a" * 300)
+
+
 def test_arr2bytes():
     a2b = c3_alphabet.array_to_bytes(b"TCAG")
     got = a2b(numpy.array([2, 2, 3, 0, 2], dtype=numpy.uint8))

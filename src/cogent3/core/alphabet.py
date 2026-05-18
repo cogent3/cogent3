@@ -299,9 +299,30 @@ def make_text_to_array_converter(
     alphabet: CharAlphabet[Any],
     delete: bytes = b"\n\r\t 0123456789",
 ) -> bytes_to_array:
-    """returns a bytes_to_array that strips ``delete`` characters, folds case,
-    and maps alphabet characters to their indices in a single translate pass.
+    """make a converter from text bytes to alphabet indices.
+
+    Parameters
+    ----------
+    alphabet
+        the target character alphabet; must have at most 256 elements
+    delete
+        bytes stripped from the input before mapping
+
+    Notes
+    -----
+    The returned converter performs case folding, deletion, and char-to-index
+    mapping in a single ``bytes.translate`` call. Indices are packed as single
+    bytes in the translation table, which is why ``len(alphabet)`` cannot
+    exceed 256.
     """
+    # indices are packed into a bytes object below, so each index must fit
+    # in a single byte
+    if len(alphabet) > 256:
+        msg = (
+            f"alphabet size {len(alphabet)} exceeds 256; cannot represent "
+            "indices in a byte-level translation table"
+        )
+        raise ValueError(msg)
     alpha_bytes = alphabet.as_bytes()
     chars = alpha_bytes.lower() + alpha_bytes.upper()
     dest = bytes(bytearray(range(len(alphabet)))) * 2
