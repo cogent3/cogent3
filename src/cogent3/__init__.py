@@ -314,11 +314,13 @@ def load_seq(
         unaligned_seqs=True,
     )
     if parser.accepts_converter:
-        from cogent3.core.alphabet import alphabet_converter
+        from cogent3.core.alphabet import make_text_to_array_converter
         from cogent3.core.moltype import get_moltype
 
         mt = get_moltype(moltype)
-        parser_kw.setdefault("converter", alphabet_converter(mt.most_degen_alphabet()))
+        parser_kw.setdefault(
+            "converter", make_text_to_array_converter(mt.most_degen_alphabet())
+        )
 
     if is_genbank(format_name or file_suffix):
         name, seq, db = _load_genbank_seq(
@@ -428,11 +430,13 @@ def load_unaligned_seqs(
     )
     parser_kw = parser_kw or {}
     if parser.accepts_converter:
-        from cogent3.core.alphabet import alphabet_converter
+        from cogent3.core.alphabet import make_text_to_array_converter
         from cogent3.core.moltype import get_moltype
 
         mt = get_moltype(moltype)
-        parser_kw.setdefault("converter", alphabet_converter(mt.most_degen_alphabet()))
+        parser_kw.setdefault(
+            "converter", make_text_to_array_converter(mt.most_degen_alphabet())
+        )
     if parser.result_is_storage:
         data = parser.loader(path=filename, **parser_kw)
     else:
@@ -499,11 +503,13 @@ def load_aligned_seqs(
     )
     parser_kw = parser_kw or {}
     if parser.accepts_converter:
-        from cogent3.core.alphabet import alphabet_converter
+        from cogent3.core.alphabet import make_text_to_array_converter
         from cogent3.core.moltype import get_moltype
 
         mt = get_moltype(moltype)
-        parser_kw.setdefault("converter", alphabet_converter(mt.most_degen_alphabet()))
+        parser_kw.setdefault(
+            "converter", make_text_to_array_converter(mt.most_degen_alphabet())
+        )
     if parser.result_is_storage:
         data = parser.loader(path=filename, **parser_kw)
     else:
