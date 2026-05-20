@@ -2335,3 +2335,18 @@ def test_chunked_load_preserves_forward_parent_references(
         c["name"] for c in chunked.get_feature_children(name="Gene:WBGene00000138")
     )
     assert chunked_children == expected_children
+
+def test_load_annotations_format_name(tmp_path, DATA_DIR):
+    path = DATA_DIR / "annotated_seq.gb"
+    outpath = tmp_path / "annotated_seq.gb"
+    outpath.write_text(path.read_text())
+    db = load_annotations(path=outpath, format_name="genbank")
+    assert isinstance(db, GenbankAnnotationDb)
+
+
+def test_load_annotations_unknown_format_name(tmp_path, DATA_DIR):
+    path = DATA_DIR / "annotated_seq.gb"
+    outpath = tmp_path / "annotated_seq.gb"
+    outpath.write_text(path.read_text())
+    with pytest.raises(ValueError):
+        load_annotations(path=outpath, format_name="bogus")
