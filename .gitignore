@@ -1,4 +1,5 @@
 *
+!*/
 !.coveragerc
 !.github/ISSUE_TEMPLATE/*.md
 !.github/**/*.yml
@@ -15,6 +16,7 @@
 !changelog.md
 !doc/**/*.rst
 !doc/**/*.js
+doc/_build/*
 !doc/Makefile
 !doc/cogent3.bib
 !doc/conf.py
@@ -68,5 +70,7 @@
 !tests/data/*.sff
 
 
-#Ignore vscode AI rules
+#Ignore AI rules
 .github/instructions/codacy.instructions.md
+.claude/settings.local.json
+working/*
