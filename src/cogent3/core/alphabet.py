@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 import functools
 import itertools
 import json
@@ -327,6 +328,57 @@ def make_text_to_array_converter(
     chars = alpha_bytes.lower() + alpha_bytes.upper()
     dest = bytes(bytearray(range(len(alphabet)))) * 2
     return bytes_to_array(chars, dtype=alphabet.dtype, delete=delete, dest=dest)
+
+
+class PhredEncoding(enum.Enum):
+    """fastq quality score encoding schemes"""
+
+    PHRED_33 = "phred+33"
+    PHRED_64 = "phred+64"
+
+
+def make_qual_converter(
+    scoring_scheme: PhredEncoding | str = PhredEncoding.PHRED_33,
+) -> bytes_to_array:
+    """make a converter from fastq quality ASCII bytes to numpy uint8 scores.
+
+    Parameters
+    ----------
+    scoring_scheme
+        the fastq quality encoding scheme. Either a ``PhredEncoding`` member or
+        one of the string values ``"phred+33"`` or ``"phred+64"``
+        (case insensitive).
+
+    Raises
+    ------
+    NotImplementedError
+        if ``scoring_scheme`` is not a supported scheme.
+
+    Notes
+    -----
+    The returned converter maps the ASCII range valid for the encoding onto
+    consecutive numpy.uint8 quality scores starting at zero. Pass it as the
+    qual_converter argument to cogent3.parse.fastq.iter_fastq_records to
+    obtain quality scores as numpy arrays while iterating fastq records.
+    """
+    try:
+        scheme = PhredEncoding(
+            scoring_scheme.lower()
+            if isinstance(scoring_scheme, str)
+            else scoring_scheme
+        )
+    except ValueError as e:
+        supported = ", ".join(f"{m.value!r}" for m in PhredEncoding)
+        msg = (
+            f"unsupported scoring scheme {scoring_scheme!r}; "
+            f"supported schemes are {supported}"
+        )
+        raise NotImplementedError(msg) from e
+
+    start = 33 if scheme is PhredEncoding.PHRED_33 else 64
+    chars = bytes(range(start, 127))
+    dest = bytes(range(len(chars)))
+    return bytes_to_array(chars=chars, dtype=numpy.uint8, dest=dest)
 
 
 class array_to_bytes:

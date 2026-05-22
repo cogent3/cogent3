@@ -97,9 +97,7 @@ def test_bytes2arr_dest_with_duplicate_src():
 def test_bytes2arr_dest_with_delete():
     chars = b"tcag" + b"TCAG"
     dest = bytes(bytearray(range(4))) * 2
-    b2a = c3_alphabet.bytes_to_array(
-        chars, dtype=numpy.uint8, delete=b"-", dest=dest
-    )
+    b2a = c3_alphabet.bytes_to_array(chars, dtype=numpy.uint8, delete=b"-", dest=dest)
     got = b2a(b"A-aC-cG-g")
     expect = numpy.array([2, 2, 1, 1, 3, 3], dtype=numpy.uint8)
     assert (got == expect).all()
@@ -173,6 +171,57 @@ def test_make_text_to_array_converter_max_size_alphabet():
 def test_make_text_to_array_converter_oversize_alphabet_raises():
     with pytest.raises(ValueError, match="exceeds 256"):
         c3_alphabet.make_text_to_array_converter("a" * 300)
+
+
+def _phred_scores(chars: str, offset: int) -> numpy.ndarray:
+    return numpy.array([ord(c) - offset for c in chars], dtype=numpy.uint8)
+
+
+@pytest.mark.parametrize(
+    ("scheme", "chars", "offset"),
+    [
+        (c3_alphabet.PhredEncoding.PHRED_33, "!I~", 33),
+        (c3_alphabet.PhredEncoding.PHRED_64, "@`~", 64),
+    ],
+)
+def test_make_qual_converter_scores(scheme, chars, offset):
+    conv = c3_alphabet.make_qual_converter(scheme)
+    got = conv(chars.encode("utf8"))
+    assert (got == _phred_scores(chars, offset)).all()
+    assert got.dtype == numpy.uint8
+
+
+def test_make_qual_converter_default_is_phred33():
+    default = c3_alphabet.make_qual_converter()
+    explicit = c3_alphabet.make_qual_converter(c3_alphabet.PhredEncoding.PHRED_33)
+    seq = b"!I~"
+    assert (default(seq) == explicit(seq)).all()
+
+
+@pytest.mark.parametrize(
+    ("text", "expected_member"),
+    [
+        ("phred+33", c3_alphabet.PhredEncoding.PHRED_33),
+        ("PHRED+33", c3_alphabet.PhredEncoding.PHRED_33),
+        ("Phred+64", c3_alphabet.PhredEncoding.PHRED_64),
+        ("phred+64", c3_alphabet.PhredEncoding.PHRED_64),
+    ],
+)
+def test_make_qual_converter_string_argument(text, expected_member):
+    by_str = c3_alphabet.make_qual_converter(text)
+    by_enum = c3_alphabet.make_qual_converter(expected_member)
+    seq = b"@AHI"
+    assert (by_str(seq) == by_enum(seq)).all()
+
+
+def test_make_qual_converter_invalid_string_raises():
+    with pytest.raises(NotImplementedError):
+        c3_alphabet.make_qual_converter("solexa")
+
+
+def test_make_qual_converter_invalid_type_raises():
+    with pytest.raises(NotImplementedError):
+        c3_alphabet.make_qual_converter(42)  # type: ignore[arg-type]
 
 
 def test_arr2bytes():

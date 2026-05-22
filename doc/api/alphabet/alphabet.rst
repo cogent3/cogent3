@@ -10,3 +10,11 @@
     CharAlphabet
     KmerAlphabet
     SenseCodonAlphabet
+    PhredEncoding
+
+.. autosummary::
+    :toctree: classes
+
+    bytes_to_array
+    make_qual_converter
+    make_text_to_array_converter
