@@ -2336,6 +2336,7 @@ def test_chunked_load_preserves_forward_parent_references(
     )
     assert chunked_children == expected_children
 
+
 def test_load_annotations_format_name(tmp_path, DATA_DIR):
     path = DATA_DIR / "annotated_seq.gb"
     outpath = tmp_path / "annotated_seq.gb"

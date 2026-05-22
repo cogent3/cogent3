@@ -86,3 +86,17 @@ We can also convert the sequence into all possible k-mers.
 .. jupyter-execute::
 
     dinucs.to_indices(seq, independent_kmer=False)
+
+Quality score converters
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+``make_qual_converter`` builds a callable that maps a fastq quality string (as ``bytes``) into a ``numpy.uint8`` array of Phred scores. Both Phred+33 and Phred+64 encodings are supported.
+
+.. jupyter-execute::
+
+    from cogent3.core.alphabet import make_qual_converter
+
+    conv = make_qual_converter("phred+33")
+    conv(b"!I~")
+
+See :ref:`load_fastq` for an example combining this with ``iter_fastq_records``.
