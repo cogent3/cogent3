@@ -61,6 +61,34 @@ We then use the parser as before but provide our custom converter.
     label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa", converter=converter))[0]
     label, seq[:10]
 
+.. _load_fastq:
+
+Directly use the fastq format parser to load reads with quality scores
+----------------------------------------------------------------------
+
+The ``iter_fastq_records()`` generator yields ``(label, sequence, quality)`` tuples for each record in a fastq file. By default both the sequence and quality strings are decoded to ``str``.
+
+.. jupyter-execute::
+
+    from cogent3.parse.fastq import iter_fastq_records
+
+    label, seq, qual = next(iter(iter_fastq_records("data/fastq.txt")))
+    label, seq, qual
+
+For numerical work, pass a converter built with ``make_qual_converter`` to get the quality line as a ``numpy.uint8`` array of Phred scores. The scoring scheme can be selected by ``PhredEncoding`` member or by name (``"phred+33"`` or ``"phred+64"``, case insensitive).
+
+.. jupyter-execute::
+
+    from cogent3.core.alphabet import PhredEncoding, make_qual_converter
+
+    qual_converter = make_qual_converter(PhredEncoding.PHRED_33)
+    label, seq, qual = next(
+        iter(iter_fastq_records("data/fastq.txt", qual_converter=qual_converter))
+    )
+    label, seq, qual
+
+A custom ``converter`` can be supplied in the same way to return the sequence as ``bytes`` or as a ``numpy`` array.
+
 Directly use the genbank format parser to load a sequence and annotations
 -------------------------------------------------------------------------
 
