@@ -75,7 +75,7 @@ The ``iter_fastq_records()`` generator yields ``(label, sequence, quality)`` tup
     label, seq, qual = next(iter(iter_fastq_records("data/fastq.txt")))
     label, seq, qual
 
-For numerical work, pass a converter built with ``make_qual_converter`` to get the quality line as a ``numpy.uint8`` array of Phred scores. The scoring scheme can be selected by ``PhredEncoding`` member or by name (``"phred+33"`` or ``"phred+64"``, case insensitive).
+For numerical work, pass a converter built with ``make_qual_converter`` to get the quality line as a ``numpy.uint8`` array of Phred scores. The scoring scheme can be selected by a ``PhredEncoding`` member or by name (``"phred+33"`` or ``"phred+64"``, case insensitive).
 
 .. jupyter-execute::
 
