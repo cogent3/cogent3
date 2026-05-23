@@ -225,3 +225,16 @@ def test_iter_fasta_records_compressed_file_uri(fa_gz):
 def test_iter_fasta_records_invalid():
     with pytest.raises(TypeError):
         list(iter_fasta_records(numpy.array([">abcd", "ACGG"])))
+
+
+def test_iter_fasta_records_keyword_only(DATA_DIR):
+    path = DATA_DIR / "brca1.fasta"
+    with pytest.raises(TypeError):
+        list(iter_fasta_records(path, None))
+
+
+@pytest.mark.parametrize("chunk_size", [1_000, 10_000, None])
+def test_iter_fasta_records_chunk_size(DATA_DIR, chunk_size):
+    path = DATA_DIR / "brca1.fasta"
+    got = dict(iter_fasta_records(path, chunk_size=chunk_size))
+    assert len(got) == 55

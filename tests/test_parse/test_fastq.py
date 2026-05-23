@@ -102,3 +102,20 @@ def test_iter_fastq_records_bad_separator_raises(tmp_path):
 def test_iter_fastq_records_empty_file(tmp_path):
     path = _write_fastq(tmp_path, "")
     assert list(iter_fastq_records(path)) == []
+
+
+def test_iter_fastq_records_keyword_only(DATA_DIR):
+    path = DATA_DIR / "fastq.txt"
+    with pytest.raises(TypeError):
+        list(iter_fastq_records(path, None))
+
+
+@pytest.mark.parametrize("chunk_size", [100, 10_000, None])
+def test_iter_fastq_records_chunk_size(DATA_DIR, chunk_size):
+    path = DATA_DIR / "fastq.txt"
+    records = list(iter_fastq_records(path, chunk_size=chunk_size))
+    assert len(records) == 5
+    labels, seqs, quals = zip(*records)
+    assert list(labels) == EXPECTED_LABELS
+    assert list(seqs) == EXPECTED_SEQS
+    assert list(quals) == EXPECTED_QUALS

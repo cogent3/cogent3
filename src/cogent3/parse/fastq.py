@@ -39,6 +39,7 @@ def iter_fastq_records(
     *,
     converter: OptConverterType = None,
     qual_converter: OptConverterType = None,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterable[tuple[str, OutTypes, OutTypes]]:
     """yields (label, sequence, quality) tuples from a fastq source.
 
@@ -52,6 +53,8 @@ def iter_fastq_records(
     qual_converter
         applied to the quality line as bytes. If None, the line is decoded
         to str.
+    chunk_size
+        size in bytes of chunks read from the file path.
 
     Returns
     -------
@@ -67,5 +70,5 @@ def iter_fastq_records(
     """
     seq_conv = converter if converter is not None else bytes.decode
     qual_conv = qual_converter if qual_converter is not None else bytes.decode
-    for block in iter_line_blocks(data, num_lines=4):
+    for block in iter_line_blocks(data, num_lines=4, chunk_size=chunk_size):
         yield _process_fastq_block(block, seq_conv, qual_conv)

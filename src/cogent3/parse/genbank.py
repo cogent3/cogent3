@@ -583,8 +583,10 @@ def default_seq_converter(data: bytes) -> str:
 @functools.singledispatch
 def iter_genbank_records(
     data,
+    *,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
     """generator returning sequence labels and sequences converted bytes from a fasta file
 
@@ -599,12 +601,15 @@ def iter_genbank_records(
     convert_features
         a callable that converts the feature block of the genbank record, passed as
         a string
+    chunk_size
+        size in bytes of chunks read from a file path. Ignored for in-memory
+        inputs.
 
     Returns
     -------
     the sequence label as a string and the sequence as transformed by converter
     """
-    msg = f"iter_fasta_records not implemented for {type(data)}"
+    msg = f"iter_genbank_records not implemented for {type(data)}"
     raise TypeError(msg)
 
 
@@ -642,8 +647,10 @@ def _iter_genbank_records_from_path(
 @iter_genbank_records.register
 def _(
     data: bytes,
+    *,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
     for record in data.split(b"\n//"):
         result = _process_genbank_record(record, converter, convert_features)
@@ -654,6 +661,7 @@ def _(
 @iter_genbank_records.register
 def _(
     data: str,
+    *,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
     chunk_size: int | None = 5_000_000,
@@ -666,6 +674,7 @@ def _(
 @iter_genbank_records.register
 def _(
     data: pathlib.Path,
+    *,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
     chunk_size: int | None = 5_000_000,
@@ -678,8 +687,10 @@ def _(
 @iter_genbank_records.register
 def _(
     data: io.TextIOBase,
+    *,
     converter: SeqConverterType = default_seq_converter,
     convert_features: OptFeatureConverterType = default_parse_metadata,
+    chunk_size: int | None = 5_000_000,
 ) -> Iterator[tuple[str, OutTypes, Any]]:
     data: bytes = data.read().encode("utf8")
 
@@ -687,6 +698,7 @@ def _(
         data,
         converter=converter,
         convert_features=convert_features,
+        chunk_size=chunk_size,
     )
 
 
@@ -719,7 +731,9 @@ def minimal_parser(
     primitives. (The default feature parser creates many more keys from the
     genbank record metadata.)
     """
-    for locus, seq, features in iter_genbank_records(data, converter, convert_features):
+    for locus, seq, features in iter_genbank_records(
+        data, converter=converter, convert_features=convert_features
+    ):
         if isinstance(features, str):
             features = {"features": features}
         yield {"locus": locus, "sequence": seq, **features}
