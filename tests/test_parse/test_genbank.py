@@ -612,6 +612,20 @@ def test_iter_genbank_records_invalid_input(gb_rec):
         list(genbank.iter_genbank_records(data))
 
 
+def test_iter_genbank_records_keyword_only(gb_rec):
+    with pytest.raises(TypeError):
+        list(genbank.iter_genbank_records(gb_rec, genbank.default_seq_converter))
+
+
+@pytest.mark.parametrize("chunk_size", [1_000, 10_000, None])
+def test_iter_genbank_records_chunk_size(gb_rec, chunk_size):
+    name, seq, _ = next(
+        iter(genbank.iter_genbank_records(gb_rec, chunk_size=chunk_size)),
+    )
+    assert name == "AE017341"
+    assert len(seq) == 6201
+
+
 @pytest.mark.parametrize("as_string", [True, False])
 def test_default_parse_metadata(gb_rec, as_string):
     *_, features = next(

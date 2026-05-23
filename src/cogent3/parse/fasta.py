@@ -231,8 +231,10 @@ class minimal_converter:
 @singledispatch
 def iter_fasta_records(
     data,
+    *,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
+    chunk_size: int | None = 5_000_000,
 ) -> typing.Iterable[tuple[str, OutTypes]]:
     """generator returns labels and sequences converted from a fasta file
 
@@ -248,6 +250,9 @@ def iter_fasta_records(
     label_to_name
         a callable that takes the sequence label as input and returns a new label.
         Defaults to the label itself.
+    chunk_size
+        size in bytes of chunks read from a file path. Ignored for in-memory
+        inputs.
 
     Returns
     -------
@@ -290,8 +295,10 @@ def _iter_fasta_records_from_path(
 @iter_fasta_records.register
 def _(
     data: bytes,
+    *,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
+    chunk_size: int | None = 5_000_000,
 ) -> typing.Iterable[tuple[str, OutTypes]]:
     if converter is None:
         converter = minimal_converter()
@@ -304,6 +311,7 @@ def _(
 @iter_fasta_records.register
 def _(
     data: str,
+    *,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
     chunk_size: int | None = 5_000_000,
@@ -319,6 +327,7 @@ def _(
 @iter_fasta_records.register
 def _(
     data: pathlib.Path,
+    *,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
     chunk_size: int | None = 5_000_000,
@@ -329,15 +338,26 @@ def _(
 @iter_fasta_records.register
 def _(
     data: io.TextIOWrapper,
+    *,
     converter: OptConverterType = None,
     label_to_name: RenamerType = str,
+    chunk_size: int | None = 5_000_000,
 ):
     read_data: bytes = data.read().encode("utf8")
     return iter_fasta_records(
-        read_data, converter=converter, label_to_name=label_to_name
+        read_data,
+        converter=converter,
+        label_to_name=label_to_name,
+        chunk_size=chunk_size,
     )
 
 
 @iter_fasta_records.register
-def _(data: list, converter: OptConverterType = None, label_to_name: RenamerType = str):
+def _(
+    data: list,
+    *,
+    converter: OptConverterType = None,
+    label_to_name: RenamerType = str,
+    chunk_size: int | None = 5_000_000,
+):
     return MinimalFastaParser(data, strict=False, label_to_name=label_to_name)
