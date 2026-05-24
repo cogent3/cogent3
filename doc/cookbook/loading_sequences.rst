@@ -31,7 +31,7 @@ In this case, the filename suffix is used to infer the data format.
 Directly use the fasta format parser to load a sequence
 -------------------------------------------------------
 
-The ``cogent3`` parsers return standard Python data types. The ``iter_genbank_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
+The ``cogent3`` parsers return standard Python data types. The ``iter_fasta_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
 
 .. jupyter-execute::
 
@@ -63,6 +63,20 @@ We then use the parser as before but provide our custom converter.
 
 .. _load_fastq:
 
+Directly use the genbank format parser to load a sequence and annotations
+-------------------------------------------------------------------------
+
+The ``cogent3`` parsers return standard Python data types. The ``iter_genbank_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
+
+.. jupyter-execute::
+
+    from cogent3.parse.genbank import iter_genbank_records
+
+    label, seq, anns = list(iter_genbank_records("data/mycoplasma-genitalium.gb"))[0]
+    label, seq[:10], anns.keys()
+
+As the output indicates, variable ``anns`` is a dictionary. The features in the GenBank feature table are available as a list under the ``"features"`` key. (See :ref:`getting GenBank features as primitives <genbank-features>`.)
+
 Directly use the fastq format parser to load reads with quality scores
 ----------------------------------------------------------------------
 
@@ -72,10 +86,10 @@ The ``iter_fastq_records()`` generator yields ``(label, sequence, quality)`` tup
 
     from cogent3.parse.fastq import iter_fastq_records
 
-    label, seq, qual = next(iter(iter_fastq_records("data/fastq.txt")))
-    label, seq, qual
+    for label, seq, qual in iter_fastq_records("data/fastq.txt"):
+        ...  # do your work here
 
-For numerical work, pass a converter built with ``make_qual_converter`` to get the quality line as a ``numpy.uint8`` array of Phred scores. The scoring scheme can be selected by a ``PhredEncoding`` member or by name (``"phred+33"`` or ``"phred+64"``, case insensitive).
+To get a transformation of read quality into Phred scores, pass a converter built with ``make_qual_converter`` to get quality as a ``numpy.uint8`` array. The scoring scheme can be selected by a ``PhredEncoding`` member or by name (``"phred+33"`` or ``"phred+64"``, case insensitive).
 
 .. jupyter-execute::
 
@@ -87,40 +101,12 @@ For numerical work, pass a converter built with ``make_qual_converter`` to get t
     )
     label, seq, qual
 
-A custom ``converter`` can be supplied in the same way to return the sequence as ``bytes`` or as a ``numpy`` array.
-
-Directly use the genbank format parser to load a sequence and annotations
--------------------------------------------------------------------------
-
-The ``cogent3`` parsers return standard Python data types. The ``iter_fasta_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
-
-.. jupyter-execute::
-
-    from cogent3.parse.genbank import iter_genbank_records
-
-    label, seq, anns = list(iter_genbank_records("data/mycoplasma-genitalium.gb"))[0]
-    label, seq[:10], anns.keys()
-
-As the output indicates, variable ``anns`` is a dictionary. The features in the GenBank feature table are available as a list under the ``"features"`` key. (See :ref:`getting GenBank features as primitives <genbank-features>`.)
+.. note:: As with the fasta and genbank iterative parsers, a ``converter`` argument exists for providing a custom transformer to be applied to the sequence data too.
 
 .. _load-seqs:
 
 Loading sequence collections from a file or url
 -----------------------------------------------
-
-.. author, Gavin Huttley, Tony Walters, Tom Elliott
-
-Directly use the fasta format parser to load sequences
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The ``cogent3`` parsers return standard Python data types. The ``iter_genbank_records()`` is a generator, so it yields one record at a time. 
-
-.. jupyter-execute::
-
-    from cogent3.parse.fasta import iter_fasta_records
-
-    for label, seq in iter_fasta_records("data/long_testseqs.fasta"):
-        print(label, seq[:10])
 
 Loading aligned sequences
 ^^^^^^^^^^^^^^^^^^^^^^^^^
