@@ -12,8 +12,8 @@ import tempfile
 import click
 import nbformat
 from nbconvert.preprocessors import CellExecutionError, ExecutePreprocessor
+from scinexus import define_app
 
-from cogent3.app.composable import define_app
 from cogent3.util.io import atomic_write
 
 DATA_DIR = pathlib.Path(__file__).parent / "data"
