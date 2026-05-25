@@ -115,7 +115,7 @@ Correctly attributing the authors of algorithms and software is a requirement of
     :hide-code:
 
     from citeable import Software
-    from cogent3.app.composable import define_app
+    from scinexus import define_app
     from cogent3.app.typing import AlignedSeqsType
 
     my_cite = Software(
