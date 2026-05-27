@@ -403,13 +403,16 @@ def test_parallel_protein(stat):
     assert_allclose(got.array, serial.array)
 
 
-def test_par_kw_max_workers(alignment):
+@pytest.mark.parametrize("max_workers", [2, 20_000])
+def test_par_kw_max_workers(alignment, max_workers):
     """par_kw max_workers is accepted without error"""
+    # larger than num threads should be silently
+    # reduced to num threads
     got = c3_coevo.coevolution_matrix(
         alignment=alignment,
         stat="nmi",
         parallel=True,
-        par_kw={"max_workers": 2},
+        par_kw={"max_workers": max_workers},
         show_progress=False,
     )
     serial = c3_coevo.coevolution_matrix(

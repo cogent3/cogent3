@@ -869,6 +869,8 @@ def coevolution_matrix(
     prev_threads = None
     if max_workers is not None and parallel:
         prev_threads = numba.get_num_threads()
+        # don't exceed available threads
+        max_workers = min(max_workers, numba.get_num_threads())
         numba.set_num_threads(max_workers)
 
     try:
