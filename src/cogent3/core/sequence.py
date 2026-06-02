@@ -1129,6 +1129,7 @@ class Sequence(AnnotatableMixin):
         start: int | None = None,
         stop: int | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
         **kwargs: Any,
     ) -> Iterator[Feature[Sequence]]:
         """yields Feature instances
@@ -1142,6 +1143,9 @@ class Sequence(AnnotatableMixin):
         start, stop
             start, stop positions to search between, relative to offset
             of this sequence. If not provided, entire span of sequence is used.
+        limit
+            maximum number of features to yield. If None, all matching
+            features are returned. Must be positive.
         kwargs
             keyword arguments passed to annotation_db.get_features_matching()
 
@@ -1215,7 +1219,7 @@ class Sequence(AnnotatableMixin):
         # To piggy-back on that method we need to convert our feature spans
         # into the current orientation. HOWEVER, we also have the reversed
         # flag which comes back from the db
-        kwargs |= {"allow_partial": allow_partial}
+        kwargs |= {"allow_partial": allow_partial, "limit": limit}
         for feature in self.annotation_db.get_features_matching(
             seqid=parent_id,
             name=name,

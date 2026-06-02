@@ -1099,3 +1099,99 @@ def test_get_feature_seqs_offset_minus_strand(mk_cls):
     got = got if mk_cls == c3_alignment.make_unaligned_seqs else got.get_seq("s1")
     assert str(got) == expect
     close_dbs(coll)
+
+
+@pytest.fixture
+def coll_with_many_features():
+    data = {
+        "s1": "AAAATTTTGGGGCCCC",
+        "s2": "AAAATTTTGGGGCCCC",
+    }
+    coll = c3_alignment.make_unaligned_seqs(data, moltype="dna")
+    for seqid in ("s1", "s2"):
+        for i in range(3):
+            coll.annotation_db.add_feature(
+                seqid=seqid,
+                biotype="exon",
+                name=f"{seqid}_exon{i}",
+                spans=[(i * 4, i * 4 + 3)],
+                strand="+",
+            )
+    yield coll
+    close_dbs(coll)
+
+
+@pytest.mark.parametrize("limit", [1, 3, 5, 6, 100])
+def test_collection_get_features_limit(coll_with_many_features, limit):
+    coll = coll_with_many_features
+    got = list(coll.get_features(biotype="exon", limit=limit))
+    assert len(got) == min(limit, 6)
+
+
+def test_collection_get_features_limit_none(coll_with_many_features):
+    coll = coll_with_many_features
+    full = list(coll.get_features(biotype="exon"))
+    assert len(full) == 6
+    same = list(coll.get_features(biotype="exon", limit=None))
+    assert len(same) == 6
+
+
+@pytest.mark.parametrize("limit", [0, -1])
+def test_collection_get_features_limit_invalid(coll_with_many_features, limit):
+    with pytest.raises(ValueError):
+        list(coll_with_many_features.get_features(biotype="exon", limit=limit))
+
+
+@pytest.fixture
+def aln_with_many_features():
+    data = {
+        "s1": "AAAATTTTGGGGCCCC",
+        "s2": "AAAATTTTGGGGCCCC",
+    }
+    aln = c3_alignment.make_aligned_seqs(data, moltype="dna")
+    # 4 sequence-level features
+    for seqid in ("s1", "s2"):
+        for i in range(2):
+            aln.annotation_db.add_feature(
+                seqid=seqid,
+                biotype="exon",
+                name=f"{seqid}_exon{i}",
+                spans=[(i * 4, i * 4 + 3)],
+                strand="+",
+            )
+    # 3 alignment-level features
+    for i in range(3):
+        aln.add_feature(
+            biotype="exon",
+            name=f"aln_exon{i}",
+            spans=[(i * 4, i * 4 + 2)],
+            on_alignment=True,
+        )
+    yield aln
+    close_dbs(aln)
+
+
+@pytest.mark.parametrize("limit", [1, 3, 5, 7, 100])
+def test_alignment_get_features_limit(aln_with_many_features, limit):
+    aln = aln_with_many_features
+    got = list(aln.get_features(biotype="exon", limit=limit))
+    # 4 seq-level + 3 aln-level = 7 total
+    assert len(got) == min(limit, 7)
+
+
+def test_alignment_get_features_limit_on_alignment(aln_with_many_features):
+    aln = aln_with_many_features
+    got = list(aln.get_features(biotype="exon", on_alignment=True, limit=2))
+    assert len(got) == 2
+
+
+def test_alignment_get_features_limit_seq_only(aln_with_many_features):
+    aln = aln_with_many_features
+    got = list(aln.get_features(biotype="exon", on_alignment=False, limit=3))
+    assert len(got) == 3
+
+
+@pytest.mark.parametrize("limit", [0, -1])
+def test_alignment_get_features_limit_invalid(aln_with_many_features, limit):
+    with pytest.raises(ValueError):
+        list(aln_with_many_features.get_features(biotype="exon", limit=limit))

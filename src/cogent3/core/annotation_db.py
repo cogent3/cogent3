@@ -470,6 +470,7 @@ class AnnotationDbABC(abc.ABC):
         attributes: str | None = None,
         on_alignment: bool | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
     ) -> Iterator[FeatureDataType]: ...
 
     @abc.abstractmethod
@@ -485,6 +486,7 @@ class AnnotationDbABC(abc.ABC):
         attributes: str | None = None,
         on_alignment: bool | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
     ) -> Iterator[dict[str, Any]]: ...
 
     @abc.abstractmethod
@@ -720,6 +722,7 @@ def _select_records_sql(
     conditions: dict[str, Any],
     columns: Iterable[str] | None = None,
     allow_partial: bool = True,
+    limit: int | None = None,
 ) -> tuple[str, tuple[Any, ...] | None]:
     """create SQL select statement and values
 
@@ -734,6 +737,9 @@ def _select_records_sql(
     allow_partial
         if False, only records within start, stop are included. If True,
         all records that overlap the segment defined by start, stop are included.
+    limit
+        maximum number of records to return. If None, all matching records
+        are returned.
 
     Returns
     -------
@@ -747,10 +753,11 @@ def _select_records_sql(
     )
     columns_str = f"{', '.join(columns)}" if columns else "*"
     sql = f"SELECT {columns_str} FROM {table_name}"
+    limit_clause = f" LIMIT {limit}" if limit is not None else ""
     if not where:
-        return sql, None
+        return f"{sql}{limit_clause}", None
 
-    sql = f"{sql} WHERE {where};"
+    sql = f"{sql} WHERE {where}{limit_clause};"
     return sql, vals
 
 
@@ -1504,6 +1511,7 @@ class SqliteAnnotationDbMixin:
             kwargs["attributes"] = f"%{kwargs['attributes']}%"
         columns = kwargs.pop("columns", None)
         allow_partial = kwargs.pop("allow_partial", False)
+        limit = kwargs.pop("limit", None)
 
         # Translate query conditions and column names for normalized schema
         if self._lookup_cache is not None:
@@ -1515,6 +1523,7 @@ class SqliteAnnotationDbMixin:
             conditions=kwargs,
             columns=columns,
             allow_partial=allow_partial,
+            limit=limit,
         )
         with contextlib.suppress(sqlite3.ProgrammingError):
             # garbage collection issue
@@ -1797,11 +1806,22 @@ class SqliteAnnotationDbMixin:
         attributes: str | None = None,
         on_alignment: bool | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """return all fields for matching records"""
+        """return all fields for matching records
+
+        Parameters
+        ----------
+        limit
+            maximum total number of records to yield across all tables.
+            If None, all matching records are returned. Must be positive.
+        """
         # a record is Everything, a Feature is a subset
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs at default values
+        if limit is not None and limit <= 0:
+            msg = f"limit must be positive, got {limit!r}"
+            raise ValueError(msg)
         local_vars = locals()
         kwargs = {k: v for k, v in local_vars.items() if k != "self" and v is not None}
         if "strand" in kwargs:
@@ -1809,10 +1829,16 @@ class SqliteAnnotationDbMixin:
 
         # alignment features are created by the user specific
         table_names = ["user"] if on_alignment else self.table_names
+        yielded = 0
         for table_name in table_names:
+            if limit is not None:
+                kwargs["limit"] = limit - yielded
             for result in self._get_records_matching(table_name, **kwargs):
                 res = dict(zip(result.keys(), result, strict=False))
                 yield self._translate_record_from_ids(res)
+                yielded += 1
+                if limit is not None and yielded >= limit:
+                    return
 
     def get_features_matching(
         self,
@@ -1826,10 +1852,22 @@ class SqliteAnnotationDbMixin:
         attributes: str | None = None,
         on_alignment: bool | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
     ) -> Iterator[FeatureDataType]:
+        """yield essential values to create a Feature for matching records
+
+        Parameters
+        ----------
+        limit
+            maximum total number of features to yield across all tables.
+            If None, all matching features are returned. Must be positive.
+        """
         # returns essential values to create a Feature
         # we define query as all defined variables from local name space,
         # excluding "self" and kwargs with a default value of None
+        if limit is not None and limit <= 0:
+            msg = f"limit must be positive, got {limit!r}"
+            raise ValueError(msg)
         local_vars = locals()
         kwargs = {k: v for k, v in local_vars.items() if k != "self" and v is not None}
         if "strand" in kwargs:
@@ -1837,6 +1875,7 @@ class SqliteAnnotationDbMixin:
 
         # alignment features are created by the user specific
         table_names = ["user"] if on_alignment else self.table_names
+        yielded = 0
         for table_name in table_names:
             columns: tuple[str, ...] = ("seqid", "biotype", "spans", "strand", "name")
             query_args = {**kwargs}
@@ -1845,6 +1884,9 @@ class SqliteAnnotationDbMixin:
                 columns += ("on_alignment",)
             else:
                 query_args.pop("on_alignment", None)
+
+            if limit is not None:
+                query_args["limit"] = limit - yielded
 
             for result in self._get_records_matching(
                 table_name=table_name,
@@ -1857,6 +1899,9 @@ class SqliteAnnotationDbMixin:
                 res["on_alignment"] = res.get("on_alignment")
                 res["spans"] = [cast("tuple[int, int]", tuple(c)) for c in res["spans"]]
                 yield cast("FeatureDataType", res)
+                yielded += 1
+                if limit is not None and yielded >= limit:
+                    return
 
     def num_matches(
         self,

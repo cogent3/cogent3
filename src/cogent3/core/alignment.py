@@ -575,6 +575,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
         name: str | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
         **kwargs: Any,
     ) -> Iterator[Feature[Any]]: ...
 
@@ -2300,6 +2301,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         allow_partial: bool = False,
         start: int | None = None,
         stop: int | None = None,
+        limit: int | None = None,
         **kwargs: Any,
     ) -> Iterator[Feature[c3_sequence.Sequence]]:
         """yields Feature instances
@@ -2318,6 +2320,9 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             stop position of the feature (inclusive)
         allow_partial
             allow features partially overlaping self
+        limit
+            maximum total number of features to yield across all sequences.
+            If None, all matching features are returned. Must be positive.
         kwargs
             additional keyword arguments to query the annotation db
 
@@ -2333,6 +2338,10 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         if not self.has_annotation_db():
             return None
 
+        if limit is not None and limit <= 0:
+            msg = f"limit must be positive, got {limit!r}"
+            raise ValueError(msg)
+
         if seqid and (seqid not in self.names):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
@@ -2341,7 +2350,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             # if no seqids provided, we do direct search to find the seqids
             # that match the other parameters. This matters for collections
             # with large numbers of sequences due to the overhead of creating
-            # Sequence instances
+            # Sequence instances. We do NOT apply limit here because we need
+            # to discover all candidate seqids before yielding from any of them.
             matched = {
                 record["seqid"]
                 for record in self.annotation_db.get_features_matching(
@@ -2359,16 +2369,23 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
                 "list[str]", [seqid] if isinstance(seqid, str) else self.names
             )
 
+        yielded = 0
         for seqid in seqids:
             seq = self.seqs[seqid]
-            yield from seq.get_features(
+            remaining = None if limit is None else limit - yielded
+            for feature in seq.get_features(
                 biotype=biotype,
                 name=name,
                 start=start,
                 stop=stop,
                 allow_partial=allow_partial,
+                limit=remaining,
                 **kwargs,
-            )
+            ):
+                yield feature
+                yielded += 1
+                if limit is not None and yielded >= limit:
+                    return
 
     def is_ragged(self) -> bool:
         """rerturns True if sequences are of different lengths"""
@@ -3372,6 +3389,7 @@ class Alignment(CollectionBase[Aligned]):
         biotype: str | None = None,
         name: str | None = None,
         allow_partial: bool = False,
+        limit: int | None = None,
     ) -> Iterator[Feature[Alignment]]:
         """yields Feature instances
 
@@ -3385,6 +3403,9 @@ class Alignment(CollectionBase[Aligned]):
             name of the feature
         allow_partial
             allow features partially overlaping self
+        limit
+            maximum total number of features to yield across all sequences.
+            If None, all matching features are returned.
 
         Notes
         -----
@@ -3407,6 +3428,7 @@ class Alignment(CollectionBase[Aligned]):
             msg = f"unknown {seqid=}"
             raise ValueError(msg)
 
+        yielded = 0
         for seqid in seqids:
             seqname = seqid_to_seqname[seqid]
             seq = self.seqs[seqname]
@@ -3417,6 +3439,7 @@ class Alignment(CollectionBase[Aligned]):
             # to the alignment coordinates
             offset = self.storage.offset.get(seqid, 0)
 
+            remaining = None if limit is None else limit - yielded
             for feature in self.annotation_db.get_features_matching(
                 seqid=parent_id,
                 biotype=biotype,
@@ -3425,11 +3448,15 @@ class Alignment(CollectionBase[Aligned]):
                 allow_partial=allow_partial,
                 start=start + offset,
                 stop=stop + offset,
+                limit=remaining,
             ):
                 if offset:
                     feature["spans"] = (numpy.array(feature["spans"]) - offset).tolist()
                 # passing self only used when self is an Alignment
                 yield seq.make_feature(feature, self)
+                yielded += 1
+                if limit is not None and yielded >= limit:
+                    return
 
     def get_features(
         self,
@@ -3439,6 +3466,7 @@ class Alignment(CollectionBase[Aligned]):
         name: str | None = None,
         allow_partial: bool = False,
         on_alignment: bool | None = None,
+        limit: int | None = None,
         **kwargs: Any,
     ) -> Iterator[Feature[Alignment]]:
         """yields Feature instances
@@ -3456,6 +3484,10 @@ class Alignment(CollectionBase[Aligned]):
             SequenceCollection instances.
         allow_partial
             allow features partially overlaping self
+        limit
+            maximum total number of features to yield across sequence-level
+            and alignment-level features. If None, all matching features
+            are returned. Must be positive.
 
         Notes
         -----
@@ -3468,40 +3500,46 @@ class Alignment(CollectionBase[Aligned]):
         if not self.has_annotation_db() or not len(self._annotation_db):
             return None
 
-        # we only do on-alignment in here
+        if limit is not None and limit <= 0:
+            msg = f"limit must be positive, got {limit!r}"
+            raise ValueError(msg)
+
+        remaining = limit
         if not on_alignment:
-            local_vars = locals()
-            kwargs = {k: v for k, v in local_vars.items() if k != "self"}
-            kwargs.pop("on_alignment")
-            yield from self._get_seq_features(**kwargs)
+            for feature in self._get_seq_features(
+                seqid=cast("str | None", seqid),
+                biotype=cast("str | None", biotype),
+                name=name,
+                allow_partial=allow_partial,
+                limit=remaining,
+            ):
+                yield feature
+                if remaining is not None:
+                    remaining -= 1
 
         if on_alignment == False:  # noqa: E712
             return
 
+        if remaining == 0:
+            return
+
         seq_map = None
+        strand: int | str | None
         for feature in self.annotation_db.get_features_matching(
             biotype=biotype,
             name=name,
-            on_alignment=on_alignment,
+            on_alignment=True,
             allow_partial=allow_partial,
+            limit=remaining,
         ):
-            if feature["seqid"]:
-                continue
-            on_al = cast("bool", feature.pop("on_alignment", on_alignment))  # type: ignore[misc]
-            if feature["seqid"]:
-                msg = f"{on_alignment=} {feature=}"
-                raise RuntimeError(msg)
-
-            strand: int | str | None
+            on_al = cast("bool", feature.pop("on_alignment", True))  # type: ignore[misc]
             if seq_map is None:
                 seq_map = self.seqs[0].map.to_feature_map()
                 *_, strand = self.seqs[0].seq.parent_coordinates()
             else:
                 strand = feature.pop("strand", None)  # type: ignore[misc]
-
             spans = seq_map.relative_position(numpy.array(feature["spans"]))
             feature["spans"] = spans.tolist()
-            # and if i've been reversed...?
             feature["strand"] = cast("int", Strand.from_value(strand).value)
             yield self.make_feature(feature=feature, on_alignment=on_al)
 
