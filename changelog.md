@@ -1,4 +1,38 @@
 
+<a id='changelog-2026.6.2a0'></a>
+# Changes in release "2026.6.2a0"
+
+A bug fix and minor enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+- @sanvila reported a bug and proposed a fix 🚀
+
+## Enhancements
+
+- Added `iter_fastq_records` to `cogent3.parse.fastq` for streaming fastq records
+  as `(label, sequence, quality)` tuples with optional bytes converters.
+- Added `make_qual_converter` and `PhredEncoding` to `cogent3.core.alphabet` for
+  mapping Phred+33 / Phred+64 quality ASCII into `numpy.uint8` score arrays.
+- Added `limit` keyword argument to all methods that select annotations. Propagated
+  through to the `AnnotationDb.get_(features|records)_matching()` methods. Applied
+  in aggregate across all tables.
+
+## Bug fixes
+
+- `load_annotations()` now correctly uses `format_name`. For cases where the file
+  name suffix did not match a known format, `format_name` argument was having no
+  effect. This is now fixed.
+- the `coevolution_matrix()` function now correctly caps `max_workers`, thanks to
+  @sanvila for reporting and proposing the fix!
+
+## Documentation
+
+- Added cookbook sections covering direct fastq parsing with `iter_fastq_records`
+  and constructing quality-score converters with `make_qual_converter`.
+- Added docs describing the new `limit` argument.
+
 <a id='changelog-2026.5.19a0'></a>
 # Changes in release "2026.5.19a0"
 
