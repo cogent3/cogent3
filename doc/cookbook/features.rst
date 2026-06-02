@@ -344,6 +344,18 @@ We can again provide a combination of conditions, for example, querying for all 
     mRNA = list(seq.get_features(start=10148, stop=29322, biotype="mRNA"))[0]
     mRNA
 
+Limiting the number of returned Features
+++++++++++++++++++++++++++++++++++++++++
+
+Both ``Sequence.get_features()`` and the equivalent methods on ``SequenceCollection`` and ``Alignment`` accept an optional ``limit`` argument that caps the total number of features yielded. This is handy when a query would otherwise return a very large set.
+
+.. jupyter-execute::
+
+    first_three = list(seq.get_features(biotype="CDS", limit=3))
+    first_three
+
+``limit`` must be a positive integer; ``limit=None`` (the default) returns all matching features. For an ``Alignment`` the limit applies to the combined total of sequence-level and alignment-level features.
+
 Querying a Sequence (via an Alignment) for Features
 """""""""""""""""""""""""""""""""""""""""""""""""""
 

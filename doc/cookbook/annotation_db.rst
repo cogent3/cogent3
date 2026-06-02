@@ -185,6 +185,25 @@ For example, we can query for all CDS related to replication:
 
 .. note:: Extended attribute querying only works for GFF databases!
 
+Limiting the number of returned records
+"""""""""""""""""""""""""""""""""""""""
+
+Both ``get_features_matching()`` and ``get_records_matching()`` accept an optional ``limit`` argument that caps the total number of records yielded. This is useful when probing a large database or building previews.
+
+.. jupyter-execute::
+
+    first_two_genes = list(gff_db.get_features_matching(biotype="gene", limit=2))
+    first_two_genes
+
+The same applies to ``get_records_matching()``:
+
+.. jupyter-execute::
+
+    first_record = list(gff_db.get_records_matching(biotype="CDS", limit=1))
+    first_record
+
+``limit`` counts across all internal tables (e.g. the "gff" and "user" tables of a ``GffAnnotationDb``). It must be a positive integer; ``limit=None`` (the default) returns all matching records.
+
 How to interrogate an ``AnnotationDb``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

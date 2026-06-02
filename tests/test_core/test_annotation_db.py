@@ -757,6 +757,145 @@ def test_get_features_matching_start_stop_seqview(DATA_DIR, seq):
     close_dbs(db)
 
 
+@pytest.fixture
+def populated_basic_db() -> BasicAnnotationDb:
+    db = BasicAnnotationDb()
+    for i in range(5):
+        db.add_feature(
+            seqid="seq1",
+            biotype="exon",
+            name=f"exon{i}",
+            spans=[(i * 10, i * 10 + 5)],
+            strand="+",
+        )
+    yield db
+    db.close()
+
+
+@pytest.mark.parametrize("limit", [1, 2, 5, 10])
+def test_get_features_matching_limit_basic(populated_basic_db, limit):
+    got = list(populated_basic_db.get_features_matching(biotype="exon", limit=limit))
+    assert len(got) == min(limit, 5)
+
+
+@pytest.mark.parametrize("limit", [1, 2, 5, 10])
+def test_get_records_matching_limit_basic(populated_basic_db, limit):
+    got = list(populated_basic_db.get_records_matching(biotype="exon", limit=limit))
+    assert len(got) == min(limit, 5)
+
+
+def test_get_features_matching_limit_none_equivalent_to_unlimited(populated_basic_db):
+    default = list(populated_basic_db.get_features_matching(biotype="exon"))
+    with_none = list(
+        populated_basic_db.get_features_matching(biotype="exon", limit=None)
+    )
+    assert len(default) == len(with_none) == 5
+
+
+@pytest.mark.parametrize("limit", [0, -1, -5])
+def test_get_features_matching_limit_invalid(populated_basic_db, limit):
+    with pytest.raises(ValueError):
+        # generator must be consumed for the exception to fire
+        list(populated_basic_db.get_features_matching(limit=limit))
+
+
+@pytest.mark.parametrize("limit", [0, -1])
+def test_get_records_matching_limit_invalid(populated_basic_db, limit):
+    with pytest.raises(ValueError):
+        list(populated_basic_db.get_records_matching(limit=limit))
+
+
+def test_get_features_matching_limit_with_filters(populated_basic_db):
+    got = list(
+        populated_basic_db.get_features_matching(
+            biotype="exon",
+            start=0,
+            stop=25,
+            allow_partial=True,
+            limit=2,
+        )
+    )
+    assert len(got) == 2
+    # confirm filter still applies (the unlimited result would be 3)
+    full = list(
+        populated_basic_db.get_features_matching(
+            biotype="exon",
+            start=0,
+            stop=25,
+            allow_partial=True,
+        )
+    )
+    assert len(full) == 3
+
+
+@pytest.fixture
+def gff_db_with_user_exons(DATA_DIR):
+    # simple.gff loads 2 exon rows into the 'gff' table; add 2 more into
+    # the 'user' table to exercise limit-spanning behaviour across tables
+    db = load_annotations(path=DATA_DIR / "simple.gff")
+    for i in range(2):
+        db.add_feature(
+            seqid="test_seq",
+            biotype="exon",
+            name=f"user_exon{i}",
+            spans=[(100 + i * 10, 105 + i * 10)],
+            strand="+",
+        )
+    yield db
+    db.close()
+
+
+def test_get_features_matching_spans_tables_total(gff_db_with_user_exons):
+    got = list(gff_db_with_user_exons.get_features_matching(biotype="exon"))
+    assert len(got) == 4
+
+
+@pytest.mark.parametrize(("limit", "expected"), [(1, 1), (2, 2), (3, 3), (100, 4)])
+def test_get_features_matching_limit_spans_tables(
+    gff_db_with_user_exons,
+    limit,
+    expected,
+):
+    got = list(
+        gff_db_with_user_exons.get_features_matching(biotype="exon", limit=limit)
+    )
+    assert len(got) == expected
+
+
+def test_get_records_matching_spans_tables_total(gff_db_with_user_exons):
+    total = sum(1 for _ in gff_db_with_user_exons.get_records_matching(biotype="exon"))
+    assert total == 4
+
+
+def test_get_records_matching_limit_spans_tables(gff_db_with_user_exons):
+    got = list(gff_db_with_user_exons.get_records_matching(biotype="exon", limit=2))
+    assert len(got) == 2
+
+
+@pytest.fixture
+def seq_with_exons(seq, anno_db):
+    seq.annotation_db = anno_db
+    for i in range(4):
+        anno_db.add_feature(
+            seqid=seq.name,
+            biotype="exon",
+            name=f"exon{i}",
+            spans=[(i * 3, i * 3 + 2)],
+            strand="+",
+        )
+    return seq
+
+
+def test_sequence_get_features_unlimited(seq_with_exons):
+    full = list(seq_with_exons.get_features(biotype="exon"))
+    assert len(full) == 4
+
+
+def test_sequence_get_features_limit(seq_with_exons):
+    got = list(seq_with_exons.get_features(biotype="exon", limit=2))
+    assert len(got) == 2
+
+
 def test_get_slice():
     """get_slice should return the same as slicing the sequence directly"""
     seq = cogent3.make_seq("ATTGTACGCCCCTGA", name="test_seq", moltype="dna")
