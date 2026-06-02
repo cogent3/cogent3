@@ -152,6 +152,83 @@ def test_get_newick(empty_node: PhyloNode, one_child: PhyloNode, big_parent: Phy
     )
 
 
+@pytest.mark.parametrize(
+    ("treestring", "kwargs", "expected"),
+    [
+        # support shown for internal node, name suppressed
+        ("(a,b,(c,d)e1/95);", {"with_support": True}, "(a,b,(c,d)95);"),
+        # default off — support absent even when present in input
+        ("(a,b,(c,d)e1/95);", {}, "(a,b,(c,d));"),
+        # non-integer float preserved
+        ("(a,b,(c,d)e1/0.95);", {"with_support": True}, "(a,b,(c,d)0.95);"),
+        # combined with internal node names
+        (
+            "(a,b,(c,d)e1/95);",
+            {"with_node_names": True, "with_support": True},
+            "(a,b,(c,d)e1/95);",
+        ),
+        # combined with distances
+        (
+            "(a:1,b:2,(c:3,d:4)e1/95:5);",
+            {"with_distances": True, "with_support": True},
+            "(a:1.0,b:2.0,(c:3.0,d:4.0)95:5.0);",
+        ),
+        # node has no support — nothing emitted
+        ("(a,b,(c,d)e1);", {"with_support": True}, "(a,b,(c,d));"),
+    ],
+)
+def test_get_newick_with_support(
+    treestring: str, kwargs: dict[str, bool], expected: str
+):
+    tree = make_tree(treestring=treestring)
+    assert tree.get_newick(**kwargs) == expected
+
+
+def test_get_newick_with_support_integer_valued_float():
+    # float that is whole-valued should drop the trailing .0
+    tree = make_tree(treestring="(a,b,(c,d)e1);")
+    tree.get_node_matching_name("e1").support = 100.0
+    assert tree.get_newick(with_support=True) == "(a,b,(c,d)100);"
+
+
+def test_get_newick_with_support_on_tip():
+    tree = make_tree(treestring="(a,b,(c,d)e1);")
+    tree.get_node_matching_name("c").support = 80.0
+    assert tree.get_newick(with_support=True) == "(a,b,(c/80,d));"
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    [
+        # root support gated by with_root_name, suppressed by default
+        ({}, "(a,b,(c,d));"),
+        # with_root_name on its own emits the support but not the root name
+        ({"with_root_name": True}, "(a,b,(c,d))50;"),
+        # with_node_names + with_root_name emits name and support
+        (
+            {"with_root_name": True, "with_node_names": True},
+            "(a,b,(c,d)e1)root/50;",
+        ),
+    ],
+)
+def test_get_newick_with_support_on_root(kwargs: dict[str, bool], expected: str):
+    tree = make_tree(treestring="(a,b,(c,d)e1);")
+    tree.support = 50.0
+    assert tree.get_newick(with_support=True, **kwargs) == expected
+
+
+@pytest.mark.parametrize("name", ["a", "b", "c", "d", "e1"])
+def test_get_newick_with_support_round_trip(name: str):
+    # with_node_names is required to round-trip internal node names
+    tree = make_tree(treestring="(a:1.0,b:2.0,(c:3.0,d:4.0)e1/95:5.0);")
+    nwk = tree.get_newick(with_distances=True, with_node_names=True, with_support=True)
+    reparsed = make_tree(treestring=nwk)
+    assert (
+        reparsed.get_node_matching_name(name).support
+        == tree.get_node_matching_name(name).support
+    )
+
+
 def test_to_dict():
     """tree produces dict"""
     tr = make_tree(treestring="(a,b,(c:0.3,d)e1/10)")
