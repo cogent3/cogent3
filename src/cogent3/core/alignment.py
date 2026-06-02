@@ -3525,23 +3525,23 @@ class Alignment(CollectionBase[Aligned]):
 
         seq_map = None
         strand: int | str | None
-        for feature in self.annotation_db.get_features_matching(
+        for record in self.annotation_db.get_features_matching(
             biotype=biotype,
             name=name,
             on_alignment=True,
             allow_partial=allow_partial,
             limit=remaining,
         ):
-            on_al = cast("bool", feature.pop("on_alignment", True))  # type: ignore[misc]
+            on_al = cast("bool", record.pop("on_alignment", True))  # type: ignore[misc]
             if seq_map is None:
                 seq_map = self.seqs[0].map.to_feature_map()
                 *_, strand = self.seqs[0].seq.parent_coordinates()
             else:
-                strand = feature.pop("strand", None)  # type: ignore[misc]
-            spans = seq_map.relative_position(numpy.array(feature["spans"]))
-            feature["spans"] = spans.tolist()
-            feature["strand"] = cast("int", Strand.from_value(strand).value)
-            yield self.make_feature(feature=feature, on_alignment=on_al)
+                strand = record.pop("strand", None)  # type: ignore[misc]
+            spans = seq_map.relative_position(numpy.array(record["spans"]))
+            record["spans"] = spans.tolist()
+            record["strand"] = cast("int", Strand.from_value(strand).value)
+            yield self.make_feature(feature=record, on_alignment=on_al)
 
     def is_ragged(self) -> bool:
         """by definition False for an Alignment"""
