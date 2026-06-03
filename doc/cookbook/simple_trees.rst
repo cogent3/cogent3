@@ -360,6 +360,28 @@ Newick format
 
     tr.get_newick(with_distances=True, with_node_names=True)
 
+Including support values
+""""""""""""""""""""""""
+
+Use ``with_support=True`` to include the value of ``node.support`` on each
+node in the newick string.
+
+.. jupyter-execute::
+
+    from cogent3 import make_tree
+
+    supported = make_tree(treestring="(a:1,b:2,(c:3,d:4)e1/95:5);")
+    supported.get_newick(with_distances=True, with_support=True)
+
+Combining ``with_support=True`` with ``with_node_names=True`` retains the
+internal node names alongside their support values.
+
+.. jupyter-execute::
+
+    supported.get_newick(
+        with_distances=True, with_node_names=True, with_support=True
+    )
+
 Tree traversal
 ^^^^^^^^^^^^^^
 

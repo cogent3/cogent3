@@ -74,12 +74,21 @@ class TreeError(Exception):
     pass
 
 
+def _format_support(support: float) -> str:
+    """Render a support value, dropping a trailing .0 for integer-valued floats."""
+    as_float = float(support)
+    if as_float.is_integer():
+        return str(int(as_float))
+    return str(as_float)
+
+
 def _format_node_name(
     node: PhyloNode,
     with_node_names: bool,
     escape_name: bool,
     with_distances: bool,
     with_root_name: bool = False,
+    with_support: bool = False,
 ) -> str:
     """Helper function to format node name according to parameters"""
     if (node.is_root() and not with_root_name) or (
@@ -98,6 +107,14 @@ def _format_node_name(
             node_name = "'{}'".format(node_name.replace("'", "''"))
         else:
             node_name = node_name.replace(" ", "_")
+
+    if (
+        with_support
+        and node.support is not None
+        and not (node.is_root() and not with_root_name)
+    ):
+        support_str = _format_support(node.support)
+        node_name = f"{node_name}/{support_str}" if node_name else support_str
 
     if with_distances and (length := node.length) is not None:
         node_name = f"{node_name}:{length}"
@@ -869,6 +886,7 @@ class PhyloNode:
         escape_name: bool = True,
         with_node_names: bool = False,
         with_root_name: bool = False,
+        with_support: bool = False,
     ) -> str:
         """Return the newick string of node and its descendents
 
@@ -886,6 +904,10 @@ class PhyloNode:
         with_root_name
             if True and with_node_names, the root node will have
             its name included
+        with_support
+            include the value of ``node.support`` for every node that has
+            one. Integer-valued supports are written without a trailing ``.0``.
+            The root is only emitted when ``with_root_name`` is True.
         """
         # Stack contains tuples of (tree node, visit flag)
         stack = [(self, False)]
@@ -907,6 +929,7 @@ class PhyloNode:
                     escape_name=escape_name,
                     with_distances=with_distances,
                     with_root_name=with_root_name,
+                    with_support=with_support,
                 )
 
                 # for tips with parent, the typical case
