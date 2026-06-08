@@ -61,7 +61,7 @@ Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 test = [
     "cogent3-h5seqs>=0.8.0",
     "piqtree>=0.8.0; python_version > '3.11'",
-    "ruff==0.15.14",
+    "ruff==0.15.15",
     "kaleido",
     "pandas",
     "plotly",
