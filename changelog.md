@@ -1,4 +1,26 @@
 
+<a id='changelog-2026.6.9a0'></a>
+# Changes in release "2026.6.9a0"
+
+A minor enhancement release.
+
+## API
+
+- Added `PhyloNode.get_newick(with_support)` argument, controlling
+  whether to include support measures in the newick string.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Now write out bootstrap support measures in newick format.
+
+## Documentation
+
+- Document using `PhyloNode.get_newick(with_support)` argument.
+
 <a id='changelog-2026.6.2a0'></a>
 # Changes in release "2026.6.2a0"
 
