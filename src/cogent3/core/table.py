@@ -2596,7 +2596,7 @@ def make_table(
     format_name: str = "simple",
     **kwargs,
 ) -> Table:
-    """
+    """make a Table instance
 
     Parameters
     ----------
@@ -2633,7 +2633,6 @@ def make_table(
         a pandas DataFrame, supersedes header/rows
     format_name
         output format when using str(Table)
-
     """
     if any(isinstance(a, str) for a in (header, data)):
         msg = "str type invalid, if it's a path use load_table()"
@@ -2684,7 +2683,7 @@ def load_table(
     skip_inconsistent: bool = False,
     **kwargs,
 ) -> Table:
-    """
+    """return a Table instance from a file containing tabular data.
 
     Parameters
     ----------

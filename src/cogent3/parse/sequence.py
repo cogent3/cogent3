@@ -179,6 +179,10 @@ class PhylipParser(SequenceParserBase):
         return {"phylip", "phy"}
 
     @property
+    def accepts_converter(self) -> bool:
+        return True
+
+    @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
         return LineBasedParser(phylip.MinimalPhylipParser)
 
