@@ -11,7 +11,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: "actions/checkout@v6.0.3"
+      - uses: "actions/checkout@v7.0.0"
         with:
           fetch-depth: 0
 
@@ -41,7 +41,7 @@ jobs:
     name: "Test the docs"
     runs-on: ubuntu-latest
     steps:
-      - uses: "actions/checkout@v6.0.3"
+      - uses: "actions/checkout@v7.0.0"
         with:
           fetch-depth: 0
 
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
       
