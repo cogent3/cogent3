@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
 
       # Setup env
-      - uses: "actions/setup-python@v6"
+      - uses: "actions/setup-python@v6.2.0"
         with:
             python-version: "${{ matrix.python-version }}"
 
@@ -72,7 +72,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: "actions/setup-python@v6"
+      - uses: "actions/setup-python@v6.2.0"
         with:
           python-version: "${{ matrix.python-version }}"
 
