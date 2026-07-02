@@ -3,7 +3,7 @@
 import pytest
 
 import cogent3
-from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
+from cogent3.parse.phylip import get_align_for_phylip, iter_phylip_records
 from cogent3.parse.record import RecordError
 from cogent3.parse.sequence import PhylipParser
 
@@ -17,7 +17,7 @@ Apis_mellifera_Genome                -gcgagttcg aaatttgggg
 
 
 def test_relaxed_interleaved():
-    seqs = dict(MinimalPhylipParser(RELAXED_INTERLEAVED.splitlines()))
+    seqs = dict(iter_phylip_records(RELAXED_INTERLEAVED.splitlines()))
     assert list(seqs) == ["Acromyrmex_echinatior_Genome", "Apis_mellifera_Genome"]
     assert seqs["Acromyrmex_echinatior_Genome"] == "GTCGTATTTGGAATTTGGGGCTTCTTCTTC"
     assert seqs["Apis_mellifera_Genome"] == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
@@ -35,7 +35,7 @@ Apis_mellifera_Genome  -gcgagttcg
 
 
 def test_relaxed_sequential():
-    seqs = dict(MinimalPhylipParser(RELAXED_SEQUENTIAL.splitlines()))
+    seqs = dict(iter_phylip_records(RELAXED_SEQUENTIAL.splitlines()))
     assert list(seqs) == ["Acromyrmex_echinatior_Genome", "Apis_mellifera_Genome"]
     assert seqs["Acromyrmex_echinatior_Genome"] == "GTCGTATTTGGAATTTGGGGCTTCTTCTTC"
     assert seqs["Apis_mellifera_Genome"] == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
@@ -48,7 +48,7 @@ def test_layout_autodetected(data):
         "Acromyrmex_echinatior_Genome": "GTCGTATTTGGAATTTGGGGCTTCTTCTTC",
         "Apis_mellifera_Genome": "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC",
     }
-    assert dict(MinimalPhylipParser(data.splitlines())) == expected
+    assert dict(iter_phylip_records(data.splitlines())) == expected
 
 
 BIG_INTERLEAVED = """10 705 I
@@ -258,11 +258,11 @@ Pig       tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcact
 
 
 def test_empty():
-    assert list(MinimalPhylipParser([])) == []
+    assert list(iter_phylip_records([])) == []
 
 
 def test_strict_interleaved_big():
-    seqs = list(MinimalPhylipParser(BIG_INTERLEAVED.splitlines(), strict_mode=True))
+    seqs = list(iter_phylip_records(BIG_INTERLEAVED.splitlines(), strict_mode=True))
     assert len(seqs) == 10
     assert seqs[0][0] == "Cow"
     label, seq = seqs[-1]
@@ -284,7 +284,7 @@ def test_strict_interleaved_big():
 
 
 def test_strict_space_interleaved():
-    seqs = list(MinimalPhylipParser(SPACE_INTERLEAVED.splitlines(), strict_mode=True))
+    seqs = list(iter_phylip_records(SPACE_INTERLEAVED.splitlines(), strict_mode=True))
     assert len(seqs) == 5
     assert seqs[0][0] == "cox2_leita"
     assert seqs[-1][0] == "cox2_tborr"
@@ -292,7 +292,7 @@ def test_strict_space_interleaved():
 
 
 def test_strict_interleaved_little():
-    seqs = list(MinimalPhylipParser(INTERLEAVED_LITTLE.splitlines(), strict_mode=True))
+    seqs = list(iter_phylip_records(INTERLEAVED_LITTLE.splitlines(), strict_mode=True))
     assert len(seqs) == 6
     assert seqs[1][0] == "Hesperorni"
     assert seqs[-1][0] == "B.subtilis"
@@ -301,7 +301,7 @@ def test_strict_interleaved_little():
 
 def test_strict_sequential_little():
     seqs = list(
-        MinimalPhylipParser(NONINTERLEAVED_LITTLE.splitlines(), strict_mode=True)
+        iter_phylip_records(NONINTERLEAVED_LITTLE.splitlines(), strict_mode=True)
     )
     assert len(seqs) == 6
     assert seqs[0][0] == "Archaeopt"
@@ -310,7 +310,7 @@ def test_strict_sequential_little():
 
 
 def test_strict_sequential_big():
-    seqs = list(MinimalPhylipParser(NONINTERLEAVED_BIG.splitlines(), strict_mode=True))
+    seqs = list(iter_phylip_records(NONINTERLEAVED_BIG.splitlines(), strict_mode=True))
     assert len(seqs) == 3
     assert seqs[0][0] == "Rhesus"
     assert seqs[-1][0] == "Pig"
@@ -349,21 +349,21 @@ def test_strict_get_align_sequential():
 
 def test_forced_interleaved_matches_autodetect():
     data = RELAXED_INTERLEAVED.splitlines()
-    assert dict(MinimalPhylipParser(data, interleaved=True)) == dict(
-        MinimalPhylipParser(data)
+    assert dict(iter_phylip_records(data, interleaved=True)) == dict(
+        iter_phylip_records(data)
     )
 
 
 def test_forced_sequential_matches_autodetect():
     data = RELAXED_SEQUENTIAL.splitlines()
-    assert dict(MinimalPhylipParser(data, interleaved=False)) == dict(
-        MinimalPhylipParser(data)
+    assert dict(iter_phylip_records(data, interleaved=False)) == dict(
+        iter_phylip_records(data)
     )
 
 
 def test_forced_wrong_layout_raises():
     with pytest.raises(RecordError):
-        list(MinimalPhylipParser(RELAXED_SEQUENTIAL.splitlines(), interleaved=True))
+        list(iter_phylip_records(RELAXED_SEQUENTIAL.splitlines(), interleaved=True))
 
 
 BAD_LENGTH = """2 40
@@ -374,15 +374,15 @@ seq2  ACGTACGTAC
 
 def test_length_mismatch_raises():
     with pytest.raises(RecordError):
-        list(MinimalPhylipParser(BAD_LENGTH.splitlines()))
+        list(iter_phylip_records(BAD_LENGTH.splitlines()))
 
 
 def test_header_only_yields_nothing():
-    assert list(MinimalPhylipParser(["2 30"])) == []
+    assert list(iter_phylip_records(["2 30"])) == []
 
 
 def test_blank_lines_only_yields_nothing():
-    assert list(MinimalPhylipParser(["", "   ", "\t"])) == []
+    assert list(iter_phylip_records(["", "   ", "\t"])) == []
 
 
 def _lower_converter(data: bytes) -> str:
@@ -391,7 +391,7 @@ def _lower_converter(data: bytes) -> str:
 
 def test_custom_converter_applied():
     seqs = dict(
-        MinimalPhylipParser(
+        iter_phylip_records(
             RELAXED_INTERLEAVED.splitlines(), converter=_lower_converter
         )
     )
@@ -415,7 +415,7 @@ def test_load_aligned_seqs_relaxed(tmp_path):
 
 def test_id_map_renames_labels():
     id_map = {"Apis_mellifera_Genome": "bee"}
-    seqs = dict(MinimalPhylipParser(RELAXED_INTERLEAVED.splitlines(), id_map=id_map))
+    seqs = dict(iter_phylip_records(RELAXED_INTERLEAVED.splitlines(), id_map=id_map))
     assert "Apis_mellifera_Genome" not in seqs
     assert seqs["bee"] == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
 
@@ -427,5 +427,5 @@ seq1  ACGTACGTAC
 
 
 def test_single_sequence():
-    seqs = dict(MinimalPhylipParser(SINGLE_SEQUENCE.splitlines()))
+    seqs = dict(iter_phylip_records(SINGLE_SEQUENCE.splitlines()))
     assert seqs == {"seq1": "ACGTACGTACGTACGTACGT"}
