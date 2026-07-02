@@ -1,126 +1,193 @@
+"""Parser for the PHYLIP sequence alignment format.
+
+Supports relaxed PHYLIP (whitespace-delimited labels of arbitrary length) by
+default and strict PHYLIP (labels in a fixed 10-character column) via
+``strict_mode=True``. Interleaved and sequential layouts are auto-detected from
+the line structure when ``interleaved`` is not given.
+"""
+
+import typing
+
+from scinexus.warning import deprecated_callable
+
 import cogent3
+from cogent3.parse.fasta import OptConverterType, OutTypes, minimal_converter
 from cogent3.parse.record import RecordError
 
+ConverterType = typing.Callable[[bytes], OutTypes]
 
-def is_blank(x) -> bool:
-    """Checks if x is blank."""
-    return not x.strip()
-
-
-def _get_header_info(line):
-    """
-    Get number of sequences and length of sequence
-    """
-    header_parts = line.split()
-    num_seqs, length = list(map(int, header_parts[:2]))
-    is_interleaved = len(header_parts) > 2
-    return num_seqs, length, is_interleaved
+_LABEL_WIDTH = 10
 
 
-def _split_line(line, id_offset):
-    """
-    First 10 chars must be blank or contain id info
-    """
-    if not line or not line.strip():
-        return None, None
-
-    # extract id and sequence
-    curr_id = line[0:id_offset].strip()
-    curr_seq = line[id_offset:].strip().replace(" ", "")
-
-    return curr_id, curr_seq
+def _parse_header(line: str) -> tuple[int, int]:
+    """Return the number of sequences and the alignment length from the header."""
+    parts = line.split()
+    return int(parts[0]), int(parts[1])
 
 
-def MinimalPhylipParser(data, id_map=None, interleaved=True):
-    """Yields successive sequences from data as (label, seq) tuples.
-
-    **Need to implement id map.
-
-    **NOTE if using phylip interleaved format, will cache entire file in
-        memory before returning sequences. If phylip file not interleaved
-        then will yield each successive sequence.
-
-    data: sequence of lines in phylip format (an open file, list, etc)
-    id_map: optional id mapping from external ids to phylip labels - not sure
-        if we're going to implement this
+def _is_labelled(line: str, strict_mode: bool) -> bool:
+    """Whether a data line carries a label rather than continuing a sequence."""
+    if strict_mode:
+        return bool(line[:_LABEL_WIDTH].strip())
+    return not line[:1].isspace()
 
 
-    returns (id, sequence) tuples
-    """
+def _split_line(line: str, strict_mode: bool) -> tuple[str | None, str]:
+    """Split a data line into its label (or None) and raw sequence fragment."""
+    if strict_mode:
+        label = line[:_LABEL_WIDTH].strip()
+        return (label or None), line[_LABEL_WIDTH:]
+    if line[:1].isspace():
+        return None, line
+    parts = line.split(None, 1)
+    return parts[0], parts[1] if len(parts) > 1 else ""
 
-    seq_cache = {}
-    interleaved_id_map = {}
-    id_offset = 10
-    curr_ct = -1
 
-    for line in data:
-        if curr_ct == -1:
-            # get header info
-            num_seqs, seq_len, interleaved = _get_header_info(line)
+def _detect_layout(lines: list[str], num_seqs: int, strict_mode: bool) -> bool:
+    """Whether the alignment is interleaved, inferred from the line structure."""
+    if num_seqs == 1:
+        return False
+    flags = [_is_labelled(line, strict_mode) for line in lines]
+    if len(flags) >= 2 and flags[0] and not flags[1]:
+        return False
+    return all(flags[:num_seqs])
 
-            if not num_seqs or not seq_len:
-                return
-            curr_ct += 1
-            continue
 
-        curr_id, curr_seq = _split_line(line, id_offset)
+def _emit(
+    label: str,
+    fragments: list[str],
+    seq_len: int,
+    converter: ConverterType,
+    id_map: dict[str, str] | None,
+) -> tuple[str, OutTypes]:
+    """Convert assembled fragments to a sequence, validating its length."""
+    seq = converter("".join(fragments).encode("utf8"))
+    if len(seq) != seq_len:
+        msg = (
+            f"Length of sequence {label!r} is not the same as in header "
+            f"Found {len(seq)}, Expected {seq_len}"
+        )
+        raise RecordError(msg)
+    if id_map is not None:
+        label = id_map.get(label, label)
+    return label, seq
 
-        # skip blank lines
-        if not curr_id and not curr_seq:
-            continue
 
-        if not interleaved:
-            if curr_id:
-                if seq_cache:
-                    yield seq_cache[0], "".join(seq_cache[1:])
-                seq_cache = [curr_id, curr_seq]
-            else:
-                seq_cache.append(curr_seq)
+def _parse_interleaved(
+    lines: list[str],
+    num_seqs: int,
+    seq_len: int,
+    strict_mode: bool,
+    converter: ConverterType,
+    id_map: dict[str, str] | None,
+) -> typing.Iterator[tuple[str, OutTypes]]:
+    """Yield (label, seq) from interleaved phylip data."""
+    labels: list[str] = []
+    fragments: list[list[str]] = []
+    for index, line in enumerate(lines):
+        if index < num_seqs:
+            label, fragment = _split_line(line, strict_mode)
+            labels.append(label or "")
+            fragments.append([fragment])
         else:
-            curr_id_ix = curr_ct % num_seqs
+            fragments[index % num_seqs].append(line)
+    for label, parts in zip(labels, fragments, strict=True):
+        yield _emit(label, parts, seq_len, converter, id_map)
 
-            if (curr_ct + 1) % num_seqs == 0:
-                id_offset = 0
 
-            if curr_id_ix not in interleaved_id_map:
-                interleaved_id_map[curr_id_ix] = curr_id
-                seq_cache[curr_id_ix] = []
+def _parse_sequential(
+    lines: list[str],
+    seq_len: int,
+    strict_mode: bool,
+    converter: ConverterType,
+    id_map: dict[str, str] | None,
+) -> typing.Iterator[tuple[str, OutTypes]]:
+    """Yield (label, seq) from sequential phylip data."""
+    label: str | None = None
+    fragments: list[str] = []
+    for line in lines:
+        this_label, fragment = _split_line(line, strict_mode)
+        if this_label is not None:
+            if label is not None:
+                yield _emit(label, fragments, seq_len, converter, id_map)
+            label = this_label
+            fragments = [fragment]
+        else:
+            fragments.append(fragment)
+    if label is not None:
+        yield _emit(label, fragments, seq_len, converter, id_map)
 
-            seq_cache[curr_id_ix].append(curr_seq)
-        curr_ct += 1
 
-    # return joined sequences if interleaved
+def iter_phylip_records(
+    data: typing.Iterable[str],
+    id_map: dict[str, str] | None = None,
+    interleaved: bool | None = None,
+    strict_mode: bool = False,
+    converter: OptConverterType = None,
+) -> typing.Iterator[tuple[str, OutTypes]]:
+    """Yield successive sequences from phylip data as (label, seq) tuples.
+
+    Parameters
+    ----------
+    data
+        an iterable of lines in phylip format
+    id_map
+        optional mapping from parsed labels to replacement labels
+    interleaved
+        force interleaved (True) or sequential (False) layout; when None the
+        layout is auto-detected from the line structure
+    strict_mode
+        when True labels occupy a fixed 10-character column; when False labels
+        are whitespace-delimited and may be of arbitrary length
+    converter
+        callable mapping raw sequence bytes to the yielded sequence; when None
+        uses a converter that removes whitespace and upper-cases the residues
+    """
+    lines = [line for line in data if line.strip()]
+    if not lines:
+        return
+    num_seqs, seq_len = _parse_header(lines[0])
+    data_lines = lines[1:]
+    if not num_seqs or not seq_len or not data_lines:
+        return
+    if converter is None:
+        converter = minimal_converter()
+    if interleaved is None:
+        interleaved = _detect_layout(data_lines, num_seqs, strict_mode)
     if interleaved:
-        for curr_id_ix, seq_parts in list(seq_cache.items()):
-            join_seq = "".join(seq_parts)
-
-            if len(join_seq) != seq_len:
-                raise RecordError(
-                    "Length of sequence '%s' is not the same as in header "
-                    "Found %d, Expected %d"
-                    % (interleaved_id_map[curr_id_ix], len(join_seq), seq_len),
-                )
-
-            yield interleaved_id_map[curr_id_ix], join_seq
-    # return last seq if not interleaved
-    elif seq_cache:
-        yield seq_cache[0], "".join(seq_cache[1:])
+        yield from _parse_interleaved(
+            data_lines, num_seqs, seq_len, strict_mode, converter, id_map
+        )
+    else:
+        yield from _parse_sequential(
+            data_lines, seq_len, strict_mode, converter, id_map
+        )
 
 
-def get_align_for_phylip(data, id_map=None):
+def get_align_for_phylip(
+    data: typing.Iterable[str],
+    id_map: dict[str, str] | None = None,
+    strict_mode: bool = False,
+) -> "cogent3.core.alignment.Alignment":
+    """Return an Alignment object from phylip data.
+
+    Parameters
+    ----------
+    data
+        an iterable of lines in phylip format
+    id_map
+        optional mapping from parsed labels to replacement labels
+    strict_mode
+        when True labels occupy a fixed 10-character column
     """
-    Convenience function to return aligment object from phylip data
-
-    data: sequence of lines in phylip format (an open file, list, etc)
-    id_map: optional id mapping from external ids to phylip labels - not sure
-        if we're going to implement this
-
-    returns Alignment object
-    """
-
-    mpp = MinimalPhylipParser(data, id_map)
-
-    tuples = []
-    for tup in mpp:
-        tuples.append(tup)
+    tuples = list(iter_phylip_records(data, id_map, strict_mode=strict_mode))
     return cogent3.make_aligned_seqs(tuples, moltype="text")
+
+
+@deprecated_callable(
+    version="2026.9",
+    reason="function rename",
+    new="iter_phylip_records",
+)
+def MinimalPhylipParser(*args: typing.Any, **kwargs: typing.Any) -> typing.Iterator[tuple[str, OutTypes]]:  # noqa: ANN401, N802 # pragma: no cover
+    return iter_phylip_records(*args, **kwargs)

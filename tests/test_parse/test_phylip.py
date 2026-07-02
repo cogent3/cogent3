@@ -1,18 +1,57 @@
 """Unit tests for the phylip parser"""
 
-from io import StringIO
-from unittest import TestCase
+import pytest
 
-from cogent3.parse.phylip import MinimalPhylipParser, get_align_for_phylip
+import cogent3
+from cogent3.parse.phylip import get_align_for_phylip, iter_phylip_records
+from cogent3.parse.record import RecordError
+from cogent3.parse.sequence import PhylipParser
+
+RELAXED_INTERLEAVED = """2 30
+Acromyrmex_echinatior_Genome         gtcgtatttg gaatttgggg
+Apis_mellifera_Genome                -gcgagttcg aaatttgggg
+
+          cttcttcttc
+          cttcttcttc
+"""
 
 
-class PhylipGenericTest(TestCase):
-    """Setup data for Phylip parsers."""
+def test_relaxed_interleaved():
+    seqs = dict(iter_phylip_records(RELAXED_INTERLEAVED.splitlines()))
+    assert list(seqs) == ["Acromyrmex_echinatior_Genome", "Apis_mellifera_Genome"]
+    assert seqs["Acromyrmex_echinatior_Genome"] == "GTCGTATTTGGAATTTGGGGCTTCTTCTTC"
+    assert seqs["Apis_mellifera_Genome"] == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
+    assert {len(s) for s in seqs.values()} == {30}
 
-    def setUp(self):
-        """standard files"""
-        self.big_interleaved = StringIO(
-            """10 705 I
+
+RELAXED_SEQUENTIAL = """2 30
+Acromyrmex_echinatior_Genome  gtcgtatttg
+          gaatttgggg
+          cttcttcttc
+Apis_mellifera_Genome  -gcgagttcg
+          aaatttgggg
+          cttcttcttc
+"""
+
+
+def test_relaxed_sequential():
+    seqs = dict(iter_phylip_records(RELAXED_SEQUENTIAL.splitlines()))
+    assert list(seqs) == ["Acromyrmex_echinatior_Genome", "Apis_mellifera_Genome"]
+    assert seqs["Acromyrmex_echinatior_Genome"] == "GTCGTATTTGGAATTTGGGGCTTCTTCTTC"
+    assert seqs["Apis_mellifera_Genome"] == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
+    assert {len(s) for s in seqs.values()} == {30}
+
+
+@pytest.mark.parametrize("data", [RELAXED_INTERLEAVED, RELAXED_SEQUENTIAL])
+def test_layout_autodetected(data):
+    expected = {
+        "Acromyrmex_echinatior_Genome": "GTCGTATTTGGAATTTGGGGCTTCTTCTTC",
+        "Apis_mellifera_Genome": "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC",
+    }
+    assert dict(iter_phylip_records(data.splitlines())) == expected
+
+
+BIG_INTERLEAVED = """10 705 I
 Cow       ATGGCATATCCCATACAACTAGGATTCCAAGATGCAACATCACCAATCATAGAAGAACTA
 Carp      ATGGCACACCCAACGCAACTAGGTTTCAAGGACGCGGCCATACCCGTTATAGAGGAACTT
 Chicken   ATGGCCAACCACTCCCAACTAGGCTTTCAAGACGCCTCATCCCCCATCATAGAAGAGCTC
@@ -144,11 +183,9 @@ AACTGATCAGCTTCTATAATT---------------------TAA
 AAATGATCTACCTCAATGCTT---------------------TAA
 AAATGATCTGTATCAATACTA---------------------TAA
 AACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA
-        """,
-        )
+"""
 
-        self.space_interleaved = StringIO(
-            """ 5 176 I
+SPACE_INTERLEAVED = """ 5 176 I
 cox2_leita   MAFILSFWMI FLLDSVIVLL SFVCFVCVWI CALLFSTVLL VSKLNNIYCT
 cox2_crifa   MAFILSFWMI FLIDAVIVLL SFVCFVCIWI CSLFFSSFLL VSKINNVYCT
 cox2_bsalt   MSFIISFWML FLIDSLIVLL SGAIFVCIWI CSLFFLCILF ICKLDYIFCS
@@ -172,10 +209,9 @@ cox2_tborr   MLFFINQLLL LLVDTFVILE IFSLFVCVFI IVMYILFINY NIFLKNINVY
              SAIDVIHSFT LANLGIKVD? ?PGRCN
              SAVDVIHSFT ISSLGIKVEN PGRCNE
              TSIDVIHSFT ISTLGIKIDC IPGRCN
-                                                                                                                                                                """,
-        )
-        self.interleaved_little = StringIO(
-            """   6   39 I
+"""
+
+INTERLEAVED_LITTLE = """   6   39 I
 Archaeopt CGATGCTTAC CGCCGATGCT
 HesperorniCGTTACTCGT TGTCGTTACT
 BaluchitheTAATGTTAAT TGTTAATGTT
@@ -189,12 +225,9 @@ AATTGTTAAT GTTAATTGT
 CGTTGTTAAT GTTCGTTGT
 CATCATCAAA ACCCATCAT
 AATCACGGCA GCCAATCAC
-""",
-        )
-        self.empty = []
+"""
 
-        self.noninterleaved_little = StringIO(
-            """   6   20
+NONINTERLEAVED_LITTLE = """   6   20
 
 Archaeopt CGATGCTTAC CGCCGATGCT
 HesperorniCGTTACTCGT TGTCGTTACT
@@ -203,12 +236,9 @@ BaluchitheTAATGTTAAT TGTTAATGTT
 B. virginiTAATGTTCGT TGTTAATGTT
 BrontosaurCAAAACCCAT CATCAAAACC
 B.subtilisGGCAGCCAAT CACGGCAGCC
+"""
 
-""",
-        )
-
-        self.noninterleaved_big = StringIO(
-            """10  297
+NONINTERLEAVED_BIG = """10  297
 Rhesus    tgtggcacaaatactcatgccagctcattacagcatgagaac---agtttgttactcact
           aaagacagaatgaatgtagaaaaggctgaattctgtaataaaagcaaacagcctggcttg
           gcaaggagccaacataacagatggactggaagtaaggaaacatgtaatgataggcagact
@@ -224,69 +254,178 @@ Pig       tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcact
           gcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagact
           cctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactg
           aataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg
-""",
+"""
+
+
+def test_empty():
+    assert list(iter_phylip_records([])) == []
+
+
+def test_strict_interleaved_big():
+    seqs = list(iter_phylip_records(BIG_INTERLEAVED.splitlines(), strict_mode=True))
+    assert len(seqs) == 10
+    assert seqs[0][0] == "Cow"
+    label, seq = seqs[-1]
+    assert label == "Frog"
+    assert seq == (
+        "ATGGCACACCCATCACAATTAGGTTTTCAAGACGCAGCCTCTCCAATTATAGAAGAATTA"
+        "CTTCACTTCCACGACCATACCCTCATAGCCGTTTTTCTTATTAGTACGCTAGTTCTTTAC"
+        "ATTATTACTATTATAATAACTACTAAACTAACTAATACAAACCTAATGGACGCACAAGAG"
+        "ATCGAAATAGTGTGAACTATTATACCAGCTATTAGCCTCATCATAATTGCCCTTCCATCC"
+        "CTTCGTATCCTATATTTAATAGATGAAGTTAATGATCCACACTTAACAATTAAAGCAATC"
+        "GGCCACCAATGATACTGAAGCTACGAATATACTAACTATGAGGATCTCTCATTTGACTCT"
+        "TATATAATTCCAACTAATGACCTTACCCCTGGACAATTCCGGCTGCTAGAAGTTGATAAT"
+        "CGAATAGTAGTCCCAATAGAATCTCCAACCCGACTTTTAGTTACAGCCGAAGACGTCCTC"
+        "CACTCGTGAGCTGTACCCTCCTTGGGTGTCAAAACAGATGCAATCCCAGGACGACTTCAT"
+        "CAAACATCATTTATTGCTACTCGTCCGGGAGTATTTTACGGACAATGTTCAGAAATTTGC"
+        "GGAGCAAACCACAGCTTTATACCAATTGTAGTTGAAGCAGTACCGCTAACCGACTTTGAA"
+        "AACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA"
+    )
+
+
+def test_strict_space_interleaved():
+    seqs = list(iter_phylip_records(SPACE_INTERLEAVED.splitlines(), strict_mode=True))
+    assert len(seqs) == 5
+    assert seqs[0][0] == "cox2_leita"
+    assert seqs[-1][0] == "cox2_tborr"
+    assert {len(seq) for _, seq in seqs} == {176}
+
+
+def test_strict_interleaved_little():
+    seqs = list(iter_phylip_records(INTERLEAVED_LITTLE.splitlines(), strict_mode=True))
+    assert len(seqs) == 6
+    assert seqs[1][0] == "Hesperorni"
+    assert seqs[-1][0] == "B.subtilis"
+    assert seqs[-1][1] == "GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC"
+
+
+def test_strict_sequential_little():
+    seqs = list(
+        iter_phylip_records(NONINTERLEAVED_LITTLE.splitlines(), strict_mode=True)
+    )
+    assert len(seqs) == 6
+    assert seqs[0][0] == "Archaeopt"
+    assert seqs[-1][0] == "B.subtilis"
+    assert seqs[-1][1] == "GGCAGCCAATCACGGCAGCC"
+
+
+def test_strict_sequential_big():
+    seqs = list(iter_phylip_records(NONINTERLEAVED_BIG.splitlines(), strict_mode=True))
+    assert len(seqs) == 3
+    assert seqs[0][0] == "Rhesus"
+    assert seqs[-1][0] == "Pig"
+    assert seqs[-1][1] == (
+        "TGTGGCACAGATACTCATGCCAGCTCGTTACAGCATGAGAACAGCAGTTTATTACTCACT"
+        "AAAGACAGAATGAATGTAGAAAAGGCTGAATTTTGTAATAAAAGCAAGCAGCCTGTCTTA"
+        "GCAAAGAGCCAACAGAGCAGATGGGCTGAAAGTAAGGGCACATGTAATGATAGGCAGACT"
+        "CCTAACACAGAGAAAAAGGTAGTTCTGAATACTGATCTCCTGTATGGGAGAAACGAACTG"
+        "AATAAGCAGAAACCTGCGTGCTCTGACAGTCCTAGAGATTCCCAAGATGTTCCTTGG"
+    )
+
+
+def test_strict_get_align_interleaved():
+    align = get_align_for_phylip(INTERLEAVED_LITTLE.splitlines(), strict_mode=True)
+    assert str(align) == (
+        ">Archaeopt\nCGATGCTTACCGCCGATGCTTACCGCCGATGCTTACCGC\n"
+        ">Hesperorni\nCGTTACTCGTTGTCGTTACTCGTTGTCGTTACTCGTTGT\n"
+        ">Baluchithe\nTAATGTTAATTGTTAATGTTAATTGTTAATGTTAATTGT\n"
+        ">B. virgini\nTAATGTTCGTTGTTAATGTTCGTTGTTAATGTTCGTTGT\n"
+        ">Brontosaur\nCAAAACCCATCATCAAAACCCATCATCAAAACCCATCAT\n"
+        ">B.subtilis\nGGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC\n"
+    )
+
+
+def test_strict_get_align_sequential():
+    align = get_align_for_phylip(NONINTERLEAVED_LITTLE.splitlines(), strict_mode=True)
+    assert str(align) == (
+        ">Archaeopt\nCGATGCTTACCGCCGATGCT\n"
+        ">Hesperorni\nCGTTACTCGTTGTCGTTACT\n"
+        ">Baluchithe\nTAATGTTAATTGTTAATGTT\n"
+        ">B. virgini\nTAATGTTCGTTGTTAATGTT\n"
+        ">Brontosaur\nCAAAACCCATCATCAAAACC\n"
+        ">B.subtilis\nGGCAGCCAATCACGGCAGCC\n"
+    )
+
+
+def test_forced_interleaved_matches_autodetect():
+    data = RELAXED_INTERLEAVED.splitlines()
+    assert dict(iter_phylip_records(data, interleaved=True)) == dict(
+        iter_phylip_records(data)
+    )
+
+
+def test_forced_sequential_matches_autodetect():
+    data = RELAXED_SEQUENTIAL.splitlines()
+    assert dict(iter_phylip_records(data, interleaved=False)) == dict(
+        iter_phylip_records(data)
+    )
+
+
+def test_forced_wrong_layout_raises():
+    with pytest.raises(RecordError):
+        list(iter_phylip_records(RELAXED_SEQUENTIAL.splitlines(), interleaved=True))
+
+
+BAD_LENGTH = """2 40
+seq1  ACGTACGTAC
+seq2  ACGTACGTAC
+"""
+
+
+def test_length_mismatch_raises():
+    with pytest.raises(RecordError):
+        list(iter_phylip_records(BAD_LENGTH.splitlines()))
+
+
+def test_header_only_yields_nothing():
+    assert list(iter_phylip_records(["2 30"])) == []
+
+
+def test_blank_lines_only_yields_nothing():
+    assert list(iter_phylip_records(["", "   ", "\t"])) == []
+
+
+def _lower_converter(data: bytes) -> str:
+    return data.decode("utf8").replace(" ", "").replace("\n", "").lower()
+
+
+def test_custom_converter_applied():
+    seqs = dict(
+        iter_phylip_records(
+            RELAXED_INTERLEAVED.splitlines(), converter=_lower_converter
         )
+    )
+    assert seqs["Apis_mellifera_Genome"] == "-gcgagttcgaaatttggggcttcttcttc"
 
 
-class MinimalPhylipParserTests(PhylipGenericTest):
-    """Tests of MinimalPhylipParser: returns (label, seq) tuples."""
+def test_phylip_parser_accepts_converter():
+    assert PhylipParser().accepts_converter is True
 
-    def test_empty(self):
-        """MinimalFastaParser should return empty list from 'file' w/o labels"""
-        assert list(MinimalPhylipParser(self.empty)) == []
 
-    def test_minimal_parser(self):
-        """MinimalFastaParser should read single record as (label, seq) tuple"""
-        seqs = list(MinimalPhylipParser(self.big_interleaved))
-        assert len(seqs) == 10
-        label, seq = seqs[-1]
-        assert label == "Frog"
-        assert (
-            seq
-            == "ATGGCACACCCATCACAATTAGGTTTTCAAGACGCAGCCTCTCCAATTATAGAAGAATTACTTCACTTCCACGACCATACCCTCATAGCCGTTTTTCTTATTAGTACGCTAGTTCTTTACATTATTACTATTATAATAACTACTAAACTAACTAATACAAACCTAATGGACGCACAAGAGATCGAAATAGTGTGAACTATTATACCAGCTATTAGCCTCATCATAATTGCCCTTCCATCCCTTCGTATCCTATATTTAATAGATGAAGTTAATGATCCACACTTAACAATTAAAGCAATCGGCCACCAATGATACTGAAGCTACGAATATACTAACTATGAGGATCTCTCATTTGACTCTTATATAATTCCAACTAATGACCTTACCCCTGGACAATTCCGGCTGCTAGAAGTTGATAATCGAATAGTAGTCCCAATAGAATCTCCAACCCGACTTTTAGTTACAGCCGAAGACGTCCTCCACTCGTGAGCTGTACCCTCCTTGGGTGTCAAAACAGATGCAATCCCAGGACGACTTCATCAAACATCATTTATTGCTACTCGTCCGGGAGTATTTTACGGACAATGTTCAGAAATTTGCGGAGCAAACCACAGCTTTATACCAATTGTAGTTGAAGCAGTACCGCTAACCGACTTTGAAAACTGATCTTCATCAATACTA---GAAGCATCACTA------AGA"
-        )
-        assert seqs[0][0] == "Cow"
+def test_load_aligned_seqs_relaxed(tmp_path):
+    path = tmp_path / "locus.phy"
+    path.write_text(RELAXED_INTERLEAVED)
+    aln = cogent3.load_aligned_seqs(path, moltype="dna")
+    assert aln.num_seqs == 2
+    assert set(aln.names) == {"Acromyrmex_echinatior_Genome", "Apis_mellifera_Genome"}
+    assert len(aln) == 30
+    seq = str(aln.get_gapped_seq("Apis_mellifera_Genome"))
+    assert seq == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
 
-        seqs = list(MinimalPhylipParser(self.space_interleaved))
-        assert len(seqs) == 5
-        assert seqs[0][0] == "cox2_leita"
-        assert seqs[-1][0] == "cox2_tborr"
-        assert len(seqs[0][1]) == 176
-        assert len(seqs[-1][1]) == 176
 
-        seqs = list(MinimalPhylipParser(self.interleaved_little))
-        assert len(seqs) == 6
-        assert seqs[1][0] == "Hesperorni"
-        assert seqs[-1][0] == "B.subtilis"
-        assert seqs[-1][1] == "GGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC"
+def test_id_map_renames_labels():
+    id_map = {"Apis_mellifera_Genome": "bee"}
+    seqs = dict(iter_phylip_records(RELAXED_INTERLEAVED.splitlines(), id_map=id_map))
+    assert "Apis_mellifera_Genome" not in seqs
+    assert seqs["bee"] == "-GCGAGTTCGAAATTTGGGGCTTCTTCTTC"
 
-        seqs = list(MinimalPhylipParser(self.noninterleaved_little))
-        assert len(seqs) == 6
-        assert seqs[0][0] == "Archaeopt"
-        assert seqs[-1][0] == "B.subtilis"
-        assert seqs[-1][-1] == "GGCAGCCAATCACGGCAGCC"
 
-        seqs = list(MinimalPhylipParser(self.noninterleaved_big))
-        assert len(seqs) == 3
-        assert seqs[0][0] == "Rhesus"
-        assert seqs[-1][0] == "Pig"
-        assert (
-            seqs[-1][1]
-            == "tgtggcacagatactcatgccagctcgttacagcatgagaacagcagtttattactcactaaagacagaatgaatgtagaaaaggctgaattttgtaataaaagcaagcagcctgtcttagcaaagagccaacagagcagatgggctgaaagtaagggcacatgtaatgataggcagactcctaacacagagaaaaaggtagttctgaatactgatctcctgtatgggagaaacgaactgaataagcagaaacctgcgtgctctgacagtcctagagattcccaagatgttccttgg"
-        )
+SINGLE_SEQUENCE = """1 20
+seq1  ACGTACGTAC
+      GTACGTACGT
+"""
 
-    def test_get_align(self):
-        """get_align_for_phylip should return Aligment object for phylip files"""
-        align = get_align_for_phylip(self.big_interleaved)
-        align = get_align_for_phylip(self.interleaved_little)
-        s = str(align)
-        assert (
-            s
-            == ">Archaeopt\nCGATGCTTACCGCCGATGCTTACCGCCGATGCTTACCGC\n>Hesperorni\nCGTTACTCGTTGTCGTTACTCGTTGTCGTTACTCGTTGT\n>Baluchithe\nTAATGTTAATTGTTAATGTTAATTGTTAATGTTAATTGT\n>B. virgini\nTAATGTTCGTTGTTAATGTTCGTTGTTAATGTTCGTTGT\n>Brontosaur\nCAAAACCCATCATCAAAACCCATCATCAAAACCCATCAT\n>B.subtilis\nGGCAGCCAATCACGGCAGCCAATCACGGCAGCCAATCAC\n"
-        )
-        align = get_align_for_phylip(self.noninterleaved_little)
-        s = str(align)
-        assert (
-            s
-            == ">Archaeopt\nCGATGCTTACCGCCGATGCT\n>Hesperorni\nCGTTACTCGTTGTCGTTACT\n>Baluchithe\nTAATGTTAATTGTTAATGTT\n>B. virgini\nTAATGTTCGTTGTTAATGTT\n>Brontosaur\nCAAAACCCATCATCAAAACC\n>B.subtilis\nGGCAGCCAATCACGGCAGCC\n"
-        )
+
+def test_single_sequence():
+    seqs = dict(iter_phylip_records(SINGLE_SEQUENCE.splitlines()))
+    assert seqs == {"seq1": "ACGTACGTACGTACGTACGT"}

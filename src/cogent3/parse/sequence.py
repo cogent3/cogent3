@@ -109,8 +109,8 @@ class LineBasedParser:
 
 
 PARSERS = {
-    "phylip": LineBasedParser(phylip.MinimalPhylipParser),
-    "phy": LineBasedParser(phylip.MinimalPhylipParser),
+    "phylip": LineBasedParser(phylip.iter_phylip_records),
+    "phy": LineBasedParser(phylip.iter_phylip_records),
     "paml": LineBasedParser(paml.PamlParser),
     "fasta": fasta.iter_fasta_records,
     "mfa": fasta.iter_fasta_records,
@@ -179,8 +179,12 @@ class PhylipParser(SequenceParserBase):
         return {"phylip", "phy"}
 
     @property
+    def accepts_converter(self) -> bool:
+        return True
+
+    @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
-        return LineBasedParser(phylip.MinimalPhylipParser)
+        return LineBasedParser(phylip.iter_phylip_records)
 
 
 class ClustalParser(SequenceParserBase):
