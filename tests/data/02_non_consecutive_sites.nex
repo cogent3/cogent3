@@ -1,0 +1,9 @@
+#nexus
+[ Idea: more ways to write site ranges in one charset - split ranges, several
+  ranges, and step ranges like start-end\3 (used to pick codon positions). ]
+begin sets;
+    charset part1 = 1-100 250-384;
+    charset part2 = 101-249\3 102-249\3;
+    charset part3 = 103-249\3;
+    charpartition mine = HKY+G:part1, GTR+I+G:part2, JC:part3;
+end;

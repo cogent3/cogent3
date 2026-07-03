@@ -1,0 +1,16 @@
+#nexus
+[ Idea: a big example that combines many features - a CODON part (GY+G), a DNA
+  codon-position split, a free-rate model (GTR+R3), a protein mixture
+  (LG+C20+F+G), several files, and square-bracket comments. ]
+begin sets;
+    [ whole-codon block -> real codon model (GY) ]
+    charset cds       = genes.phy:CODON, 1-900;
+    [ codon-position partitioning of a 2nd region, modelled as DNA ]
+    charset cds_pos12 = genes.phy: 901-1500\3 902-1500\3;
+    charset cds_pos3  = genes.phy: 903-1500\3;
+    [ structural RNA with free-rate heterogeneity ]
+    charset rRNA      = genes.phy: 1501-1800;
+    [ whole protein alignment from a separate file; mixture model ]
+    charset protein   = proteins.phy: *;
+    charpartition full = GY+G:cds, GTR+G:cds_pos12, HKY+I+G:cds_pos3, GTR+R3:rRNA, LG+C20+F+G:protein;
+end;

@@ -6,12 +6,209 @@ parses Nexus formatted tree files and Branchlength info in log files
 
 import re
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass
+from functools import singledispatch
+from pathlib import Path
+from typing import TypedDict, cast
 
-from scinexus.io_util import open_
+from scinexus.io_util import iter_splitlines, open_
 
 from cogent3.parse.record import RecordError
 
 strip = str.strip
+
+
+@dataclass(frozen=True, slots=True)
+class Partition:
+    """a single Nexus charset, resolved for slicing an alignment
+
+    Ranges use zero-based, half-open slices so they apply directly to an
+    alignment. The class holds only the information needed to obtain and
+    match an alignment, never an alignment instance itself.
+    """
+
+    name: str
+    ranges: tuple[slice, ...]
+    data_type: str | None = None
+    model: str | None = None
+    align_name: str | None = None
+    tree_len: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PartitionSet:
+    """an ordered set of Partitions defined by a Nexus charpartition"""
+
+    name: str
+    partitions: tuple[Partition, ...]
+
+    def __len__(self) -> int:
+        return len(self.partitions)
+
+    def __iter__(self) -> Iterator[Partition]:
+        return iter(self.partitions)
+
+    def __getitem__(self, name: str) -> Partition:
+        for partition in self.partitions:
+            if partition.name == name:
+                return partition
+        raise KeyError(name)
+
+
+def range_to_slice(text: str) -> slice:
+    """converts a Nexus charset range token to a zero-based, half-open slice
+
+    Nexus ranges are 1-based with an inclusive end. A trailing "\\k" gives a
+    step, "." as the end means "to the end", and "*" means the whole file.
+    """
+    if text == "*":
+        return slice(0, None)
+
+    step = None
+    if "\\" in text:
+        text, step_s = text.split("\\", 1)
+        step = int(step_s)
+
+    if "-" not in text:
+        start = int(text)
+        return slice(start - 1, start)
+
+    start_s, end_s = text.split("-", 1)
+    start = int(start_s) - 1
+    stop = None if end_s == "." else int(end_s)
+    return slice(start, stop, step)
+
+
+_type_prefix = re.compile(r"^\s*([A-Za-z][A-Za-z0-9]*)\s*,\s*(.*)$", re.DOTALL)
+
+
+def parse_charset(text: str) -> Partition:
+    """parses one Nexus charset statement into a Partition
+
+    Expects the statement body with the "charset" keyword and trailing ";"
+    already removed, e.g. "part1 = aln.phy:CODON, 1-900".
+    """
+    name, spec = text.split("=", 1)
+    name = name.strip()
+    spec = spec.strip()
+
+    align_name = None
+    if ":" in spec:
+        file_part, spec = spec.split(":", 1)
+        align_name = file_part.strip() or None
+
+    data_type = None
+    if match := _type_prefix.match(spec):
+        data_type, spec = match.groups()
+
+    tokens = re.split(r"[\s,]+", spec.strip())
+    ranges = tuple(range_to_slice(token) for token in tokens if token)
+    return Partition(
+        name=name, ranges=ranges, data_type=data_type, align_name=align_name
+    )
+
+
+_data_type_kw = re.compile(r"^(DNA|AA|BIN|MORPH|CODON\d*|NT2AA\d*)$")
+
+
+class _Slot(TypedDict):
+    model: str | None
+    data_type: str | None
+    tree_len: float | None
+
+
+def parse_charpartition(text: str) -> tuple[str, dict[str, _Slot]]:
+    """parses a Nexus charpartition into a scheme name and per-charset slots
+
+    Expects the statement body with the "charpartition" keyword and trailing
+    ";" removed. Each slot maps a charset to a model (or, when the slot is a
+    data-type keyword, a data type) and an optional {value} branch length.
+    """
+    scheme, body = text.split("=", 1)
+    scheme = scheme.strip()
+
+    mapping: dict[str, _Slot] = {}
+    for entry in body.split(","):
+        slot, charset = entry.split(":", 1)
+        slot = slot.strip()
+        charset = charset.strip()
+
+        tree_len: float | None = None
+        if "{" in slot:
+            slot, value = slot.split("{", 1)
+            tree_len = float(value.rstrip("}"))
+            slot = slot.strip()
+
+        if _data_type_kw.match(slot):
+            mapping[charset] = {"model": None, "data_type": slot, "tree_len": tree_len}
+        else:
+            mapping[charset] = {"model": slot, "data_type": None, "tree_len": tree_len}
+    return scheme, mapping
+
+
+@singledispatch
+def get_sets_block(data: str | Path | Iterable[str]) -> str | None:
+    """returns the text of the Nexus 'sets' block with [ ... ] comments removed"""
+    in_block = False
+    collected = []
+    for line in cast("Iterable[str]", data):
+        stripped = line.lower().lstrip()
+        if stripped.startswith("begin sets;"):
+            in_block = True
+            continue
+        if in_block:
+            if stripped.startswith(("end;", "endblock;")):
+                break
+            collected.append(line)
+
+    if not collected:
+        return None
+    return re.sub(r"\[.*?\]", " ", "".join(collected), flags=re.DOTALL)
+
+
+@get_sets_block.register(str)
+@get_sets_block.register(Path)
+def _(data: str | Path) -> str | None:
+    return get_sets_block(iter_splitlines(data))
+
+
+def parse_nexus_partitions(data: str | Path | Iterable[str]) -> PartitionSet:
+    """parses the partition scheme from the 'sets' block of a Nexus file"""
+    block = get_sets_block(data)
+    if block is None:
+        msg = "no sets block found"
+        raise RecordError(msg)
+
+    charsets: dict[str, Partition] = {}
+    scheme_name = ""
+    slots: dict[str, _Slot] = {}
+    for raw in block.split(";"):
+        statement = raw.strip()
+        if not statement:
+            continue
+        keyword, rest = statement.split(None, 1)
+        keyword = keyword.lower()
+        if keyword == "charset":
+            charset = parse_charset(rest)
+            charsets[charset.name] = charset
+        elif keyword == "charpartition":
+            scheme_name, slots = parse_charpartition(rest)
+
+    partitions = []
+    for name, slot in slots.items():
+        base = charsets[name]
+        partitions.append(
+            Partition(
+                name=base.name,
+                ranges=base.ranges,
+                data_type=base.data_type or slot["data_type"],
+                model=slot["model"],
+                align_name=base.align_name,
+                tree_len=slot["tree_len"],
+            )
+        )
+    return PartitionSet(name=scheme_name, partitions=tuple(partitions))
 
 
 def parse_nexus_tree(tree_f):

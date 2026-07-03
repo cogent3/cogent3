@@ -1,0 +1,8 @@
+#nexus
+[ Idea: codon models with different genetic codes - file:CODON and file:CODON5. ]
+begin sets;
+    charset nuclear_cds = aln1.phy:CODON, 1-900;
+    charset mito_cds    = aln1.phy:CODON5, 901-1500;
+    charset intron      = aln1.phy: 1501-1800;
+    charpartition mixed = GY:nuclear_cds, GY:mito_cds, GTR+G:intron;
+end;

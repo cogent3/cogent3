@@ -1,0 +1,8 @@
+#nexus
+[ Idea: the basics. 'charset' gives site ranges; 'charpartition' gives a
+  model to each part (here HKY+G and GTR+I+G). ]
+begin sets;
+    charset part1 = 1-100;
+    charset part2 = 101-384;
+    charpartition mine = HKY+G:part1, GTR+I+G:part2;
+end;
