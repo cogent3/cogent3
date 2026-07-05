@@ -4,19 +4,27 @@
 parses Nexus formatted tree files and Branchlength info in log files
 """
 
+from __future__ import annotations
+
 import re
 from collections import defaultdict
-from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from functools import singledispatch
+from os import PathLike
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
-from scinexus.io_util import iter_splitlines, open_
+from scinexus.io_util import iter_splitlines
 from scinexus.warning import deprecated_callable
 
-from cogent3.parse.fasta import OptConverterType, OutTypes, minimal_converter
 from cogent3.parse.record import RecordError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
+
+    from scinexus.io_util import PathType
+
+    from cogent3.parse.fasta import OptConverterType, OutTypes
 
 strip = str.strip
 
@@ -395,7 +403,7 @@ def parse_PAUP_log(branch_lengths: Iterable[str]) -> dict[str, tuple[str, float]
 
 
 def iter_nexus_align_records(
-    data: str | Iterable[str],
+    data: PathType | Iterable[str],
     *,
     converter: OptConverterType = None,
 ) -> Iterator[tuple[str, OutTypes]]:
@@ -409,23 +417,17 @@ def iter_nexus_align_records(
         callable mapping raw sequence bytes to the yielded sequence. When None
         uses a converter that removes whitespace and upper-cases the residues
     """
-    infile = open_(data) if isinstance(data, str) else data
+    lines = iter_splitlines(data) if isinstance(data, str | PathLike) else iter(data)
 
-    is_block = re.compile(r"begin\s+(data|characters)").search
-    in_block = False
-    try:
-        line = infile.readline()  # type: ignore[union-attr]
-    except AttributeError:
-        # guessing it's a list of strings from a nexus file
-        line = next(iter(infile))
-
-    if not line.lower().startswith("#nexus"):
+    if not next(lines, "").lower().startswith("#nexus"):
         msg = "not a nexus file"
         raise ValueError(msg)
 
+    is_block = re.compile(r"begin\s+(data|characters)").search
+    in_block = False
     block: list[str] = []
     index = None
-    for line in infile:
+    for line in lines:
         if is_block(line.lower()):
             in_block = True
         elif in_block and line.lower().startswith("end;"):
@@ -437,9 +439,6 @@ def iter_nexus_align_records(
             elif not line.startswith(";"):
                 block.append(line)
 
-    if hasattr(infile, "close"):
-        infile.close()
-
     if not block:
         msg = "not found DATA or CHARACTER block"
         raise ValueError(msg)
@@ -449,15 +448,17 @@ def iter_nexus_align_records(
 
     block = block[index:]
     seqs = defaultdict(list)
-    for line in block:
-        if not line or (line.startswith("[") and line.endswith("]")):
+    for entry in block:
+        if not entry or (entry.startswith("[") and entry.endswith("]")):
             # blank or comment line
             continue
 
-        line = line.split()
-        seqs[line[0]].append("".join(line[1:]))
+        parts = entry.split()
+        seqs[parts[0]].append("".join(parts[1:]))
 
     if converter is None:
+        from cogent3.parse.fasta import minimal_converter
+
         converter = minimal_converter()
     for n, s in seqs.items():
         yield n, converter("".join(s).encode("utf8"))
