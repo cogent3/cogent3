@@ -4,8 +4,8 @@ from unittest import TestCase
 
 from cogent3 import load_aligned_seqs
 from cogent3.parse.nexus import (
-    MinimalNexusAlignParser,
     Partition,
+    iter_nexus_align_records,
     find_fields,
     get_BL_table,
     get_tree_info,
@@ -365,7 +365,7 @@ class NexusParserTests(TestCase):
 
     def test_align_with_comments(self):
         """correctly handle an alignment block containing comments"""
-        parser = MinimalNexusAlignParser("data/nexus_comments.nex")
+        parser = iter_nexus_align_records("data/nexus_comments.nex")
         got = dict(parser)
         expect = {
             "Ephedra": "TTAAGCCATGCATGTCTAAGTATGAACTAATTCCAAACGGTGA",
@@ -378,7 +378,7 @@ class NexusParserTests(TestCase):
 
     def test_align_with_spaced_seqs(self):
         """correctly handle an alignment block with spaces in seqs"""
-        parser = MinimalNexusAlignParser("data/nexus_dna.nex")
+        parser = iter_nexus_align_records("data/nexus_dna.nex")
         seqs = dict(parser)
         assert len(seqs) == 10  # 10 taxa
         lengths = {len(seqs[n]) for n in seqs}
@@ -386,7 +386,7 @@ class NexusParserTests(TestCase):
 
     def test_align_from_mixed(self):
         """correctly handle a file with tree and alignment block"""
-        parser = MinimalNexusAlignParser("data/nexus_mixed.nex")
+        parser = iter_nexus_align_records("data/nexus_mixed.nex")
         got = dict(parser)
         expect = {
             "fish": "ACATAGAGGGTACCTCTAAG",
@@ -398,7 +398,7 @@ class NexusParserTests(TestCase):
 
     def test_align_no_blank_columns(self):
         """correctly handle a file with no white space at line starts"""
-        parser = MinimalNexusAlignParser("data/nexus_aa.nxs")
+        parser = iter_nexus_align_records("data/nexus_aa.nxs")
         seqs = dict(parser)
         assert len(seqs) == 10  # 10 taxa
         lengths = {len(seqs[n]) for n in seqs}
@@ -598,3 +598,26 @@ def test_parse_nexus_partitions_data_block_and_comments():
     pset = parse_nexus_partitions(lines)
     assert pset["part1"].model == "HKY+G"
     assert pset["part1"].tree_len == 0.5
+
+
+_NEXUS_LOWER = """#nexus
+begin data;
+  dimensions ntax=2 nchar=4;
+  format datatype=dna;
+  matrix
+    a  acgt
+    b  tgca
+  ;
+end;
+"""
+
+
+def test_iter_nexus_align_records_uppercases():
+    got = dict(iter_nexus_align_records(_NEXUS_LOWER.splitlines()))
+    assert got == {"a": "ACGT", "b": "TGCA"}
+
+
+def test_iter_nexus_align_records_custom_converter():
+    records = iter_nexus_align_records(_NEXUS_LOWER.splitlines(), converter=bytes.lower)
+    got = dict(records)
+    assert got == {"a": b"acgt", "b": b"tgca"}

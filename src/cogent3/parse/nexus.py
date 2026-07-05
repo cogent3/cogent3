@@ -13,7 +13,9 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 from scinexus.io_util import iter_splitlines, open_
+from scinexus.warning import deprecated_callable
 
+from cogent3.parse.fasta import OptConverterType, OutTypes, minimal_converter
 from cogent3.parse.record import RecordError
 
 strip = str.strip
@@ -211,26 +213,31 @@ def parse_nexus_partitions(data: str | Path | Iterable[str]) -> PartitionSet:
     return PartitionSet(name=scheme_name, partitions=tuple(partitions))
 
 
-def parse_nexus_tree(tree_f):
-    """returns a dict mapping taxa # to name from the translation table,
-    and a dict mapping tree name to dnd string;
-    takes a handle for a Nexus formatted file as input"""
+def parse_nexus_tree(
+    tree_f: Iterable[str],
+) -> tuple[dict[str, str] | None, dict[str, str]]:
+    """returns a translation table and a mapping of tree name to dnd string
+
+    Takes a handle for a Nexus formatted file as input. The translation table
+    maps taxa number to name, or is None when the file has no translate block.
+    """
     trans_table = None
     tree_info = get_tree_info(tree_f)
     check_tree_info(tree_info)
-    header_s, trans_table_s, dnd_s = split_tree_info(tree_info)
+    header_s, trans_table_s, dnd_s = split_tree_info(tree_info or [])
     if trans_table_s:
         trans_table = parse_trans_table(trans_table_s)
     dnd = parse_dnd(dnd_s)
     return trans_table, dnd
 
 
-def get_tree_info(tree_f):
-    """returns the trees section of a Nexus file:
-    takes a handle for a Nexus formatted file as input:
-    returns the section describing trees as a list of strings"""
+def get_tree_info(tree_f: Iterable[str]) -> list[str] | None:
+    """returns the trees section of a Nexus file
+
+    Takes a handle for a Nexus formatted file as input.
+    """
     in_tree = False
-    result = []
+    result: list[str] = []
     for line in tree_f:
         # get lines from the 'Begin trees;' tag to the 'End;' tag
         line_lower = line.lower()
@@ -243,7 +250,7 @@ def get_tree_info(tree_f):
     return None
 
 
-def check_tree_info(tree_info) -> None:
+def check_tree_info(tree_info: list[str] | None) -> None:
     """makes sure that there is a tree section in the file"""
     if tree_info:
         pass
@@ -252,10 +259,13 @@ def check_tree_info(tree_info) -> None:
         raise RecordError(msg)
 
 
-def split_tree_info(tree_info):
-    """Returns header, table, and dnd info from tree section of Nexus file.:
+def split_tree_info(
+    tree_info: Iterable[str],
+) -> tuple[list[str], list[str], list[str]]:
+    """returns header, table, and dnd info from tree section of Nexus file
 
-    Expects to receive the output of get_tree_info"""
+    Expects to receive the output of get_tree_info.
+    """
     header = []
     trans_table = []
     dnd = []
@@ -281,7 +291,7 @@ def split_tree_info(tree_info):
     return header, trans_table, dnd
 
 
-def parse_trans_table(trans_table):
+def parse_trans_table(trans_table: Iterable[str]) -> dict[str, str]:
     """returns a dict with the taxa names indexed by number"""
     result = {}
     for line in trans_table:
@@ -297,7 +307,7 @@ def parse_trans_table(trans_table):
     return result
 
 
-def parse_dnd(dnd):  # get rooted info
+def parse_dnd(dnd: Iterable[str]) -> dict[str, str]:  # get rooted info
     """returns a dict with dnd indexed by name"""
     dnd_dict = {}
     for line in dnd:
@@ -310,9 +320,8 @@ def parse_dnd(dnd):  # get rooted info
     return dnd_dict
 
 
-def get_BL_table(branch_lengths):
-    """returns the section of the log file with the BL table
-    as a list of strings"""
+def get_BL_table(branch_lengths: Iterable[str]) -> list[str]:
+    """returns the section of the log file with the BL table"""
 
     in_table = 0
     result = []
@@ -332,7 +341,11 @@ def get_BL_table(branch_lengths):
     return result
 
 
-def find_fields(line, field_order=None, field_delims=None):
+def find_fields(
+    line: str,
+    field_order: list[str] | None = None,
+    field_delims: list[int] | None = None,
+) -> dict[str, str]:
     """takes line from BL table and returns dict with field names mapped to info
 
     field order is the order of field names to extract from the file and
@@ -353,20 +366,21 @@ def find_fields(line, field_order=None, field_delims=None):
     return field_dict
 
 
-def parse_taxa(taxa_field):
+def parse_taxa(taxa_field: str) -> str:
     """gets taxa # from taxa field extracted with find_fields"""
 
     if not (term_match := re.search(r"\(\d+\)", taxa_field)):
         return taxa_field
     term = term_match[0]
     data_match = re.search(r"\d+", term)
-    return data_match[0]
+    return data_match[0] if data_match else ""
 
 
-def parse_PAUP_log(branch_lengths):
+def parse_PAUP_log(branch_lengths: Iterable[str]) -> dict[str, tuple[str, float]]:
     """gets branch length info from a PAUP log file
-    returns a dictionary mapping the taxon number to the parent number
-    and the branch length"""
+
+    Maps the taxon number to the parent number and the branch length.
+    """
     BL_table = get_BL_table(branch_lengths)
     BL_dict = {}
     for line in BL_table:
@@ -380,14 +394,27 @@ def parse_PAUP_log(branch_lengths):
     return BL_dict
 
 
-def MinimalNexusAlignParser(align_path):
-    """returns {label: seq, ...}"""
-    infile = open_(align_path) if type(align_path) == str else align_path
+def iter_nexus_align_records(
+    data: str | Iterable[str],
+    *,
+    converter: OptConverterType = None,
+) -> Iterator[tuple[str, OutTypes]]:
+    """yields (label, seq) records from a nexus data or characters block
 
-    isblock = re.compile(r"begin\s+(data|characters)").search
-    inblock = False
+    Parameters
+    ----------
+    data
+        path to a nexus file or an iterable of its lines
+    converter
+        callable mapping raw sequence bytes to the yielded sequence. When None
+        uses a converter that removes whitespace and upper-cases the residues
+    """
+    infile = open_(data) if isinstance(data, str) else data
+
+    is_block = re.compile(r"begin\s+(data|characters)").search
+    in_block = False
     try:
-        line = infile.readline()
+        line = infile.readline()  # type: ignore[union-attr]
     except AttributeError:
         # guessing it's a list of strings from a nexus file
         line = next(iter(infile))
@@ -396,14 +423,14 @@ def MinimalNexusAlignParser(align_path):
         msg = "not a nexus file"
         raise ValueError(msg)
 
-    block = []
+    block: list[str] = []
     index = None
     for line in infile:
-        if isblock(line.lower()):
-            inblock = True
-        elif inblock and line.lower().startswith("end;"):
+        if is_block(line.lower()):
+            in_block = True
+        elif in_block and line.lower().startswith("end;"):
             break
-        elif inblock:
+        elif in_block:
             line = line.strip()
             if line.lower().startswith("matrix"):
                 index = len(block)
@@ -430,5 +457,14 @@ def MinimalNexusAlignParser(align_path):
         line = line.split()
         seqs[line[0]].append("".join(line[1:]))
 
+    if converter is None:
+        converter = minimal_converter()
     for n, s in seqs.items():
-        yield n, "".join(s)
+        yield n, converter("".join(s).encode("utf8"))
+
+
+@deprecated_callable(
+    version="2026.9", reason="function rename", new="iter_nexus_align_records"
+)
+def MinimalNexusAlignParser(*args, **kwargs):  # noqa: ANN002, ANN003, ANN201, N802 # pragma: no cover
+    return iter_nexus_align_records(*args, **kwargs)
