@@ -1,4 +1,48 @@
 
+<a id='changelog-2026.7.6a0'></a>
+# Changes in release "2026.7.6a0"
+
+Feature enhancement release.
+
+## API
+
+- phylip parser now accepts a converter for handling
+  sequence conversion. Default is the one used for
+  the fasta parser.
+
+- nexus alignment parser now accepts a converter for handling
+  sequence conversion. Default is the one used for
+  the fasta parser.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Generalise the PHYLIP parser for relaxed format. Old PHYLIP was
+  very strict about how long taxa names could be. Relaxed format
+  uses spaces to delineate where taxa names end. We also now use
+  a converter for consistency with other cogent3 parsers. The
+  latter allows the return type to be a string, or a numpy ndarray
+  (for instance). Layout is now auto-detected, can be explicitly
+  controlled using optional interleaved and strict arguments.
+
+- Support parsing phylogenetic "partition" blocks from Nexus files.
+  `Partition` and `PartitionSet` data classes added to `parse/nexus.py`
+  holding resolved charset info for slicing alignments without storing
+  the alignments themselves. Note character ranges are zero-based.
+  Loading the appropriate alignments is up to the user. Users can extract
+  partition data using `cogent3.core.parse.nexus.parse_nexus_partitions()`.
+
+## Deprecations
+
+- MinimalPhylipParser is being deprecated for iter_phylip_records,
+  for consistency with other parsers.
+
+- MinimalNexusAlignParser is being deprecated for iter_nexus_align_records,
+  for consistency with other parsers.
+
 <a id='changelog-2026.6.9a0'></a>
 # Changes in release "2026.6.9a0"
 
