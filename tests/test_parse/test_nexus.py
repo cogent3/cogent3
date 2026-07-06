@@ -1,6 +1,6 @@
 """Unit tests for the Nexus Parser"""
 
-from unittest import TestCase
+import pytest
 
 from cogent3 import load_aligned_seqs
 from cogent3.parse.nexus import (
@@ -198,221 +198,204 @@ line3 = "    39                  40                 57            15            
 line4 = "AF078391l (2)           39                 56            48            81"
 
 
-class NexusParserTests(TestCase):
-    """Tests of the Nexus Parser functions"""
+EXPECTED_TRANS = [
+    ("1", "outgroup25"),
+    ("2", "AF078391l"),
+    ("3", "AF078211af"),
+    ("4", "AF078393l"),
+    ("5", "AF078187af"),
+    ("6", "AF078320l"),
+    ("21", "outgroup258"),
+    ("20", "AF078179af"),
+    ("19", "AF078251af"),
+]
 
-    def test_parse_nexus_tree(self):
-        """parse_nexus_tree returns a dnd string and a translation table list"""
-        Trans_table, dnd = parse_nexus_tree(Nexus_tree)
+PAUP_1_DND = "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);"
 
-        # check the full dendrogram string is returned
-        assert (
-            dnd["tree PAUP_1"]
-            == "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);"
-        )
+NJ_DND = "((((((((((YA10260L1:0.01855,SARAG06_Y:0.00367):0.01965,(((YA270L1G0:0.01095,SARAD10_Y:0.00699):0.01744,YA270L1A0:0.04329):0.00028,((YA165L1C1:0.01241,SARAA02_Y:0.02584):0.00213,((YA165L1H0:0.00092,SARAF10_Y:-0.00092):0.00250,(YA165L1A0:0.00177,SARAH10_Y:0.01226):0.00198):0.00131):0.00700):0.01111):0.11201,(YA160L1F0:0.00348,SARAG01_Y:-0.00122):0.13620):0.01202,((((YRM60L1D0:0.00357,(YRM60L1C0:0.00477,SARAE10_Y:-0.00035):0.00086):0.00092,SARAE03_Y:0.00126):0.00125,SARAC11_Y:0.00318):0.00160,YRM60L1H0:0.00593):0.09975):0.07088,SARAA01_Y:0.02880):0.00190,SARAB04_Y:0.05219):0.00563,YRM60L1E0:0.06099):0.00165,(YRM60L1H0:0.00450,SARAF11_Y:0.01839):0.00288):0.00129,YRM60L1B1:0.00713):0.00194,(YRM60L1G0:0.00990,(YA165L1G0:0.00576,(YA160L1G0:0.01226,SARAA11_Y:0.00389):0.00088):0.00300):0.00614,SARAC06_Y:0.00381);"
 
-        # check that all taxa are returned in the Trans_table
-        assert Trans_table["1"] == "outgroup25"
-        assert Trans_table["2"] == "AF078391l"
-        assert Trans_table["3"] == "AF078211af"
-        assert Trans_table["4"] == "AF078393l"
-        assert Trans_table["5"] == "AF078187af"
-        assert Trans_table["6"] == "AF078320l"
-        assert Trans_table["21"] == "outgroup258"
-        assert Trans_table["20"] == "AF078179af"
-        assert Trans_table["19"] == "AF078251af"
 
-        # check that Nexus files without translation table work
-        Trans_table, dnd = parse_nexus_tree(Nexus_tree_2)
-        assert Trans_table is None
-        assert (
-            dnd["tree nj"]
-            == "((((((((((YA10260L1:0.01855,SARAG06_Y:0.00367):0.01965,(((YA270L1G0:0.01095,SARAD10_Y:0.00699):0.01744,YA270L1A0:0.04329):0.00028,((YA165L1C1:0.01241,SARAA02_Y:0.02584):0.00213,((YA165L1H0:0.00092,SARAF10_Y:-0.00092):0.00250,(YA165L1A0:0.00177,SARAH10_Y:0.01226):0.00198):0.00131):0.00700):0.01111):0.11201,(YA160L1F0:0.00348,SARAG01_Y:-0.00122):0.13620):0.01202,((((YRM60L1D0:0.00357,(YRM60L1C0:0.00477,SARAE10_Y:-0.00035):0.00086):0.00092,SARAE03_Y:0.00126):0.00125,SARAC11_Y:0.00318):0.00160,YRM60L1H0:0.00593):0.09975):0.07088,SARAA01_Y:0.02880):0.00190,SARAB04_Y:0.05219):0.00563,YRM60L1E0:0.06099):0.00165,(YRM60L1H0:0.00450,SARAF11_Y:0.01839):0.00288):0.00129,YRM60L1B1:0.00713):0.00194,(YRM60L1G0:0.00990,(YA165L1G0:0.00576,(YA160L1G0:0.01226,SARAA11_Y:0.00389):0.00088):0.00300):0.00614,SARAC06_Y:0.00381);"
-        )
+@pytest.fixture
+def tree_info():
+    return get_tree_info(Nexus_tree)
 
-    def test_parse_nexus_tree_sq(self):
-        """remove single quotes from tree and translate tables"""
-        Trans_table, dnd = parse_nexus_tree(Nexus_tree_3)
 
-        # check the full dendrogram string is returned
-        assert (
-            dnd["tree PAUP_1"]
-            == "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);"
-        )
+@pytest.fixture
+def split_info(tree_info):
+    return split_tree_info(tree_info)
 
-        # check that all taxa are returned in the Trans_table
-        assert Trans_table["1"] == "outgroup25"
-        assert Trans_table["2"] == "AF078391l"
-        assert Trans_table["3"] == "AF078211af"
-        assert Trans_table["4"] == "AF078393l"
-        assert Trans_table["5"] == "AF078187af"
-        assert Trans_table["6"] == "AF078320l"
-        assert Trans_table["21"] == "outgroup258"
-        assert Trans_table["20"] == "AF078179af"
-        assert Trans_table["19"] == "AF078251af"
 
-    def test_get_tree_info(self):
-        """get_tree_info returns the Nexus file section that describes the tree"""
-        result = get_tree_info(Nexus_tree)
-        assert len(result) == 33
-        assert (
-            result[0]
-            == "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]"
-        )
-        assert (
-            result[31]
-            == "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);"
-        )
+def test_parse_nexus_tree_dnd():
+    _, dnd = parse_nexus_tree(Nexus_tree)
+    assert dnd["tree PAUP_1"] == PAUP_1_DND
 
-    def test_split_tree_info(self):
-        """split_tree_info splits lines into header, Trans_table, and dnd"""
-        tree_info = get_tree_info(Nexus_tree)
-        header, trans_table, dnd = split_tree_info(tree_info)
 
-        assert len(header) == 9
+@pytest.mark.parametrize(("key", "expected"), EXPECTED_TRANS)
+def test_parse_nexus_tree_trans_table(key, expected):
+    trans_table, _ = parse_nexus_tree(Nexus_tree)
+    assert trans_table[key] == expected
 
-        assert len(trans_table) == 22
 
-        assert len(dnd) == 2
+def test_parse_nexus_tree_no_trans_table():
+    trans_table, dnd = parse_nexus_tree(Nexus_tree_2)
+    assert trans_table is None
+    assert dnd["tree nj"] == NJ_DND
 
-        assert (
-            header[0]
-            == "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]"
-        )
-        assert header[8] == "\tTranslate"
 
-        assert trans_table[0] == "\t\t1 outgroup25,"
-        assert trans_table[21] == "\t\t;"
+def test_parse_nexus_tree_sq_dnd():
+    _, dnd = parse_nexus_tree(Nexus_tree_3)
+    assert dnd["tree PAUP_1"] == PAUP_1_DND
 
-        assert (
-            dnd[0]
-            == "tree PAUP_1 = [&R] (1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);"
-        )
 
-    def test_parse_trans_table(self):
-        """parse_trans_table returns a dict with the taxa names indexed by number"""
-        tree_info = get_tree_info(Nexus_tree)
-        header, trans_table, dnd = split_tree_info(tree_info)
-        Trans_table = parse_trans_table(trans_table)
+@pytest.mark.parametrize(("key", "expected"), EXPECTED_TRANS)
+def test_parse_nexus_tree_sq_trans_table(key, expected):
+    trans_table, _ = parse_nexus_tree(Nexus_tree_3)
+    assert trans_table[key] == expected
 
-        assert len(Trans_table) == 21
 
-        # check that taxa are returned in the Trans_table
-        assert Trans_table["1"] == "outgroup25"
-        assert Trans_table["2"] == "AF078391l"
-        assert Trans_table["3"] == "AF078211af"
-        assert Trans_table["4"] == "AF078393l"
-        assert Trans_table["5"] == "AF078187af"
-        assert Trans_table["6"] == "AF078320l"
-        assert Trans_table["21"] == "outgroup258"
-        assert Trans_table["20"] == "AF078179af"
-        assert Trans_table["19"] == "AF078251af"
+def test_get_tree_info(tree_info):
+    assert len(tree_info) == 33
+    assert (
+        tree_info[0] == "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]"
+    )
+    assert tree_info[31] == "tree PAUP_1 = [&R] " + PAUP_1_DND
 
-    def test_parse_dnd(self):
-        """parse_dnd returns a dict with dnd indexed by tree name"""
-        tree_info = get_tree_info(Nexus_tree)
-        header, trans_table, dnd = split_tree_info(tree_info)
-        dnd_dict = parse_dnd(dnd)
-        assert (
-            dnd_dict["tree PAUP_1"]
-            == "(1,(2,(((3,4),(5,(((((6,10),9),(11,18)),((((7,15),19),17),(8,(12,(14,16))))),13))),20)),21);"
-        )
 
-    # ------------------------------------------------------
+def test_split_tree_info(split_info):
+    header, trans_table, dnd = split_info
+    assert len(header) == 9
+    assert len(trans_table) == 22
+    assert len(dnd) == 2
+    assert header[0] == "Begin trees;  [Treefile saved Wednesday, May 5, 2004  5:02 PM]"
+    assert header[8] == "\tTranslate"
+    assert trans_table[0] == "\t\t1 outgroup25,"
+    assert trans_table[21] == "\t\t;"
+    assert dnd[0] == "tree PAUP_1 = [&R] " + PAUP_1_DND
 
-    def test_get_BL_table(self):
-        """get_BL_table returns the section of the log file w/ the BL table"""
-        BL_table = get_BL_table(PAUP_log)
-        assert len(BL_table) == 40
-        assert (
-            BL_table[0]
-            == "    40                root                  0             0             0"
-        )
-        assert (
-            BL_table[39]
-            == "outgroup258 (21)*       40                 45            27            67"
-        )
 
-    def test_find_fields(self):
-        """find_fields takes BL table line and returns field names mapped to info"""
-        result = find_fields(line1)
-        assert result["taxa"] == "40"
-        assert result["bl"] == "0"
-        assert result["parent"] == "root"
+@pytest.fixture
+def parsed_trans_table(split_info):
+    _, trans_table, _ = split_info
+    return parse_trans_table(trans_table)
 
-    def test_parse_taxa(self):
-        """parse_taxa should return the taxa # from a taxa_field from find_fields"""
-        result1 = find_fields(line1)
-        result2 = find_fields(line2)
-        result3 = find_fields(line3)
-        result4 = find_fields(line4)
 
-        assert parse_taxa(result1["taxa"]) == "40"
-        assert parse_taxa(result2["taxa"]) == "1"
-        assert parse_taxa(result3["taxa"]) == "39"
-        assert parse_taxa(result4["taxa"]) == "2"
+def test_parse_trans_table_len(parsed_trans_table):
+    assert len(parsed_trans_table) == 21
 
-    def test_parse_PAUP_log(self):
-        """parse_PAUP_log extracts branch length info from a PAUP log file"""
-        BL_dict = parse_PAUP_log(PAUP_log)
-        assert len(BL_dict) == 40
-        assert BL_dict["1"] == ("40", 40)
-        assert BL_dict["40"] == ("root", 0)
-        assert BL_dict["39"] == ("40", 57)
-        assert BL_dict["2"] == ("39", 56)
-        assert BL_dict["26"] == ("34", 5)
-        assert BL_dict["21"] == ("40", 45)
 
-    def test_align_with_comments(self):
-        """correctly handle an alignment block containing comments"""
-        parser = iter_nexus_align_records("data/nexus_comments.nex")
-        got = dict(parser)
-        expect = {
-            "Ephedra": "TTAAGCCATGCATGTCTAAGTATGAACTAATTCCAAACGGTGA",
-            "Gnetum": "TTAAGCCATGCATGTCTATGTACGAACTAATC-AGAACGGTGA",
-            "Welwitschia": "TTAAGCCATGCACGTGTAAGTATGAACTAGTC-GAAACGGTGA",
-            "Ginkgo": "TTAAGCCATGCATGTGTAAGTATGAACTCTTTACAGACTGTGA",
-            "Pinus": "TTAAGCCATGCATGTCTAAGTATGAACTAATTGCAGACTGTGA",
-        }
-        assert got == expect
+@pytest.mark.parametrize(("key", "expected"), EXPECTED_TRANS)
+def test_parse_trans_table_values(parsed_trans_table, key, expected):
+    assert parsed_trans_table[key] == expected
 
-    def test_align_with_spaced_seqs(self):
-        """correctly handle an alignment block with spaces in seqs"""
-        parser = iter_nexus_align_records("data/nexus_dna.nex")
-        seqs = dict(parser)
-        assert len(seqs) == 10  # 10 taxa
-        lengths = {len(seqs[n]) for n in seqs}
-        assert lengths == {705}  # all same length and equal 705
 
-    def test_align_from_mixed(self):
-        """correctly handle a file with tree and alignment block"""
-        parser = iter_nexus_align_records("data/nexus_mixed.nex")
-        got = dict(parser)
-        expect = {
-            "fish": "ACATAGAGGGTACCTCTAAG",
-            "frog": "ACATAGAGGGTACCTCTAAG",
-            "snake": "ACATAGAGGGTACCTCTAAG",
-            "mouse": "ACATAGAGGGTACCTCTAAG",
-        }
-        assert got == expect
+def test_parse_dnd(split_info):
+    _, _, dnd = split_info
+    dnd_dict = parse_dnd(dnd)
+    assert dnd_dict["tree PAUP_1"] == PAUP_1_DND
 
-    def test_align_no_blank_columns(self):
-        """correctly handle a file with no white space at line starts"""
-        parser = iter_nexus_align_records("data/nexus_aa.nxs")
-        seqs = dict(parser)
-        assert len(seqs) == 10  # 10 taxa
-        lengths = {len(seqs[n]) for n in seqs}
-        assert lengths == {234}  # all same length and equal 234
 
-    def test_load_seqs_interface(self):
-        """load_aligned_seqs correctly loads nexus alignments"""
-        aln = load_aligned_seqs("data/nexus_mixed.nex", moltype="text")
-        assert aln.num_seqs == 4
-        assert len(aln) == 20
+def test_get_BL_table():
+    bl_table = get_BL_table(PAUP_log)
+    assert len(bl_table) == 40
+    assert (
+        bl_table[0]
+        == "    40                root                  0             0             0"
+    )
+    assert (
+        bl_table[39]
+        == "outgroup258 (21)*       40                 45            27            67"
+    )
 
-        aln = load_aligned_seqs("data/nexus_aa.nxs", moltype="text")
-        assert aln.num_seqs == 10
-        assert len(aln) == 234
+
+def test_find_fields():
+    result = find_fields(line1)
+    assert result["taxa"] == "40"
+    assert result["bl"] == "0"
+    assert result["parent"] == "root"
+
+
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [(line1, "40"), (line2, "1"), (line3, "39"), (line4, "2")],
+)
+def test_parse_taxa(line, expected):
+    result = find_fields(line)
+    assert parse_taxa(result["taxa"]) == expected
+
+
+@pytest.fixture
+def bl_dict():
+    return parse_PAUP_log(PAUP_log)
+
+
+def test_parse_PAUP_log_len(bl_dict):
+    assert len(bl_dict) == 40
+
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    [
+        ("1", ("40", 40)),
+        ("40", ("root", 0)),
+        ("39", ("40", 57)),
+        ("2", ("39", 56)),
+        ("26", ("34", 5)),
+        ("21", ("40", 45)),
+    ],
+)
+def test_parse_PAUP_log_values(bl_dict, key, expected):
+    assert bl_dict[key] == expected
+
+
+def test_align_with_comments(DATA_DIR):
+    parser = iter_nexus_align_records(DATA_DIR / "nexus_comments.nex")
+    got = dict(parser)
+    expect = {
+        "Ephedra": "TTAAGCCATGCATGTCTAAGTATGAACTAATTCCAAACGGTGA",
+        "Gnetum": "TTAAGCCATGCATGTCTATGTACGAACTAATC-AGAACGGTGA",
+        "Welwitschia": "TTAAGCCATGCACGTGTAAGTATGAACTAGTC-GAAACGGTGA",
+        "Ginkgo": "TTAAGCCATGCATGTGTAAGTATGAACTCTTTACAGACTGTGA",
+        "Pinus": "TTAAGCCATGCATGTCTAAGTATGAACTAATTGCAGACTGTGA",
+    }
+    assert got == expect
+
+
+def test_align_with_spaced_seqs(DATA_DIR):
+    parser = iter_nexus_align_records(DATA_DIR / "nexus_dna.nex")
+    seqs = dict(parser)
+    assert len(seqs) == 10  # 10 taxa
+    lengths = {len(seqs[n]) for n in seqs}
+    assert lengths == {705}  # all same length and equal 705
+
+
+def test_align_from_mixed(DATA_DIR):
+    parser = iter_nexus_align_records(DATA_DIR / "nexus_mixed.nex")
+    got = dict(parser)
+    expect = {
+        "fish": "ACATAGAGGGTACCTCTAAG",
+        "frog": "ACATAGAGGGTACCTCTAAG",
+        "snake": "ACATAGAGGGTACCTCTAAG",
+        "mouse": "ACATAGAGGGTACCTCTAAG",
+    }
+    assert got == expect
+
+
+def test_align_no_blank_columns(DATA_DIR):
+    parser = iter_nexus_align_records(DATA_DIR / "nexus_aa.nxs")
+    seqs = dict(parser)
+    assert len(seqs) == 10  # 10 taxa
+    lengths = {len(seqs[n]) for n in seqs}
+    assert lengths == {234}  # all same length and equal 234
+
+
+@pytest.mark.parametrize(
+    ("filename", "num_seqs", "length"),
+    [("nexus_mixed.nex", 4, 20), ("nexus_aa.nxs", 10, 234)],
+)
+def test_load_seqs_interface(DATA_DIR, filename, num_seqs, length):
+    aln = load_aligned_seqs(DATA_DIR / filename, moltype="text")
+    assert aln.num_seqs == num_seqs
+    assert len(aln) == length
 
 
 def test_partition_fields():
