@@ -2022,7 +2022,7 @@ class Table:
 
             if legend and i == 0:
                 legend = mk_element(legend, "span", css_classes=["cell_legend"])
-                legend = mk_element(legend, "br") if title else legend
+                legend = f"{legend}<br>" if title else str(legend)
                 st = f"{st} {legend}" if st else f"{legend}"
 
             caption = str(mk_element(st, "caption", newline=True)) if st else ""
@@ -2040,6 +2040,7 @@ class Table:
                 ]
 
             header = "".join(str(mk_element(c, "th")) for c in header)
+            header = str(mk_element(header, "tr"))
             header = str(
                 mk_element(header, "thead", css_classes=["head_cell"], newline=True),
             )

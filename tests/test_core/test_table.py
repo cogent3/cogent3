@@ -6,6 +6,7 @@ import pathlib
 import pickle
 import warnings
 from collections import defaultdict
+from html.parser import HTMLParser
 from unittest import TestCase, skipIf
 
 import numpy
@@ -1203,7 +1204,8 @@ class TableTests(TestCase):
         for tag in ("div", "style", "table", "thead"):
             assert len(re.findall(f"<[/]*{tag}.*>", got)) == 2
 
-        assert len(re.findall("<[/]*tr>", got)) == 4
+        # 2 data rows plus the header row, each with an open and close tag
+        assert len(re.findall("<[/]*tr>", got)) == 6
         # 2 columns should be left aligned, 4 right aligned
         # adding 1 for the CSS style definition
         assert got.count("c3col_left") == 4 + 1
@@ -1473,7 +1475,8 @@ class TableTests(TestCase):
                 if "ellipsis" in l:
                     break
 
-        assert num_rows == 9
+        # header row plus 8 head rows plus the ellipsis row
+        assert num_rows == 10
 
     def test_array(self):
         """should produce array"""
@@ -1882,6 +1885,67 @@ def test_repr_html_continuation():
     # with 30 characters wide there are 3 subtables, so we expect 3 ellipsis rows
     table.set_repr_policy(head=2, tail=2)
     assert table._repr_html_().count('<tr class="ellipsis">') == 3
+
+
+_VOID_ELEMENTS = frozenset({"br", "hr", "img", "input", "col"})
+
+
+class _TagStructure(HTMLParser):
+    # records the parent tag of every element and any end tags seen for void
+    # elements, so tests can assert structural validity
+    def __init__(self) -> None:
+        super().__init__()
+        self._stack: list[str] = []
+        self.parents: list[tuple[str, str | None]] = []
+        self.void_end_tags: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        parent = self._stack[-1] if self._stack else None
+        self.parents.append((tag, parent))
+        if tag not in _VOID_ELEMENTS:
+            self._stack.append(tag)
+
+    def handle_endtag(self, tag):
+        if tag in _VOID_ELEMENTS:
+            self.void_end_tags.append(tag)
+        elif self._stack and self._stack[-1] == tag:
+            self._stack.pop()
+
+
+def _parse(html):
+    parser = _TagStructure()
+    parser.feed(html)
+    return parser
+
+
+def test_to_html_th_wrapped_in_tr():
+    # header cells must live inside a <tr>, not be direct children of <thead>
+    t = make_table(header=["a", "b"], data={"a": [1, 2], "b": ["x", "y"]})
+    parents = _parse(t.to_html()).parents
+    th_parents = {parent for tag, parent in parents if tag == "th"}
+    assert th_parents == {"tr"}
+
+
+def test_to_html_thead_only_contains_tr():
+    # the content model of <thead> permits only <tr> children
+    t = make_table(header=["a", "b"], data={"a": [1, 2], "b": ["x", "y"]})
+    parents = _parse(t.to_html()).parents
+    thead_children = {tag for tag, parent in parents if parent == "thead"}
+    assert thead_children == {"tr"}
+
+
+def test_to_html_no_void_element_end_tag():
+    # <br> is a void element, so <br></br> must never be emitted, even when a
+    # table carries both a title and a legend
+    t = make_table(
+        header=["a", "b"],
+        data={"a": [1, 2], "b": ["x", "y"]},
+        title="a title",
+        legend="a legend",
+    )
+    got = t.to_html()
+    assert "</br>" not in got
+    assert _parse(got).void_end_tags == []
 
 
 def test_pickle_unpickle(tmp_path):
