@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-
-"""
-parses Nexus formatted tree files and Branchlength info in log files
-"""
-
 from __future__ import annotations
 
 import re
