@@ -1,9 +1,7 @@
 """defined type hints for app composability"""
 
-# TODO write more extensive docstring explaining limited use of these types
 from __future__ import annotations
 
-import inspect
 import re
 from pathlib import Path
 from types import UnionType
@@ -20,7 +18,6 @@ from typing import (
 )
 
 from scinexus.typing import register_type_namespace as _register_type_namespace
-from scinexus.warning import deprecated_callable
 
 from cogent3.app.data_store import DataMemberABC
 
@@ -114,90 +111,6 @@ def _is_type(text):
 
 
 _all_types = {n: t for n, t in locals().items() if _is_type(n)}
-
-
-@deprecated_callable(
-    version="2026.6",
-    reason="use get_type_display_names(resolve_type_hint(hint)) instead",
-    new="get_type_display_names",
-)
-def get_constraint_names(*hints) -> set[str | type]:  # pragma: no cover
-    """returns the set of named constraints of a type hint"""
-    return _get_constraint_names(*hints)
-
-
-def _get_constraint_names(*hints) -> set[str | type]:  # pragma: no cover
-    """returns the set of named constraints of a type hint (internal, no warning)"""
-    all_hints = set()
-    for hint in hints:
-        # SerialisableType is now a Protocol class
-        if hint is SerialisableType:
-            all_hints.add("SerialisableType")
-            continue
-
-        # IdentifierType is now a Union
-        if hint is IdentifierType:
-            all_hints.add("IdentifierType")
-            continue
-
-        if inspect.isclass(hint) and get_origin(hint) not in (list, tuple, set):
-            all_hints.add(hint.__name__)
-            continue
-
-        if getattr(hint, "__bound__", None):
-            all_hints.add(hint.__bound__)
-            continue
-
-        if getattr(hint, "__constraints__", None):
-            all_hints.update(hint.__constraints__)
-            continue
-
-        if get_origin(hint) in NESTED_HINTS:
-            all_hints.update(_get_constraint_names(*get_args(hint)))
-
-        if type(hint) == type:
-            all_hints.add(hint.__name__)
-        elif type(hint) == ForwardRef:
-            all_hints.add(hint.__forward_arg__)
-        elif type(hint) == str:
-            all_hints.add(hint)
-
-    return {h.__forward_arg__ if type(h) == ForwardRef else h for h in all_hints}
-
-
-@deprecated_callable(
-    version="2026.6",
-    reason="use typeguard.check_type() instead",
-    new="typeguard.check_type",
-)
-def type_tree(hint, depth=0) -> tuple:  # pragma: no cover
-    """compute the order of types"""
-    return _type_tree(hint, depth=depth)
-
-
-def _type_tree(hint, depth=0) -> tuple:  # pragma: no cover
-    """compute the order of types (internal, no warning)"""
-    level_type = get_origin(hint)
-    if not level_type:
-        return depth + 1, hint
-
-    levels = []
-    depths = []
-    for arg in get_args(hint):
-        d, t = _type_tree(arg, depth=depth)
-        levels.append(t)
-        depths.append(d)
-    depth = max(depths) + 1
-
-    if len(levels) == 1:
-        levels = levels[0]
-
-    try:
-        levels = tuple(levels)
-    except TypeError:
-        levels = (levels,)
-
-    return depth, (level_type, levels)
 
 
 _resolution_ns: dict | None = None

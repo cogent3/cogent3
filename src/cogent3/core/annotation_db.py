@@ -17,16 +17,13 @@ from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
-    Protocol,
     Self,
     TypedDict,
     cast,
-    runtime_checkable,
 )
 
 import numpy
 import numpy.typing as npt
-from scinexus import warning as snx_warn
 from scinexus.deserialise import deserialise_object, register_deserialiser
 from scinexus.io_util import get_format_suffixes, iter_line_blocks
 from scinexus.misc import extend_docstring_from, get_object_provenance
@@ -288,116 +285,6 @@ class FeatureDataType(  # When does this have a start and stop key? same with pa
     strand: int | str  # will be transformed by Strand Enum
     on_alignment: bool | None  # True if feature on an alignment
     xattr: dict[str, Any]  # extra attributes
-
-
-@runtime_checkable
-class SerialisableType(Protocol):  # pragma: no cover
-    def to_rich_dict(self) -> dict[str, Any]: ...
-
-    def to_json(self) -> str: ...
-
-    def from_dict(self, data: dict[str, Any]) -> None: ...
-
-
-@runtime_checkable
-class SupportsQueryFeatures(Protocol):  # pragma: no cover
-    @snx_warn.deprecated_callable(
-        version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
-    )
-    def __init_subclass__(cls): ...
-
-    # should be defined centrally
-    def get_features_matching(
-        self,
-        *,
-        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
-        seqid: str | None = None,
-        name: str | None = None,
-        start: int | None = None,
-        stop: int | None = None,
-        strand: str | None = None,
-        attributes: str | None = None,
-        on_alignment: bool | None = None,
-        allow_partial: bool = False,
-    ) -> Iterator[FeatureDataType]: ...
-
-    def get_feature_children(
-        self,
-        name: str,
-        biotype: str | None = None,
-        **kwargs: Any,
-    ) -> Iterator[FeatureDataType]: ...
-
-    def get_feature_parent(
-        self,
-        name: str,
-        **kwargs: Any,
-    ) -> Iterator[FeatureDataType]: ...
-
-    def num_matches(
-        self,
-        *,
-        seqid: str | None = None,
-        biotype: str | tuple[str, ...] | list[str] | set[str] | None = None,
-        name: str | None = None,
-        strand: str | None = None,
-        attributes: str | None = None,
-        on_alignment: bool | None = None,
-    ) -> int: ...
-
-    def subset(
-        self,
-        *,
-        source: PathType = ":memory:",
-        biotype: str | None = None,
-        seqid: str | None = None,
-        name: str | None = None,
-        start: int | None = None,
-        stop: int | None = None,
-        strand: str | None = None,
-        attributes: str | None = None,
-        allow_partial: bool = False,
-    ) -> Self: ...
-
-
-@runtime_checkable
-class SupportsWriteFeatures(Protocol):  # pragma: no cover
-    @snx_warn.deprecated_callable(
-        version="2026.6", reason="use AnnotationDbABC instead", is_discontinued=True
-    )
-    def __init_subclass__(cls): ...
-
-    def add_feature(
-        self,
-        *,
-        seqid: str,
-        biotype: str,
-        name: str,
-        spans: list[tuple[int, int]] | NumpyIntArrayType,
-        parent_id: str | None = None,
-        strand: str | int | Strand | None = None,
-        attributes: str | None = None,
-        on_alignment: bool | None = False,
-    ) -> None: ...
-
-    def add_records(
-        self,
-        records: Iterable[dict[str, Any]],
-        **kwargs: Any,
-    ) -> None: ...
-
-    def update(
-        self,
-        annot_db: AnnotationDbABC,
-        seqids: str | PySeq[str] | None = None,
-        **kwargs: Any,
-    ) -> None:
-        # update records with those from an instance of the same type
-        ...
-
-    def union(self, annot_db: AnnotationDbABC) -> AnnotationDbABC:
-        # returns a new instance of the more complex class
-        ...
 
 
 class AnnotationDbLoaderBase(abc.ABC):

@@ -51,12 +51,6 @@ def alignment():
     return make_aligned_seqs(data, moltype="dna")
 
 
-def test_column_entropies(alignment):
-    expect = alignment.entropy_per_pos()
-    got = c3_coevo._calc_column_entropies(alignment.array_seqs, 4)
-    assert_allclose(got, expect)
-
-
 @pytest.mark.parametrize("pos", itertools.combinations(range(5), 2))
 def test_joint_entropies(alignment, pos):
     data = alignment.array_seqs[:, pos]
