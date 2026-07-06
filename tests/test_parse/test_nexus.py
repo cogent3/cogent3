@@ -5,10 +5,10 @@ from unittest import TestCase
 from cogent3 import load_aligned_seqs
 from cogent3.parse.nexus import (
     Partition,
-    iter_nexus_align_records,
     find_fields,
     get_BL_table,
     get_tree_info,
+    iter_nexus_align_records,
     parse_dnd,
     parse_nexus_tree,
     parse_PAUP_log,

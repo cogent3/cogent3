@@ -191,5 +191,5 @@ def get_align_for_phylip(
 )
 def MinimalPhylipParser(
     *args: typing.Any, **kwargs: typing.Any
-) -> typing.Iterator[tuple[str, OutTypes]]:  # noqa: ANN401, N802 # pragma: no cover
+) -> typing.Iterator[tuple[str, OutTypes]]:  # pragma: no cover
     return iter_phylip_records(*args, **kwargs)
