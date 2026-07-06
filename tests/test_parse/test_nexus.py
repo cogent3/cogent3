@@ -4,7 +4,8 @@ from unittest import TestCase
 
 from cogent3 import load_aligned_seqs
 from cogent3.parse.nexus import (
-    MinimalNexusAlignParser,
+    Partition,
+    iter_nexus_align_records,
     find_fields,
     get_BL_table,
     get_tree_info,
@@ -364,7 +365,7 @@ class NexusParserTests(TestCase):
 
     def test_align_with_comments(self):
         """correctly handle an alignment block containing comments"""
-        parser = MinimalNexusAlignParser("data/nexus_comments.nex")
+        parser = iter_nexus_align_records("data/nexus_comments.nex")
         got = dict(parser)
         expect = {
             "Ephedra": "TTAAGCCATGCATGTCTAAGTATGAACTAATTCCAAACGGTGA",
@@ -377,7 +378,7 @@ class NexusParserTests(TestCase):
 
     def test_align_with_spaced_seqs(self):
         """correctly handle an alignment block with spaces in seqs"""
-        parser = MinimalNexusAlignParser("data/nexus_dna.nex")
+        parser = iter_nexus_align_records("data/nexus_dna.nex")
         seqs = dict(parser)
         assert len(seqs) == 10  # 10 taxa
         lengths = {len(seqs[n]) for n in seqs}
@@ -385,7 +386,7 @@ class NexusParserTests(TestCase):
 
     def test_align_from_mixed(self):
         """correctly handle a file with tree and alignment block"""
-        parser = MinimalNexusAlignParser("data/nexus_mixed.nex")
+        parser = iter_nexus_align_records("data/nexus_mixed.nex")
         got = dict(parser)
         expect = {
             "fish": "ACATAGAGGGTACCTCTAAG",
@@ -397,7 +398,7 @@ class NexusParserTests(TestCase):
 
     def test_align_no_blank_columns(self):
         """correctly handle a file with no white space at line starts"""
-        parser = MinimalNexusAlignParser("data/nexus_aa.nxs")
+        parser = iter_nexus_align_records("data/nexus_aa.nxs")
         seqs = dict(parser)
         assert len(seqs) == 10  # 10 taxa
         lengths = {len(seqs[n]) for n in seqs}
@@ -412,3 +413,211 @@ class NexusParserTests(TestCase):
         aln = load_aligned_seqs("data/nexus_aa.nxs", moltype="text")
         assert aln.num_seqs == 10
         assert len(aln) == 234
+
+
+def test_partition_fields():
+    # a charset "part1 = 1-100" becomes zero-based slice(0, 100)
+    part = Partition(name="part1", ranges=(slice(0, 100),))
+    assert part.name == "part1"
+    assert part.ranges == (slice(0, 100),)
+    assert part.data_type is None
+    assert part.model is None
+    assert part.align_name is None
+    assert part.tree_len is None
+
+
+def test_range_to_slice():
+    from cogent3.parse.nexus import range_to_slice
+
+    # simple range: 1-based inclusive 1-100 -> zero-based half-open [0, 100)
+    assert range_to_slice("1-100") == slice(0, 100)
+    # a stepped range keeps its step; start shifts by one, stop unchanged
+    assert range_to_slice(r"101-249\3") == slice(100, 249, 3)
+    # "*" means the whole file -> open-ended from the start
+    assert range_to_slice("*") == slice(0, None)
+    # "." means "to the end" -> open-ended stop
+    assert range_to_slice("1500-.") == slice(1499, None)
+    # a bare single site 5 -> just that one column
+    assert range_to_slice("5") == slice(4, 5)
+
+
+def test_parse_charset():
+    from cogent3.parse.nexus import parse_charset
+
+    # multiple space-separated ranges, no file, no type
+    assert parse_charset("part1 = 1-100 250-384") == Partition(
+        name="part1", ranges=(slice(0, 100), slice(249, 384))
+    )
+    # a stepped codon-position split
+    assert parse_charset(r"part2 = 101-249\3 102-249\3") == Partition(
+        name="part2", ranges=(slice(100, 249, 3), slice(101, 249, 3))
+    )
+    # names its own alignment file
+    assert parse_charset("dna_gene1 = aln_dna.phy: 1-600") == Partition(
+        name="dna_gene1", ranges=(slice(0, 600),), align_name="aln_dna.phy"
+    )
+    # alignment file plus a data type (comma after the type)
+    assert parse_charset("nuclear_cds = aln1.phy:CODON, 1-900") == Partition(
+        name="nuclear_cds",
+        ranges=(slice(0, 900),),
+        data_type="CODON",
+        align_name="aln1.phy",
+    )
+    # data type given without a file (type still followed by a comma)
+    assert parse_charset("cds = CODON, 1-900") == Partition(
+        name="cds", ranges=(slice(0, 900),), data_type="CODON"
+    )
+    # "*" whole-file range with a file reference
+    assert parse_charset("prot_gene1 = aln_protein.phy: *") == Partition(
+        name="prot_gene1", ranges=(slice(0, None),), align_name="aln_protein.phy"
+    )
+
+
+def test_parse_charpartition():
+    from cogent3.parse.nexus import parse_charpartition
+
+    # basic: a model assigned to each charset
+    assert parse_charpartition("mine = HKY+G:part1, GTR+I+G:part2") == (
+        "mine",
+        {
+            "part1": {"model": "HKY+G", "data_type": None, "tree_len": None},
+            "part2": {"model": "GTR+I+G", "data_type": None, "tree_len": None},
+        },
+    )
+    # model-free (file 07): the slot holds a data type, not a model
+    assert parse_charpartition("mf = DNA:gene_dna, CODON:cds") == (
+        "mf",
+        {
+            "gene_dna": {"model": None, "data_type": "DNA", "tree_len": None},
+            "cds": {"model": None, "data_type": "CODON", "tree_len": None},
+        },
+    )
+    # a {value} branch length attached to the model
+    assert parse_charpartition("s = HKY+G{0.5}:part1") == (
+        "s",
+        {"part1": {"model": "HKY+G", "data_type": None, "tree_len": 0.5}},
+    )
+
+
+def test_partition_set():
+    from cogent3.parse.nexus import PartitionSet
+
+    p1 = Partition(name="part1", ranges=(slice(0, 100),), model="HKY+G")
+    p2 = Partition(name="part2", ranges=(slice(100, 384),), model="GTR+I+G")
+    pset = PartitionSet(name="mine", partitions=(p1, p2))
+
+    assert pset.name == "mine"
+    assert len(pset) == 2
+    # iterates in order
+    assert tuple(pset) == (p1, p2)
+    # addressable by partition name
+    assert pset["part2"] is p2
+
+
+def test_parse_nexus_partitions_basic():
+    from cogent3.parse.nexus import parse_nexus_partitions
+
+    pset = parse_nexus_partitions("data/01_basic_dna.nex")
+    assert pset.name == "mine"
+    assert len(pset) == 2
+    assert pset["part1"] == Partition(
+        name="part1", ranges=(slice(0, 100),), model="HKY+G"
+    )
+    assert pset["part2"] == Partition(
+        name="part2", ranges=(slice(100, 384),), model="GTR+I+G"
+    )
+
+
+def test_parse_nexus_partitions_mixed_files():
+    from cogent3.parse.nexus import parse_nexus_partitions
+
+    # file 03: several alignment files, DNA + protein, "*" whole file
+    pset = parse_nexus_partitions("data/03_mixed_dna_protein.nex")
+    assert pset.name == "mixed"
+    assert pset["dna_gene1"] == Partition(
+        name="dna_gene1",
+        ranges=(slice(0, 600),),
+        model="GTR+G",
+        align_name="aln_dna.phy",
+    )
+    assert pset["prot_gene1"] == Partition(
+        name="prot_gene1",
+        ranges=(slice(0, None),),
+        model="WAG+I+G",
+        align_name="aln_protein.phy",
+    )
+
+    # file 04: data_type comes from the charset (CODON / CODON5)
+    pset = parse_nexus_partitions("data/04_codon_models_genetic_code.nex")
+    assert pset["nuclear_cds"].data_type == "CODON"
+    assert pset["mito_cds"].data_type == "CODON5"
+    assert pset["nuclear_cds"].model == "GY"
+
+    # file 07: no models; data_type comes from the charpartition slot
+    pset = parse_nexus_partitions("data/07_model_free.nex")
+    assert pset["gene_dna"] == Partition(
+        name="gene_dna",
+        ranges=(slice(0, 1200),),
+        data_type="DNA",
+        align_name="aln_dna.phy",
+    )
+    assert pset["cds"].data_type == "CODON"
+    assert pset["cds"].model is None
+
+
+def test_parse_nexus_partitions_data_block_and_comments():
+    from cogent3.parse.nexus import parse_nexus_partitions
+
+    # file 08: a DATA block precedes the SETS block and must be skipped
+    pset = parse_nexus_partitions("data/08_data_and_partition.nex")
+    assert pset.name == "scheme"
+    assert pset["part1"] == Partition(
+        name="part1", ranges=(slice(0, 100),), model="HKY+G"
+    )
+
+    # file 05: [ ... ] comments sit between charset lines; stepped multi-range
+    pset = parse_nexus_partitions("data/05_comprehensive_mixed.nex")
+    assert pset.name == "full"
+    assert len(pset) == 5
+    assert pset["cds_pos12"] == Partition(
+        name="cds_pos12",
+        ranges=(slice(900, 1500, 3), slice(901, 1500, 3)),
+        model="GTR+G",
+        align_name="genes.phy",
+    )
+    assert pset["protein"].ranges == (slice(0, None),)
+
+    # a lines iterable (not a path) with a {value} branch length
+    lines = [
+        "#nexus\n",
+        "begin sets;\n",
+        "    charset part1 = 1-100;\n",
+        "    charpartition s = HKY+G{0.5}:part1;\n",
+        "end;\n",
+    ]
+    pset = parse_nexus_partitions(lines)
+    assert pset["part1"].model == "HKY+G"
+    assert pset["part1"].tree_len == 0.5
+
+
+_NEXUS_LOWER = """#nexus
+begin data;
+  dimensions ntax=2 nchar=4;
+  format datatype=dna;
+  matrix
+    a  acgt
+    b  tgca
+  ;
+end;
+"""
+
+
+def test_iter_nexus_align_records_uppercases():
+    got = dict(iter_nexus_align_records(_NEXUS_LOWER.splitlines()))
+    assert got == {"a": "ACGT", "b": "TGCA"}
+
+
+def test_iter_nexus_align_records_custom_converter():
+    records = iter_nexus_align_records(_NEXUS_LOWER.splitlines(), converter=bytes.lower)
+    got = dict(records)
+    assert got == {"a": b"acgt", "b": b"tgca"}

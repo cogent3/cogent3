@@ -1,0 +1,10 @@
+#nexus
+[ Idea: you do not have to give a model. Each partition gives only its data type
+  (DNA / AA / CODON). Run with -m MFP and ModelFinder picks the best model for
+  every partition. ]
+begin sets;
+    charset gene_dna = aln_dna.phy: 1-1200;
+    charset protein  = aln_protein.phy: *;
+    charset cds      = aln1.phy:CODON, 1-900;
+    charpartition mf = DNA:gene_dna, AA:protein, CODON:cds;
+end;

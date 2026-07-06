@@ -1,0 +1,9 @@
+#nexus
+[ Idea: use more than one alignment file with file:range. Mix DNA and protein
+  (AA) parts. The star '*' means the whole file. ]
+begin sets;
+    charset dna_gene1  = aln_dna.phy: 1-600;
+    charset dna_gene2  = aln_dna.phy: 601-1200;
+    charset prot_gene1 = aln_protein.phy: *;
+    charpartition mixed = GTR+G:dna_gene1, HKY+I+G:dna_gene2, WAG+I+G:prot_gene1;
+end;

@@ -125,9 +125,9 @@ PARSERS = {
     "gbff": genbank.rich_parser,
     "genbank": genbank.rich_parser,
     "msf": LineBasedParser(gcg.MsfParser),
-    "nex": LineBasedParser(nexus.MinimalNexusAlignParser),
-    "nxs": LineBasedParser(nexus.MinimalNexusAlignParser),
-    "nexus": LineBasedParser(nexus.MinimalNexusAlignParser),
+    "nex": LineBasedParser(nexus.iter_nexus_align_records),
+    "nxs": LineBasedParser(nexus.iter_nexus_align_records),
+    "nexus": LineBasedParser(nexus.iter_nexus_align_records),
 }
 
 
@@ -231,8 +231,12 @@ class NexusParser(SequenceParserBase):
         return {"nexus", "nex", "nxs"}
 
     @property
+    def accepts_converter(self) -> bool:
+        return True
+
+    @property
     def loader(self) -> typing.Callable[[SeqParserInputTypes], ParserOutputType]:
-        return LineBasedParser(nexus.MinimalNexusAlignParser)
+        return LineBasedParser(nexus.iter_nexus_align_records)
 
 
 class GenbankParser(SequenceParserBase):
