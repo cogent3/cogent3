@@ -9,14 +9,20 @@ on:
     branches-ignore:
       - master
 
+permissions: {}
+
 jobs:
   linters:
     runs-on: ubuntu-latest
     if: github.repository == 'cogent3/cogent3'
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: '3.14'
       - name: Install dependencies
@@ -28,7 +34,7 @@ jobs:
       - name: Format code using ruff
         run: ruff check --fix-only . && ruff format .
       - name: Commit changes
-        uses: EndBug/add-and-commit@v10
+        uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
         with:
           author_name: ${{ github.actor }}
           author_email: ${{ github.actor }}@users.noreply.github.com
