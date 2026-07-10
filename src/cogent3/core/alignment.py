@@ -4029,7 +4029,7 @@ class Alignment(CollectionBase[Aligned]):
         missing_index = alpha.missing_index or len(alpha)
         if include_gap_motif and include_ambiguity:
             # allow all states
-            func = None
+            func: Callable[..., npt.NDArray[numpy.bool]] | None = None
             kwargs = {}
         elif include_gap_motif and self.moltype.gapped_missing_alphabet:
             # allow canonical, gap, missing
