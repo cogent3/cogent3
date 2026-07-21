@@ -1321,6 +1321,16 @@ def test_write(gb_db, tmp_path):
     close_dbs(got, gb_db)
 
 
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_write_home_dir(gb_db, HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    gb_db.write(transform(f"~/{HOME_TMP_DIR.name}/ondisk.c3gbdb"))
+    got = GenbankAnnotationDb.from_file(HOME_TMP_DIR / "ondisk.c3gbdb")
+    assert got.to_rich_dict()["tables"] == gb_db.to_rich_dict()["tables"]
+    assert isinstance(got, GenbankAnnotationDb)
+    close_dbs(got, gb_db)
+
+
 def convert_to_old_np_format(data: bytes) -> bytes:
     with io.BytesIO(data) as stream:
         return numpy.load(stream).tobytes()

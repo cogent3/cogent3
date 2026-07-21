@@ -298,6 +298,17 @@ def test_write_to_txt(DATA_DIR: pathlib.Path, tmp_path: pathlib.Path):
         assert got.count("(") == got.count(")") == 3
 
 
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_write_home_dir(DATA_DIR: pathlib.Path, HOME_TMP_DIR: pathlib.Path, transform):
+    # write to a "~/" home directory style path
+    tree = load_tree(filename=DATA_DIR / "brca1_5.tree")
+    tree.write(transform(f"~/{HOME_TMP_DIR.name}/brca1_5.txt"))
+    written = HOME_TMP_DIR / "brca1_5.txt"
+    assert written.exists()
+    got = written.read_text()
+    assert got.count("(") == got.count(")") == 3
+
+
 def test_multifurcating():
     """Coerces nodes to have <= n children"""
     t_str = "((a:1,b:2,c:3)d:4,(e:5,f:6,g:7)h:8,(i:9,j:10,k:11)l:12)m:14;"

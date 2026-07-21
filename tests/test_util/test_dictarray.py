@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
@@ -513,3 +514,17 @@ def test_dictarray_from_array_names(data, names):
     assert darr.template.names == list(names)
     # indexed value correct, can be an array, or a float
     assert_allclose(darr["T"], data[0])
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_write_home_dir(HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    data = [[3, 7], [2, 8], [5, 5]]
+    darr = DictArrayTemplate(list("ABC"), list("ab")).wrap(data)
+    darr.write(transform(f"~/{HOME_TMP_DIR.name}/delme.tsv"))
+    written = HOME_TMP_DIR / "delme.tsv"
+    contents = [line.split() for line in written.read_text().splitlines()]
+    header = contents.pop(0)
+    assert header == ["dim-1", "dim-2", "value"]
+    got = {(k1, k2): int(v) for k1, k2, v in contents}
+    assert got == darr.to_dict(flatten=True)

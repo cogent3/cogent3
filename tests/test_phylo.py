@@ -5,6 +5,7 @@ import warnings
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
 from numpy import exp, log
 
 from cogent3 import get_model, load_aligned_seqs, load_tree, make_tree
@@ -488,6 +489,18 @@ class ConsensusTests(unittest.TestCase):
         # convert lnL into p
         eval_klass(WeightedTreeCollection([(exp(s), t) for s, t in self.scored_trees]))
         Path("sample.trees").unlink(missing_ok=True)
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_scored_tree_collection_write_home_dir(HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    scored = [(-1.0, Tree("((a,b),c,d);")), (-2.0, Tree("((a,c),b,d);"))]
+    coll = LogLikelihoodScoredTreeCollection(scored)
+    coll.write(transform(f"~/{HOME_TMP_DIR.name}/collection.trees"))
+    written = HOME_TMP_DIR / "collection.trees"
+    assert written.exists()
+    read = make_trees(str(written))
+    assert type(read) == type(coll)
 
 
 class TreeReconstructionTests(unittest.TestCase):
