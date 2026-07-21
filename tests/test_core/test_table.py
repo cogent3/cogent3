@@ -2071,6 +2071,18 @@ def test_write_compressed(tmp_path):
     assert got == expect
 
 
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_write_home_dir(HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    t = load_table("data/sample.tsv")
+    t.write(transform(f"~/{HOME_TMP_DIR.name}/table.tsv"))
+    written = HOME_TMP_DIR / "table.tsv"
+    assert written.exists()
+    got = load_table(written)
+    assert got.shape == t.shape
+    assert got.header == t.header
+
+
 def test_load_table_from_json(tmp_path):
     """tests loading a Table object from json file"""
     json_path = tmp_path / "table.json"

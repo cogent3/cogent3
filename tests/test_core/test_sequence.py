@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import re
 import typing
 from pickle import dumps
@@ -3212,6 +3213,16 @@ def test_sequence_write_json(tmp_path):
     with open(path) as fn:
         got = json.loads(fn.read())
     assert got == seq.to_rich_dict()
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_sequence_write_home_dir(HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    seq = c3_moltype.DNA.make_seq(seq="TCAGAT", name="test_seq")
+    seq.write(transform(f"~/{HOME_TMP_DIR.name}/seq.fasta"))
+    result = cogent3.load_seq(HOME_TMP_DIR / "seq.fasta", moltype="dna")
+    assert result.name == "test_seq"
+    assert str(result) == "TCAGAT"
 
 
 def test_load_seq_from_json(tmp_path):

@@ -2419,6 +2419,21 @@ def test_sequence_collection_write(collection_maker, tmp_path):
     assert result == ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n"
 
 
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+@pytest.mark.parametrize(
+    "collection_maker",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_sequence_collection_write_home_dir(collection_maker, HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    data = {"a": "AAAA", "b": "TTTT", "c": "CCCC"}
+    seqs = collection_maker(data, moltype="dna")
+    seqs.write(transform(f"~/{HOME_TMP_DIR.name}/seqs.fasta"))
+    written = HOME_TMP_DIR / "seqs.fasta"
+    result = written.read_text()
+    assert result == ">a\nAAAA\n>b\nTTTT\n>c\nCCCC\n"
+
+
 @pytest.mark.parametrize(
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],

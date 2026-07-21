@@ -1,3 +1,4 @@
+import pathlib
 import warnings
 
 import numpy
@@ -831,6 +832,15 @@ def test_EstimateDistances(tmp_path, al):
 
     # excercise writing to file
     d.write(tmp_path / "junk.txt")
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_EstimateDistances_write_home_dir(al, HOME_TMP_DIR, transform):
+    # write to a "~/" home directory style path
+    d = EstimateDistances(al, JC69())
+    d.run(show_progress=False)
+    d.write(transform(f"~/{HOME_TMP_DIR.name}/dists.txt"))
+    assert (HOME_TMP_DIR / "dists.txt").exists()
 
 
 def test_take_dists():

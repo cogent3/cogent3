@@ -473,3 +473,14 @@ def test_colour_choice():
 def test_arrow_shapes(biotype):
     shape = make_shape(type_=biotype, coords=[(10, 20)], parent_length=20)
     assert isinstance(shape, Arrow)
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+def test_write_home_dir(HOME_TMP_DIR, transform):
+    # write a static image to a "~/" home directory style path
+    d = Drawable(width=300, height=300)
+    d.add_trace({"type": "scatter", "x": [0, 1, 2], "y": [0, 1, 2]})
+    d.write(transform(f"~/{HOME_TMP_DIR.name}/plot.png"))
+    written = HOME_TMP_DIR / "plot.png"
+    assert written.exists()
+    assert written.stat().st_size > 0
