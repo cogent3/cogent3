@@ -1,5 +1,3 @@
-from unittest import TestCase
-
 import numpy
 import pytest
 
@@ -24,24 +22,6 @@ def close_dbs(*objs):
             continue
 
         db.close()
-
-
-class FeaturesTest(TestCase):
-    """Tests of features in core"""
-
-    def setUp(self):
-        # A Sequence with a couple of exons on it.
-        self.s = DNA.make_seq(
-            seq="AAGAAGAAGACCCCCAAAAAAAAAATTTTTTTTTTAAAAAAAAAAAAA",
-            name="Orig",
-        )
-        self.exon1 = self.s.add_feature(biotype="exon", name="fred", spans=[(10, 15)])
-        self.exon2 = self.s.add_feature(biotype="exon", name="trev", spans=[(30, 40)])
-        self.nested_feature = self.s.add_feature(
-            biotype="repeat",
-            name="bob",
-            spans=[(12, 17)],
-        )
 
 
 @pytest.fixture

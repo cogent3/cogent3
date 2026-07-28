@@ -1,6 +1,5 @@
 import re
 from itertools import combinations
-from unittest import TestCase
 
 import numpy
 import pytest
@@ -23,257 +22,282 @@ from cogent3.core.location import (
 DNA = cogent3.get_moltype("dna")
 
 
-class SpanTests(TestCase):
-    """Tests of the Span object."""
-
-    def setUp(self):
-        """Define some standard Spans"""
-        self.empty = Span(0, 0)
-        self.full = Span(35, 30)  # will convert to (30, 35) internally
-        self.overlapping = Span(32, 36)
-        self.inside = Span(31, 32)
-        self.before = Span(25, 30)
-        self.after = Span(35, 40)
-        self.reverse = Span(30, 35, reverse=True)
-        self.spans_zero = Span(-5, 5)
-
-    def test_init(self):
-        """Span object should init with start, end, and Length"""
-        s = Span(0)
-        assert s.start == 0
-        assert s.end == 1
-        assert s.reverse is False
-        # to get an empty interval, must specify start and end explicitly
-        t = Span(0, 0)
-        assert t.start == 0
-        assert t.end == 0
-        assert t.reverse is False
-        # should be able to specify direction also
-        u = Span(5, 15, reverse=True)
-        assert u.start == 5
-        assert u.end == 15
-        assert u.reverse is True
-        # should be able to init from another span
-        v = Span(u)
-        assert v.start == 5
-        assert v.end == 15
-        assert v.reverse is True
-
-    def test_contains(self):
-        """Span object contains its start but not its end"""
-        assert 0 not in self.empty
-        assert 30 in self.full
-        assert 34 in self.full
-        assert 35 not in self.full
-        assert self.inside in self.full
-        assert self.overlapping not in self.full
-        assert 0 in self.spans_zero
-        assert -5 in self.spans_zero
-        assert 5 not in self.spans_zero
-
-    def test_overlaps(self):
-        """Span objects should be able to overlap points or spans"""
-        assert self.full.overlaps(self.overlapping)
-        assert not self.full.overlaps(self.before)
-        assert not self.before.overlaps(self.overlapping)
-        assert not self.full.overlaps(self.after)
-        assert not self.after.overlaps(self.before)
-        assert self.full.overlaps(self.inside)
-        assert self.spans_zero.overlaps(self.empty)
-        assert self.empty.overlaps(self.spans_zero)
-
-    def test_reverses(self):
-        """Span.reverses should change direction"""
-        assert not self.empty.reverse
-        self.empty.reverses()
-        assert self.empty.reverse
-        self.empty.reverses()
-        assert not self.empty.reverse
-        assert self.reverse.reverse
-        self.reverse.reverses()
-        assert not self.reverse.reverse
-
-    def test_iter(self):
-        """Span iter should loop through (integer) contents"""
-        assert list(iter(self.empty)) == []
-        assert list(iter(self.full)) == [30, 31, 32, 33, 34]
-        assert list(iter(self.spans_zero)) == [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
-        assert list(iter(self.inside)) == [31]
-        assert list(self.reverse) == [34, 33, 32, 31, 30]
-
-    def test_str(self):
-        """Span str should print start, stop, reverse"""
-        assert str(self.empty) == "(0,0,False)"
-        assert str(self.full) == "(30,35,False)"
-        assert str(self.reverse) == "(30,35,True)"
-
-    def test_len(self):
-        """Span len should return difference between start and end"""
-        assert len(self.empty) == 0
-        assert len(self.full) == 5
-        assert len(self.inside) == 1
-        assert len(self.spans_zero) == 10
-
-    def test_cmp(self):
-        """Span cmp should support sort by 1st/2nd index and direction"""
-        s, e, f, r, i, o = (
-            self.spans_zero,
-            self.empty,
-            self.full,
-            self.reverse,
-            self.inside,
-            self.overlapping,
-        )
-
-        n = Span(30, 36)
-
-        expected_order = [s, e, f, r, n, i, o]
-        first = expected_order[:]
-        first.sort()
-        second = [r, o, f, s, e, i, n]
-        second.sort()
-        for i, j in zip(first, second, strict=False):
-            assert i is j
-
-        for i, j in zip(first, expected_order, strict=False):
-            assert i is j
-
-    def test_sort(self):
-        """Span should support sort by 1st/2nd index and direction"""
-        s, e, _f, _r, i, _o = (
-            self.spans_zero,
-            self.empty,
-            self.full,
-            self.reverse,
-            self.inside,
-            self.overlapping,
-        )
-
-        expected_order = [s, e]
-        first = expected_order[:]
-        first.sort()
-
-        for i, j in zip(first, expected_order, strict=False):
-            assert i is j
-
-    def test_starts_before(self):
-        """Span starts_before should match hand-calculated results"""
-        e, f = self.empty, self.full
-        assert e.starts_before(f)
-        assert not f.starts_before(e)
-        assert e.starts_before(1)
-        assert e.starts_before(1000)
-        assert not e.starts_before(0)
-        assert not e.starts_before(-1)
-        assert not f.starts_before(30)
-        assert f.starts_before(31)
-        assert f.starts_before(1000)
-
-    def test_starts_after(self):
-        """Span starts_after should match hand-calculated results"""
-        e, f = self.empty, self.full
-        assert not e.starts_after(f)
-        assert f.starts_after(e)
-        assert not e.starts_after(1)
-        assert not e.starts_after(1000)
-        assert not e.starts_after(0)
-        assert e.starts_after(-1)
-        assert f.starts_after(29)
-        assert not f.starts_after(30)
-        assert not f.starts_after(31)
-        assert not f.starts_after(1000)
-
-    def test_startsAt(self):
-        """Span startsAt should return True if input matches"""
-        e, f = self.empty, self.full
-        s = Span(30, 1000)
-        assert e.starts_at(0)
-        assert f.starts_at(30)
-        assert s.starts_at(30)
-        assert f.starts_at(s)
-        assert s.starts_at(f)
-        assert not e.starts_at(f)
-        assert not e.starts_at(-1)
-        assert not e.starts_at(1)
-        assert not f.starts_at(29)
-
-    def test_startsInside(self):
-        """Span startsInside should return True if input starts inside span"""
-        e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        assert not e.starts_inside(0)
-        assert not f.starts_inside(30)
-        assert not e.starts_inside(f)
-        assert i.starts_inside(f)
-        assert not f.starts_inside(i)
-        assert o.starts_inside(f)
-        assert not o.ends_inside(i)
-
-    def test_endsBefore(self):
-        """Span endsBefore should match hand-calculated results"""
-        e, f = self.empty, self.full
-        assert e.ends_before(f)
-        assert not f.ends_before(e)
-        assert e.ends_before(1)
-        assert e.ends_before(1000)
-        assert not e.ends_before(0)
-        assert not e.ends_before(-1)
-        assert not f.ends_before(30)
-        assert not f.ends_before(31)
-        assert f.ends_before(1000)
-
-    def test_endsAfter(self):
-        """Span endsAfter should match hand-calculated results"""
-        e, f = self.empty, self.full
-        assert not e.ends_after(f)
-        assert f.ends_after(e)
-        assert not e.ends_after(1)
-        assert not e.ends_after(1000)
-        assert not e.ends_after(0)
-        assert e.ends_after(-1)
-        assert f.ends_after(29)
-        assert f.ends_after(30)
-        assert f.ends_after(34)
-        assert not f.ends_after(35)
-        assert not f.ends_after(1000)
-
-    def test_endsAt(self):
-        """Span endsAt should return True if input matches"""
-        e, f = self.empty, self.full
-        s = Span(30, 1000)
-        t = Span(-100, 35)
-        assert e.ends_at(0)
-        assert f.ends_at(35)
-        assert s.ends_at(1000)
-        assert not f.ends_at(s)
-        assert not s.ends_at(f)
-        assert f.ends_at(t)
-        assert t.ends_at(f)
-
-    def test_ends_inside(self):
-        """Span ends_inside should return True if input ends inside span"""
-        e, f, i, o = self.empty, self.full, self.inside, self.overlapping
-        assert not e.ends_inside(0)
-        assert not f.ends_inside(30)
-        assert not f.ends_inside(34)
-        assert not f.ends_inside(35)
-        assert not e.ends_inside(f)
-        assert i.ends_inside(f)
-        assert not f.ends_inside(i)
-        assert not o.ends_inside(f)
-        assert not o.ends_inside(i)
-        assert e.ends_inside(Span(-1, 1))
-        assert e.ends_inside(Span(0, 1))
-        assert not e.ends_inside(Span(-1, 0))
+@pytest.fixture
+def empty():
+    return Span(0, 0)
 
 
-class MapTests(TestCase):
-    """tests of the Map class"""
+@pytest.fixture
+def full():
+    return Span(35, 30)  # will convert to (30, 35) internally
 
-    def test_get_gap_coords(self):
-        """returns gap start and lengths"""
-        m, _ = DNA.make_seq(seq="-AC--GT-TTA--").parse_out_gaps()
-        got = m.get_gap_coordinates()
-        assert dict(got) == {0: 1, 2: 2, 4: 1, 7: 2}
+
+@pytest.fixture
+def overlapping():
+    return Span(32, 36)
+
+
+@pytest.fixture
+def inside():
+    return Span(31, 32)
+
+
+@pytest.fixture
+def before():
+    return Span(25, 30)
+
+
+@pytest.fixture
+def after():
+    return Span(35, 40)
+
+
+@pytest.fixture
+def reverse():
+    return Span(30, 35, reverse=True)
+
+
+@pytest.fixture
+def spans_zero():
+    return Span(-5, 5)
+
+
+def test_init():
+    # Span object should init with start, end, and Length
+    s = Span(0)
+    assert s.start == 0
+    assert s.end == 1
+    assert s.reverse is False
+    # to get an empty interval, must specify start and end explicitly
+    t = Span(0, 0)
+    assert t.start == 0
+    assert t.end == 0
+    assert t.reverse is False
+    # should be able to specify direction also
+    u = Span(5, 15, reverse=True)
+    assert u.start == 5
+    assert u.end == 15
+    assert u.reverse is True
+    # should be able to init from another span
+    v = Span(u)
+    assert v.start == 5
+    assert v.end == 15
+    assert v.reverse is True
+
+
+def test_contains(empty, full, overlapping, inside, spans_zero):
+    # Span object contains its start but not its end
+    assert 0 not in empty
+    assert 30 in full
+    assert 34 in full
+    assert 35 not in full
+    assert inside in full
+    assert overlapping not in full
+    assert 0 in spans_zero
+    assert -5 in spans_zero
+    assert 5 not in spans_zero
+
+
+def test_overlaps(empty, full, overlapping, inside, before, after, spans_zero):
+    # Span objects should be able to overlap points or spans
+    assert full.overlaps(overlapping)
+    assert not full.overlaps(before)
+    assert not before.overlaps(overlapping)
+    assert not full.overlaps(after)
+    assert not after.overlaps(before)
+    assert full.overlaps(inside)
+    assert spans_zero.overlaps(empty)
+    assert empty.overlaps(spans_zero)
+
+
+def test_reverses(empty, reverse):
+    # Span.reverses should change direction
+    assert not empty.reverse
+    empty.reverses()
+    assert empty.reverse
+    empty.reverses()
+    assert not empty.reverse
+    assert reverse.reverse
+    reverse.reverses()
+    assert not reverse.reverse
+
+
+def test_iter(empty, full, inside, reverse, spans_zero):
+    # Span iter should loop through (integer) contents
+    assert list(iter(empty)) == []
+    assert list(iter(full)) == [30, 31, 32, 33, 34]
+    assert list(iter(spans_zero)) == [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4]
+    assert list(iter(inside)) == [31]
+    assert list(reverse) == [34, 33, 32, 31, 30]
+
+
+def test_str(empty, full, reverse):
+    # Span str should print start, stop, reverse
+    assert str(empty) == "(0,0,False)"
+    assert str(full) == "(30,35,False)"
+    assert str(reverse) == "(30,35,True)"
+
+
+def test_len(empty, full, inside, spans_zero):
+    # Span len should return difference between start and end
+    assert len(empty) == 0
+    assert len(full) == 5
+    assert len(inside) == 1
+    assert len(spans_zero) == 10
+
+
+def test_cmp(empty, full, overlapping, inside, reverse, spans_zero):
+    # Span cmp should support sort by 1st/2nd index and direction
+    s, e, f, r, i, o = (
+        spans_zero,
+        empty,
+        full,
+        reverse,
+        inside,
+        overlapping,
+    )
+
+    n = Span(30, 36)
+
+    expected_order = [s, e, f, r, n, i, o]
+    first = expected_order[:]
+    first.sort()
+    second = [r, o, f, s, e, i, n]
+    second.sort()
+    assert all(a is b for a, b in zip(first, second, strict=False))
+    assert all(a is b for a, b in zip(first, expected_order, strict=False))
+
+
+def test_sort(empty, spans_zero):
+    # Span should support sort by 1st/2nd index and direction
+    expected_order = [spans_zero, empty]
+    first = expected_order[:]
+    first.sort()
+    assert all(a is b for a, b in zip(first, expected_order, strict=False))
+
+
+def test_starts_before(empty, full):
+    # Span starts_before should match hand-calculated results
+    e, f = empty, full
+    assert e.starts_before(f)
+    assert not f.starts_before(e)
+    assert e.starts_before(1)
+    assert e.starts_before(1000)
+    assert not e.starts_before(0)
+    assert not e.starts_before(-1)
+    assert not f.starts_before(30)
+    assert f.starts_before(31)
+    assert f.starts_before(1000)
+
+
+def test_starts_after(empty, full):
+    # Span starts_after should match hand-calculated results
+    e, f = empty, full
+    assert not e.starts_after(f)
+    assert f.starts_after(e)
+    assert not e.starts_after(1)
+    assert not e.starts_after(1000)
+    assert not e.starts_after(0)
+    assert e.starts_after(-1)
+    assert f.starts_after(29)
+    assert not f.starts_after(30)
+    assert not f.starts_after(31)
+    assert not f.starts_after(1000)
+
+
+def test_startsAt(empty, full):
+    # Span startsAt should return True if input matches
+    e, f = empty, full
+    s = Span(30, 1000)
+    assert e.starts_at(0)
+    assert f.starts_at(30)
+    assert s.starts_at(30)
+    assert f.starts_at(s)
+    assert s.starts_at(f)
+    assert not e.starts_at(f)
+    assert not e.starts_at(-1)
+    assert not e.starts_at(1)
+    assert not f.starts_at(29)
+
+
+def test_startsInside(empty, full, overlapping, inside):
+    # Span startsInside should return True if input starts inside span
+    e, f, i, o = empty, full, inside, overlapping
+    assert not e.starts_inside(0)
+    assert not f.starts_inside(30)
+    assert not e.starts_inside(f)
+    assert i.starts_inside(f)
+    assert not f.starts_inside(i)
+    assert o.starts_inside(f)
+    assert not o.ends_inside(i)
+
+
+def test_endsBefore(empty, full):
+    # Span endsBefore should match hand-calculated results
+    e, f = empty, full
+    assert e.ends_before(f)
+    assert not f.ends_before(e)
+    assert e.ends_before(1)
+    assert e.ends_before(1000)
+    assert not e.ends_before(0)
+    assert not e.ends_before(-1)
+    assert not f.ends_before(30)
+    assert not f.ends_before(31)
+    assert f.ends_before(1000)
+
+
+def test_endsAfter(empty, full):
+    # Span endsAfter should match hand-calculated results
+    e, f = empty, full
+    assert not e.ends_after(f)
+    assert f.ends_after(e)
+    assert not e.ends_after(1)
+    assert not e.ends_after(1000)
+    assert not e.ends_after(0)
+    assert e.ends_after(-1)
+    assert f.ends_after(29)
+    assert f.ends_after(30)
+    assert f.ends_after(34)
+    assert not f.ends_after(35)
+    assert not f.ends_after(1000)
+
+
+def test_endsAt(empty, full):
+    # Span endsAt should return True if input matches
+    e, f = empty, full
+    s = Span(30, 1000)
+    t = Span(-100, 35)
+    assert e.ends_at(0)
+    assert f.ends_at(35)
+    assert s.ends_at(1000)
+    assert not f.ends_at(s)
+    assert not s.ends_at(f)
+    assert f.ends_at(t)
+    assert t.ends_at(f)
+
+
+def test_ends_inside(empty, full, overlapping, inside):
+    # Span ends_inside should return True if input ends inside span
+    e, f, i, o = empty, full, inside, overlapping
+    assert not e.ends_inside(0)
+    assert not f.ends_inside(30)
+    assert not f.ends_inside(34)
+    assert not f.ends_inside(35)
+    assert not e.ends_inside(f)
+    assert i.ends_inside(f)
+    assert not f.ends_inside(i)
+    assert not o.ends_inside(f)
+    assert not o.ends_inside(i)
+    assert e.ends_inside(Span(-1, 1))
+    assert e.ends_inside(Span(0, 1))
+    assert not e.ends_inside(Span(-1, 0))
+
+
+def test_get_gap_coords():
+    # returns gap start and lengths
+    m, _ = DNA.make_seq(seq="-AC--GT-TTA--").parse_out_gaps()
+    got = m.get_gap_coordinates()
+    assert dict(got) == {0: 1, 2: 2, 4: 1, 7: 2}
 
 
 def test_span_lt_orders_by_indices():
