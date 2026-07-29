@@ -80,6 +80,7 @@ These are all top level imports. For example,
     __init__/cogent3.__init__.available_moltypes
     __init__/cogent3.__init__.available_models
     __init__/cogent3.__init__.available_apps
+    __init__/cogent3.__init__.available_seq_formats
 
 ************************
 Major cogent3 Data Types

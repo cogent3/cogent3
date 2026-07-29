@@ -369,3 +369,14 @@ def test_registered_formatters_exist(seq_formatter):
     get_formatter = cogent3._plugin.get_seq_format_writer_plugin
     # this should not fail
     _ = get_formatter(format_name=seq_formatter)
+
+
+def test_available_seq_formats_returns_table():
+    table = cogent3.available_seq_formats()
+    assert isinstance(table, Table)
+    assert table.columns.order == ("name", "suffixes", "aligned", "unaligned")
+
+
+def test_available_seq_formats_lists_registered_parser(seq_parser):
+    table = cogent3.available_seq_formats()
+    assert seq_parser in table.columns["name"]
