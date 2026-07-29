@@ -169,7 +169,7 @@ def available_seq_formats() -> "Table":
     )
     rows = []
     for ext in mgr.extensions:
-        plugin = ext.plugin()
+        plugin = ext.obj
         rows.append(
             [
                 plugin.name,
