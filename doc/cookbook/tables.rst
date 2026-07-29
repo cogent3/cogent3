@@ -911,6 +911,23 @@ The delimiter can be specified explicitly using the ``sep`` argument or implicit
     table = load_table("data/stats.tsv")
     table.write("stats_tab.txt", sep="\t")
 
+.. note::
+
+    ``Table.write`` and ``Table.to_string`` both accept ``with_title`` and
+    ``with_legend`` arguments for controlling whether the table title and legend
+    are included in the output. For ``to_string``, leaving them as ``None``
+    (the default) uses each format's convention: shown for the ``simple``,
+    ``rst`` and ``latex`` formats, omitted for ``csv`` and ``tsv``. Setting
+    either to ``True`` or ``False`` overrides that for every format.
+
+    .. jupyter-execute::
+
+        table = load_table(
+            "data/stats.tsv", title="Some stats.", legend="Derived from something."
+        )
+        print(table.to_string(format_name="csv", with_title=True, with_legend=True))
+        print(table.to_string(format_name="rst", with_title=False, with_legend=False))
+
 ..  cleanup
 
 .. jupyter-execute::

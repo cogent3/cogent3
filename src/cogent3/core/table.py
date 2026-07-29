@@ -1710,9 +1710,9 @@ class Table:
 
         Parameters
         ----------
-        with_title : bool
+        with_title
             include the table title
-        with_legend : bool
+        with_legend
             include table legend
         """
         formatted_table = self._formatted(stripped=True)
@@ -1733,12 +1733,14 @@ class Table:
         justify: str | None = None,
         label: str | None = None,
         position: str | None = None,
+        with_title: bool = True,
+        with_legend: bool = True,
     ) -> str:
         """Returns the text a LaTeX table.
 
         Parameters
         ----------
-        concat_title_legend : bool
+        concat_title_legend
             the table caption is formed by concatenating the table title and
             legend
         justify
@@ -1748,6 +1750,10 @@ class Table:
             for cross referencing
         position
             table page position, default is here, top separate page
+        with_title
+            include the table title
+        with_legend
+            include the table legend
 
         Notes
         -----
@@ -1756,8 +1762,8 @@ class Table:
         """
         formatted_table = self._formatted()
         header = formatted_table.pop(0)
-        caption = self.title or None
-        legend = self.legend or None
+        caption = (self.title if with_title else None) or None
+        legend = (self.legend if with_legend else None) or None
         if concat_title_legend and (caption or legend):
             caption = " ".join([caption or "", legend or ""])
             caption = caption.strip()
@@ -1797,30 +1803,41 @@ class Table:
             justify=justify,
         )
 
-    def to_rst(self, csv_table: bool = False) -> str:
+    def to_rst(
+        self,
+        csv_table: bool = False,
+        with_title: bool = True,
+        with_legend: bool = True,
+    ) -> str:
         """returns rst formatted table
 
         Parameters
         ----------
-        csv_table : bool
+        csv_table
             use csv-directive, grid table otherwise
+        with_title
+            include the table title
+        with_legend
+            include the table legend
         """
         stripped = csv_table
         formatted_table = self._formatted(stripped=stripped)
         header = formatted_table.pop(0)
+        title = self.title if with_title else None
+        legend = self.legend if with_legend else None
         if csv_table:
             result = table_format.rst_csv_table(
                 header,
                 formatted_table,
-                title=self.title,
-                legend=self.legend,
+                title=title,
+                legend=legend,
             )
         else:
             result = table_format.grid_table_format(
                 header,
                 formatted_table,
-                title=self.title,
-                legend=self.legend,
+                title=title,
+                legend=legend,
             )
         return result
 
@@ -1831,6 +1848,8 @@ class Table:
         sep: str | None = None,
         center: bool = False,
         concat_title_legend: bool = True,
+        with_title: bool | None = None,
+        with_legend: bool | None = None,
         **kwargs,
     ) -> str:
         """Return the table as a formatted string.
@@ -1844,11 +1863,19 @@ class Table:
         sep
             A string separator for delineating columns, e.g. ',' or
             '\t'. Overrides format.
-        center : bool
+        center
             content is centered in the column, default is right
             justified
-        concat_title_legend : bool
+        concat_title_legend
             Concat the title and legend.
+        with_title
+            include the table title. If None, uses each format's default (shown
+            for simple, rst and latex, omitted for csv and tsv). Ignored by
+            formats without a title.
+        with_legend
+            include the table legend. If None, uses each format's default (shown
+            for simple, rst and latex, omitted for csv and tsv). Ignored by
+            formats without a legend.
 
         Notes
         -----
@@ -1870,19 +1897,42 @@ class Table:
             sep = sep.strip() if sep else None
 
         if sep == ",":
-            return self.to_csv(**kwargs)
+            # csv omits title/legend unless explicitly requested
+            return self.to_csv(
+                with_title=with_title is True,
+                with_legend=with_legend is True,
+                **kwargs,
+            )
 
         if sep == "\t":
-            return self.to_tsv(**kwargs)
+            # tsv omits title/legend unless explicitly requested
+            return self.to_tsv(
+                with_title=with_title is True,
+                with_legend=with_legend is True,
+                **kwargs,
+            )
+
+        # display formats show title/legend unless explicitly suppressed
+        with_title = with_title is not False
+        with_legend = with_legend is not False
 
         if fmt in {"rest", "rst"}:
-            return self.to_rst(**kwargs)
+            return self.to_rst(
+                with_title=with_title,
+                with_legend=with_legend,
+                **kwargs,
+            )
 
         if fmt in {"markdown", "md"}:
             return self.to_markdown(**kwargs)
 
         if fmt.endswith("tex"):
-            return self.to_latex(concat_title_legend=concat_title_legend, **kwargs)
+            return self.to_latex(
+                concat_title_legend=concat_title_legend,
+                with_title=with_title,
+                with_legend=with_legend,
+                **kwargs,
+            )
 
         if fmt == "html":
             return self.to_html(**kwargs)
@@ -1911,7 +1961,9 @@ class Table:
         self._column_templates = orig_formats
 
         header = formatted_table.pop(0)
-        args = (header, formatted_table, self.title, self.legend)
+        title = self.title if with_title else None
+        legend = self.legend if with_legend else None
+        args = (header, formatted_table, title, legend)
 
         if sep:
             return table_format.separator_format(*args, sep=sep)
@@ -2263,6 +2315,8 @@ class Table:
         format_name: str | None = None,
         sep: str | None = None,
         compress: bool | None = None,
+        with_title: bool = True,
+        with_legend: bool = True,
         **kwargs,
     ) -> None:
         """Write table to filename in the specified format.
@@ -2281,6 +2335,10 @@ class Table:
         compress
             if True, gzips the file and appends .gz to the filename (if not
             already added).
+        with_title
+            include the table title, ignored by formats without a title
+        with_legend
+            include the table legend, ignored by formats without a legend
 
         Notes
         -----
@@ -2322,14 +2380,20 @@ class Table:
             pickle.dump(data, outfile, protocol=1)
         elif sep is not None and format_name != "bedgraph":
             writer = csv.writer(outfile, delimiter=sep, lineterminator="\n")
-            if self.title:
+            if self.title and with_title:
                 writer.writerow([self.title])
             writer.writerow(self.header)
             writer.writerows(self.array)
-            if self.legend:
+            if self.legend and with_legend:
                 writer.writerow([self.legend])
         else:
-            table = self.to_string(format_name=format_name, sep=sep, **kwargs)
+            table = self.to_string(
+                format_name=format_name,
+                sep=sep,
+                with_title=with_title,
+                with_legend=with_legend,
+                **kwargs,
+            )
             outfile.write(table + "\n")
 
         outfile.close()
