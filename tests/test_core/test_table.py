@@ -2166,6 +2166,81 @@ def test_write_home_dir(HOME_TMP_DIR, transform):
     assert got.header == t.header
 
 
+def _titled_table():
+    return Table(header=t3_header, data=t3_rows, title="A title", legend="A legend")
+
+
+@pytest.mark.parametrize("suffix", ["csv", "tsv"])
+def test_write_delimited_title_legend_default(tmp_path, suffix):
+    # title and legend are written by default for delimited formats
+    path = tmp_path / f"table.{suffix}"
+    _titled_table().write(path)
+    lines = path.read_text().splitlines()
+    assert lines[0] == "A title"
+    assert lines[-1] == "A legend"
+
+
+@pytest.mark.parametrize("suffix", ["csv", "tsv"])
+def test_write_delimited_suppress_title_legend(tmp_path, suffix):
+    # with_title/with_legend False omit the title and legend
+    path = tmp_path / f"table.{suffix}"
+    _titled_table().write(path, with_title=False, with_legend=False)
+    text = path.read_text()
+    assert "A title" not in text
+    assert "A legend" not in text
+
+
+@pytest.mark.parametrize("suffix", ["csv", "tsv"])
+def test_write_delimited_suppress_roundtrips(tmp_path, suffix):
+    # suppressing title and legend lets the file round-trip via load_table
+    path = tmp_path / f"table.{suffix}"
+    t = _titled_table()
+    t.write(path, with_title=False, with_legend=False)
+    got = load_table(path)
+    assert got.shape == t.shape
+    assert got.header == t.header
+
+
+@pytest.mark.parametrize("format_name", ["rst", "tex"])
+def test_write_string_format_suppress_title_legend(tmp_path, format_name):
+    # with_title/with_legend False omit title/legend for to_string formats
+    path = tmp_path / f"table.{format_name}"
+    _titled_table().write(path, with_title=False, with_legend=False)
+    text = path.read_text()
+    assert "A title" not in text
+    assert "A legend" not in text
+
+
+@pytest.mark.parametrize("format_name", ["simple", "rst", "tex"])
+def test_to_string_display_default_shows_title_legend(format_name):
+    # display formats show title/legend by default and suppress on request
+    text = _titled_table().to_string(format_name=format_name)
+    assert "A title" in text
+    assert "A legend" in text
+    text = _titled_table().to_string(
+        format_name=format_name,
+        with_title=False,
+        with_legend=False,
+    )
+    assert "A title" not in text
+    assert "A legend" not in text
+
+
+@pytest.mark.parametrize("format_name", ["csv", "tsv"])
+def test_to_string_delimited_default_omits_title_legend(format_name):
+    # csv/tsv omit title/legend by default but include them on request
+    text = _titled_table().to_string(format_name=format_name)
+    assert "A title" not in text
+    assert "A legend" not in text
+    text = _titled_table().to_string(
+        format_name=format_name,
+        with_title=True,
+        with_legend=True,
+    )
+    assert "A title" in text
+    assert "A legend" in text
+
+
 def test_load_table_from_json(tmp_path):
     """tests loading a Table object from json file"""
     json_path = tmp_path / "table.json"
