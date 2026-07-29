@@ -170,6 +170,17 @@ The ``cogent3`` load functions support loading from a url. We load the above fas
         moltype="dna",
     )
 
+Discovering the supported file formats
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use ``available_seq_formats()`` to see the formats that ``load_seq()``, ``load_aligned_seqs()`` and ``load_unaligned_seqs()`` can read. The "suffixes" column lists the filename suffixes that map to each format.
+
+.. jupyter-execute::
+
+    from cogent3 import available_seq_formats
+
+    available_seq_formats()
+
 Specifying the file format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -10,6 +10,7 @@ import stevedore
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.core.annotation_db import AnnotationDbLoaderBase
     from cogent3.core.seq_storage import AlignedSeqsDataABC, SeqsDataABC
+    from cogent3.core.table import Table
     from cogent3.core.tree import PhyloNode
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.format.sequence import SequenceWriterBase
@@ -156,6 +157,32 @@ def get_seq_format_parser_plugin(
 
     msg = f"Unknown parser for format {format_name!r} or file suffix {file_suffix!r}"
     raise ValueError(msg)
+
+
+def available_seq_formats() -> "Table":
+    """returns Table of sequence file formats that can be loaded"""
+    from cogent3.core.table import Table
+
+    mgr = stevedore.ExtensionManager(
+        namespace=SEQ_PARSER_ENTRY_POINT,
+        invoke_on_load=True,
+    )
+    rows = []
+    for ext in mgr.extensions:
+        plugin = ext.obj
+        rows.append(
+            [
+                plugin.name,
+                ", ".join(sorted(plugin.supported_suffixes)),
+                plugin.supports_aligned,
+                plugin.supports_unaligned,
+            ]
+        )
+
+    header = ["name", "suffixes", "aligned", "unaligned"]
+    title = "Specify a format by its name or a file by one of its suffixes."
+    result = Table(header=header, data=rows, title=title, index_name="name")
+    return result.sorted(columns="name")
 
 
 # registry for writing sequence file formats

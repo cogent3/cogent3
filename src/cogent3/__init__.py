@@ -57,6 +57,7 @@ _import_mapping = {
     "available_datasets": "_dataset",
     "get_dataset": "_dataset",
     "set_storage_defaults": "_plugin",
+    "available_seq_formats": "_plugin",
     "make_aligned_seqs": "core.alignment",
     "make_unaligned_seqs": "core.alignment",
     "load_annotations": "core.annotation_db",
@@ -266,6 +267,9 @@ def load_seq(
     Returns **one** sequence from a file. Use load_aligned_seqs or
     load_unaligned_seqs to get a collection.
 
+    Use cogent3.available_seq_formats() to see the supported formats and
+    file suffixes.
+
     Returns
     -------
     ``Sequence``
@@ -391,6 +395,11 @@ def load_unaligned_seqs(
         The latter induces a progress bar for number of files processed when
         filename is a glob pattern.
 
+    Notes
+    -----
+    Use cogent3.available_seq_formats() to see the supported formats and
+    file suffixes.
+
     Returns
     -------
     ``SequenceCollection``
@@ -478,6 +487,11 @@ def load_aligned_seqs(
         optional arguments for the parser
     kwargs
         passed to make_aligned_seqs
+
+    Notes
+    -----
+    Use cogent3.available_seq_formats() to see the supported formats and
+    file suffixes.
 
     Returns
     -------
