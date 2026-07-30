@@ -26,6 +26,7 @@ from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
     is_html_markup,
+    latex,
 )
 from cogent3.parse.table import FilteringParser
 
@@ -2557,3 +2558,125 @@ def test_sorted_reverse_mixed_columns():
     )
     result = table.sorted(columns=["Region", "Ratio"], reverse="Ratio")
     assert result.shape == table.shape
+
+
+# empty-table behaviour, issue #721
+# case A: header present, zero rows; case B: no columns at all
+
+
+def _empty_a():
+    return Table(header=["a", "b"], data=[])
+
+
+@pytest.mark.parametrize("table", [_empty_a(), make_table()])
+def test_empty_count_unique(table):
+    got = table.count_unique()
+    assert len(got) == 0
+
+
+def test_empty_distinct_values():
+    t = _empty_a()
+    assert t.distinct_values("a") == set()
+
+
+def test_empty_with_new_column():
+    t = _empty_a()
+    got = t.with_new_column("c", lambda row: row[0], columns="a")
+    assert "c" in got.header
+    assert got.shape[0] == 0
+
+
+def test_empty_sum_columns():
+    t = _empty_a()
+    assert t.sum_columns() == [0, 0]
+
+
+def test_empty_sum_rows():
+    t = _empty_a()
+    assert t.sum_rows() == []
+
+
+@pytest.mark.parametrize("by_row", [True, False])
+def test_empty_normalized(by_row):
+    t = _empty_a()
+    got = t.normalized(by_row=by_row)
+    assert got.shape == (0, 2)
+
+
+@pytest.mark.parametrize("kwargs", [{}, {"columns": "a"}, {"reverse": "a"}])
+def test_empty_sorted(kwargs):
+    # reverse variant is a regression test for numpy.vectorize on size 0
+    t = _empty_a()
+    got = t.sorted(**kwargs)
+    assert got.shape == (0, 2)
+
+
+@pytest.mark.parametrize(("method", "expect"), [("to_csv", "a,b"), ("to_tsv", "a\tb")])
+def test_empty_to_delimited(method, expect):
+    # header only, no data rows
+    t = _empty_a()
+    assert getattr(t, method)() == expect
+
+
+def test_empty_to_markdown():
+    # regression test for IndexError on empty body
+    t = _empty_a()
+    got = t.to_markdown()
+    assert got == "| a | b |\n|---|---|"
+
+
+@pytest.mark.parametrize("method", ["to_string", "to_latex", "to_rst"])
+def test_empty_display_formats(method):
+    # header present, zero rows still renders without raising
+    t = _empty_a()
+    got = getattr(t, method)()
+    assert "a" in got
+    assert "b" in got
+
+
+def test_empty_to_dict():
+    t = _empty_a()
+    assert t.to_dict() == {}
+
+
+def test_empty_to_rich_dict_roundtrip():
+    t = _empty_a()
+    rd = t.to_rich_dict()
+    assert rd["data"]["order"] == ["a", "b"]
+    got = pickle.loads(pickle.dumps(t))  # noqa: S301
+    assert got.shape == (0, 2)
+    assert list(got.header) == ["a", "b"]
+
+
+@pytest.mark.skipif(DataFrame is None, reason="pandas not installed")
+def test_empty_to_pandas():
+    t = _empty_a()
+    df = t.to_pandas()
+    assert list(df.columns) == ["a", "b"]
+    assert len(df) == 0
+
+
+def test_empty_transposed():
+    t = _empty_a()
+    got = t.transposed("x")
+    assert list(got.header) == ["x"]
+
+
+@pytest.mark.parametrize(
+    "method", ["to_csv", "to_tsv", "to_markdown", "to_string", "to_latex", "to_rst"]
+)
+def test_zero_column_output_empty_string(method):
+    t = make_table()
+    assert getattr(t, method)() == ""
+
+
+def test_zero_column_transposed():
+    t = make_table()
+    got = t.transposed("x")
+    assert got.shape[0] == 0
+
+
+@pytest.mark.parametrize("header", [[], None])
+def test_latex_formatter_no_columns(header):
+    # direct formatter call with no header and no rows must not raise
+    assert latex([], header=header) == ""

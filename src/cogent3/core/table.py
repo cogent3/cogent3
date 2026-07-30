@@ -1293,6 +1293,9 @@ class Table:
         if isinstance(columns, str):
             columns = [columns]
 
+        if not columns:
+            return CategoryCounter({})
+
         groups = _group_indices(self, columns)
         if len(columns) == 1:
             data = {key[0]: len(indices) for key, indices in groups.items()}
@@ -1626,7 +1629,7 @@ class Table:
         arrays = []
         for c in columns:
             col = self.columns[c].copy()
-            if c in reverse:
+            if c in reverse and col.size:
                 func = _reverse_num if array_is_num_type(col) else _reverse_str
                 col = numpy.vectorize(func)(col)
             arrays.append(col)
@@ -1705,6 +1708,15 @@ class Table:
             formatted = [self.header]
         return formatted
 
+    def _header_and_rows(
+        self, missing_data: str = "", stripped: bool = False
+    ) -> tuple[list[str], list[list[str]]] | None:
+        """returns (header, body rows) as formatted strings, or None if no columns"""
+        if not self.header:
+            return None
+        formatted = self._formatted(missing_data=missing_data, stripped=stripped)
+        return formatted[0], formatted[1:]
+
     def to_csv(self, with_title: bool = False, with_legend: bool = False) -> str:
         """return table formatted as comma separated values
 
@@ -1715,8 +1727,10 @@ class Table:
         with_legend
             include table legend
         """
-        formatted_table = self._formatted(stripped=True)
-        header = formatted_table.pop(0)
+        formatted = self._header_and_rows(stripped=True)
+        if formatted is None:
+            return ""
+        header, formatted_table = formatted
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         return table_format.separator_format(
@@ -1760,8 +1774,10 @@ class Table:
         The \\caption*{} command is provided with the caption package. See
         https://ctan.org/pkg/caption for more details.
         """
-        formatted_table = self._formatted()
-        header = formatted_table.pop(0)
+        formatted = self._header_and_rows()
+        if formatted is None:
+            return ""
+        header, formatted_table = formatted
         caption = (self.title if with_title else None) or None
         legend = (self.legend if with_legend else None) or None
         if concat_title_legend and (caption or legend):
@@ -1794,8 +1810,10 @@ class Table:
         -------
         str
         """
-        formatted_table = self._formatted()
-        header = formatted_table.pop(0)
+        formatted = self._header_and_rows()
+        if formatted is None:
+            return ""
+        header, formatted_table = formatted
         return table_format.markdown(
             header,
             formatted_table,
@@ -1821,8 +1839,10 @@ class Table:
             include the table legend
         """
         stripped = csv_table
-        formatted_table = self._formatted(stripped=stripped)
-        header = formatted_table.pop(0)
+        formatted = self._header_and_rows(stripped=stripped)
+        if formatted is None:
+            return ""
+        header, formatted_table = formatted
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         if csv_table:
@@ -1882,6 +1902,8 @@ class Table:
         If format is bedgraph, assumes that column headers are chrom, start,
         end, value. In that order!
         """
+        if not self.header:
+            return ""
         fmt: str = format_name or ""
         if fmt == "bedgraph":
             # TODO remove requirement for column order
@@ -1982,8 +2004,10 @@ class Table:
         with_legend
             include table legend
         """
-        formatted_table = self._formatted(stripped=True)
-        header = formatted_table.pop(0)
+        formatted = self._header_and_rows(stripped=True)
+        if formatted is None:
+            return ""
+        header, formatted_table = formatted
         title = self.title if with_title else None
         legend = self.legend if with_legend else None
         return table_format.separator_format(
@@ -2280,6 +2304,14 @@ class Table:
             current column name containing data to be used
             as the header. Defaults to the first column.
         """
+        if not self.columns.order:
+            attr = self._get_persistent_attrs()
+            del attr["index_name"]
+            attr |= kwargs
+            result = self.__class__(**attr)
+            result.columns[new_column_name] = []
+            return result
+
         select_as_header = select_as_header or self.columns.order[0]
         assert select_as_header in self.columns, (
             f'"{select_as_header}" not in table header'
