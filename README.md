@@ -158,10 +158,10 @@ which skips the data visualisation and notebook support.
 
 ### Install with developer tools
 
-Everything we use for `cogent3` development.
+Everything we use for `cogent3` development. Run this from a clone of the repository.
 
 ```bash
-$ pip install "cogent3[dev]"
+$ pip install -e . --group dev
 ```
 
 > **Note:** Installs all dependencies that can be installed using `pip`.

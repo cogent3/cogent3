@@ -97,7 +97,7 @@ jobs:
       - name: "Run Type Checking for ${{ matrix.python-version }}"
         run: |
           uv venv venv -p python${{ matrix.python-version }}
-          uv pip install -p venv -e .[typing]
+          uv pip install -p venv -e . --group typing
           venv/bin/mypy src/cogent3/core/alignment.py src/cogent3/core/alphabet.py src/cogent3/core/annotation.py src/cogent3/core/genetic_code.py src/cogent3/core/location.py src/cogent3/core/moltype.py src/cogent3/core/seq_storage.py src/cogent3/core/sequence.py src/cogent3/core/seqview.py src/cogent3/core/slice_record.py src/cogent3/core/tree.py
 
 

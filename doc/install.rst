@@ -24,11 +24,11 @@ If you don't need plotting, such as if you're running on a high-performance comp
 Install with developer tools
 ============================
 
-Everything we use for ``cogent3`` development.
+Everything we use for ``cogent3`` development. Run this from a clone of the repository.
 
 .. code-block:: bash
 
-   $ pip install "cogent3[dev]"
+   $ pip install -e . --group dev
 
 .. note:: Installs all dependencies that can be installed using ``pip``.
 
