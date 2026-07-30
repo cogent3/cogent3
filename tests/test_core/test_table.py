@@ -26,6 +26,7 @@ from cogent3.format.table import (
     formatted_array,
     get_continuation_tables_headers,
     is_html_markup,
+    latex,
 )
 from cogent3.parse.table import FilteringParser
 
@@ -2673,3 +2674,9 @@ def test_zero_column_transposed():
     t = make_table()
     got = t.transposed("x")
     assert got.shape[0] == 0
+
+
+@pytest.mark.parametrize("header", [[], None])
+def test_latex_formatter_no_columns(header):
+    # direct formatter call with no header and no rows must not raise
+    assert latex([], header=header) == ""

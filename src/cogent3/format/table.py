@@ -177,6 +177,8 @@ def latex(
     The \\caption*{} command is provided with the caption package. See
     https://ctan.org/pkg/caption for more details.
     """
+    if not header and not rows:
+        return ""
 
     if not justify:
         numcols = len(header) if header else len(rows[0])
