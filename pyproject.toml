@@ -58,6 +58,20 @@ Documentation = "https://www.cogent3.org/"
 Changelog = "https://github.com/cogent3/cogent3/blob/develop/changelog.md"
 
 [project.optional-dependencies]
+extra = [
+    "ipykernel",
+    "ipython",
+    "ipywidgets",
+    "jupyterlab",
+    "kaleido",
+    "notebook",
+    "pandas",
+    "pillow",
+    "plotly",
+    "psutil",
+]
+
+[dependency-groups]
 test = [
     "cogent3-h5seqs>=0.8.0",
     "piqtree>=0.8.0; python_version > '3.11'",
@@ -92,27 +106,15 @@ doc = [
     "sphinxcontrib-video",
     "iplotx>=1.7.1",
 ]
-extra = [
-    "ipykernel",
-    "ipython",
-    "ipywidgets",
-    "jupyterlab",
-    "kaleido",
-    "notebook",
-    "pandas",
-    "pillow",
-    "plotly",
-    "psutil",
-]
 dev = [
     "flit",
     "nox",
     "numpydoc",
     "scriv",
     "types-tqdm",
-    "cogent3[doc]",
-    "cogent3[test]",
-    "cogent3[typing]",
+    { include-group = "doc" },
+    { include-group = "test" },
+    { include-group = "typing" },
 ]
 
 [tool.flit.sdist]
