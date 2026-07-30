@@ -1,4 +1,37 @@
 
+<a id='changelog-2026.7.30a0'></a>
+# Changes in release "2026.7.30a0"
+
+Minor enhancement and bug fix release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- New `cogent3.available_seq_formats` displays supported sequence formats
+  and their suffixes.
+- `Table.write` now accepts `with_title` and `with_legend` arguments for
+  suppressing the table title and legend. These are also supported by
+  `Table.to_string`, `Table.to_rst` and `Table.to_latex`.
+
+## Bug fixes
+
+- `Table` methods now handle empty tables gracefully. `to_markdown`,
+  `to_latex` and `sorted(reverse=...)` no longer raise on a table with a header
+  and no rows, and the string output methods (`to_csv`, `to_tsv`, `to_markdown`,
+  `to_string`, `to_latex`, `to_rst`), `count_unique` and `transposed` no longer
+  raise on a table with no columns. Fixes #721.
+
+## Documentation
+
+- Developer dependencies (`test`, `typing`, `doc`, `dev`) are now defined as
+  PEP 735 dependency groups rather than optional install extras. Install the
+  full developer environment from a repository clone with
+  `pip install -e . --group dev`. The user-facing `extra` install is
+  unchanged (`pip install "cogent3[extra]"`).
+
 <a id='changelog-2026.7.6a0'></a>
 # Changes in release "2026.7.6a0"
 
