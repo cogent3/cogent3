@@ -179,7 +179,7 @@ def latex(
     """
 
     if not justify:
-        numcols = [len(header), len(rows[0])][not header]
+        numcols = len(header) if header else len(rows[0])
         justify = "r" * numcols
 
     justify = "{{ {} }}".format(" ".join(list(justify)))
@@ -358,6 +358,8 @@ _pipe = re.compile(r"\|")
 
 def _escape_pipes(formatted_table, header):
     """returns text with | replaced by \\|, adjusting column widths"""
+    if not formatted_table:
+        return formatted_table, header
     resized = False
     widths = list(map(len, formatted_table[0]))
     num_rows = len(formatted_table)
