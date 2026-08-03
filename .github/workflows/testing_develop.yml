@@ -56,7 +56,7 @@ jobs:
           nox  -db uv --force-python python -s test -- $cov
 
       - name: Coveralls Parallel
-        uses: coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e # v2.3.7
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
         env:
           # macOS installs the coverage-reporter via a third-party Homebrew
           # tap; Homebrew's new tap-trust enforcement refuses it otherwise.
@@ -109,7 +109,7 @@ jobs:
       contents: read
     steps:
     - name: Coveralls Finished
-      uses: coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e # v2.3.7
+      uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
       with:
         github-token: ${{ secrets.github_token }}
         parallel-finished: true
