@@ -39,8 +39,15 @@ website:
   navbar:
     logo: images/c3-logo.svg
     logo-alt: "cogent3"
-    # unlike the entries below, logo-href is emitted verbatim rather than being
-    # offset per page, so it has to be site-root-relative to survive nesting
+    # the logo is a cogent3 wordmark and is itself a link home, so the title
+    # text beside it would be a second, identical link saying the same thing.
+    # website.title above still supplies the <title> and search metadata.
+    title: false
+    # unlike the entries below, logo-href is offset against *this* project's
+    # root rather than the site root, so it cannot be made to reach the
+    # cogent3.org landing page from here. It is left pointing at the docs home
+    # and rewritten per page by cogent3.org's build.sh; standalone renders keep
+    # the sensible local behaviour.
     logo-href: /index.html
     search: true
     left:
