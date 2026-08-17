@@ -1,12 +1,86 @@
 ---
 title: "Tutorials"
+# the sphinx toctrees under each heading were dropped in the quarto conversion,
+# leaving five empty sections. These listings restore them, in the order the
+# toctrees defined -- hence sort: false, as for the gallery in draw/index.qmd
+listing:
+  - id: data-manipulation
+    contents:
+      - align_codons_to_protein.qmd
+    type: table
+    fields: [title]
+    sort: false
+    sort-ui: false
+    filter-ui: false
+  - id: general-analysis
+    contents:
+      - period_estimation.qmd
+    type: table
+    fields: [title]
+    sort: false
+    sort-ui: false
+    filter-ui: false
+  - id: modelling-evolution
+    contents:
+      - simple.qmd
+      - relative_rate.qmd
+      - neutral_test.qmd
+      - scope_model_params_on_trees.qmd
+      - codon_models.qmd
+      - empirical_protein_models.qmd
+      - testing_multi_loci.qmd
+      - simulate_alignment.qmd
+      - parametric_bootstrap.qmd
+      - rate_heterogeneity.qmd
+      - hmm_par_heterogeneity.qmd
+      - nonstationary_inference.qmd
+    type: table
+    fields: [title]
+    sort: false
+    sort-ui: false
+    filter-ui: false
+  - id: phylogenetic-reconstruction-listing
+    contents:
+      - calculate_pairwise_distances.qmd
+      - calculate_neigbourjoining_tree.qmd
+      - calculate_UPGMA_cluster.qmd
+      - phylo_by_ls.qmd
+    type: table
+    fields: [title]
+    sort: false
+    sort-ui: false
+    filter-ui: false
+  - id: utilities
+    contents:
+      - parallel.qmd
+    type: table
+    fields: [title]
+    sort: false
+    sort-ui: false
+    filter-ui: false
 ---
+
 ## Data manipulation
+
+:::{#data-manipulation}
+:::
 
 ## General data analysis
 
+:::{#general-analysis}
+:::
+
 ## Modelling Evolution
+
+:::{#modelling-evolution}
+:::
 
 ## Phylogenetic Reconstruction
 
+:::{#phylogenetic-reconstruction-listing}
+:::
+
 ## Utilities
+
+:::{#utilities}
+:::
