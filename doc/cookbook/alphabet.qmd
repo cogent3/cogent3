@@ -1,102 +1,94 @@
-Alphabets
----------
+---
+title: "Alphabets"
+---
+## `CharAlphabet` and `MolType`
 
-.. authors Gavin Huttley
+`MolType` instances have an `CharAlphabet`.
 
-``CharAlphabet`` and ``MolType``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+from cogent3 import get_moltype
 
-``MolType`` instances have an ``CharAlphabet``.
+dna = get_moltype("dna")
+print(dna.alphabet)
+protein = get_moltype("protein")
+print(protein.alphabet)
+```
 
-.. jupyter-execute::
+`CharAlphabet` instances reference the `MolType` that created them.
 
-    from cogent3 import get_moltype
+```{python}
+dna.alphabet.moltype is dna
+```
 
-    dna = get_moltype("dna")
-    print(dna.alphabet)
-    protein = get_moltype("protein")
-    print(protein.alphabet)
-
-``CharAlphabet`` instances reference the ``MolType`` that created them.
-
-.. jupyter-execute::
-
-    dna.alphabet.moltype is dna
-
-Creating tuple alphabets
-^^^^^^^^^^^^^^^^^^^^^^^^
+## Creating tuple alphabets
 
 You can create a tuple alphabet of, for example, dinucleotides or trinucleotides.
 
-.. jupyter-execute::
+```{python}
+dinuc_alphabet = dna.alphabet.get_kmer_alphabet(2)
+trinuc_alphabet = dna.alphabet.get_kmer_alphabet(3)
+print(dinuc_alphabet, trinuc_alphabet, sep="\n")
+```
 
-    dinuc_alphabet = dna.alphabet.get_kmer_alphabet(2)
-    trinuc_alphabet = dna.alphabet.get_kmer_alphabet(3)
-    print(dinuc_alphabet, trinuc_alphabet, sep="\n")
+## Convert a sequence into integers
 
-Convert a sequence into integers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+seq = "TAGT"
+indices = dna.alphabet.to_indices(seq)
+indices
+```
 
-.. jupyter-execute::
+## Convert integers to a sequence
 
-    seq = "TAGT"
-    indices = dna.alphabet.to_indices(seq)
-    indices
+```{python}
+import numpy
 
-Convert integers to a sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+data = numpy.array([0, 2, 3, 0], dtype=numpy.uint8)
+seq = dna.alphabet.from_indices(data)
+seq
+```
 
-.. jupyter-execute::
+## Converting a sequence into k-mer indices
 
-    import numpy
-    
-    data = numpy.array([0, 2, 3, 0], dtype=numpy.uint8)
-    seq = dna.alphabet.from_indices(data)
-    seq
+You can use a `KmerAlphabet` to convert a standard sequence into a `numpy` array of integers. In this case, each integer is the encoding of the dinucleotide string into the index of that dinucleotide. Because the `CharAlphabet` and `KmerAlphabet` both inherit from  `tuple`, they have the built-in `.index()` method.
 
-Converting a sequence into k-mer indices
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+import numpy
 
-You can use a ``KmerAlphabet`` to convert a standard sequence into a ``numpy`` array of integers. In this case, each integer is the encoding of the dinucleotide string into the index of that dinucleotide. Because the ``CharAlphabet`` and ``KmerAlphabet`` both inherit from  ``tuple``, they have the built-in ``.index()`` method.
+bases = dna.alphabet
+dinucs = bases.get_kmer_alphabet(2)
+dinucs.index("TG")    
+```
 
-.. jupyter-execute::
+The `to_indices()` method is faster and provides more flexibility. We use that on the single dinucleotide
 
-    import numpy
-
-    bases = dna.alphabet
-    dinucs = bases.get_kmer_alphabet(2)
-    dinucs.index("TG")    
-
-The ``to_indices()`` method is faster and provides more flexibility. We use that on the single dinucleotide
-
-.. jupyter-execute::
-
-    dinucs.to_indices("TG")
+```{python}
+dinucs.to_indices("TG")
+```
 
 and on a longer sequence where we want the independent *k*-mers.
 
-.. jupyter-execute::
-
-    seq = "TGTGGCACAAATACTCATGCCAGCTCATTA"
-    dinuc_indices = dinucs.to_indices(seq, independent_kmer=True)
-    dinuc_indices
+```{python}
+seq = "TGTGGCACAAATACTCATGCCAGCTCATTA"
+dinuc_indices = dinucs.to_indices(seq, independent_kmer=True)
+dinuc_indices
+```
 
 We can also convert the sequence into all possible k-mers.
 
-.. jupyter-execute::
+```{python}
+dinucs.to_indices(seq, independent_kmer=False)
+```
 
-    dinucs.to_indices(seq, independent_kmer=False)
+## Quality score converters
 
-Quality score converters
-^^^^^^^^^^^^^^^^^^^^^^^^
+`make_qual_converter` builds a callable that maps a fastq quality string (as `bytes`) into a `numpy.uint8` array of Phred scores. Both Phred+33 and Phred+64 encodings are supported.
 
-``make_qual_converter`` builds a callable that maps a fastq quality string (as ``bytes``) into a ``numpy.uint8`` array of Phred scores. Both Phred+33 and Phred+64 encodings are supported.
+```{python}
+from cogent3.core.alphabet import make_qual_converter
 
-.. jupyter-execute::
+conv = make_qual_converter("phred+33")
+conv(b"!I~")
+```
 
-    from cogent3.core.alphabet import make_qual_converter
-
-    conv = make_qual_converter("phred+33")
-    conv(b"!I~")
-
-See :ref:`load_fastq` for an example combining this with ``iter_fastq_records``.
+See [Directly use the genbank format parser to load a sequence and annotations](loading_sequences.qmd#load_fastq) for an example combining this with `iter_fastq_records`.

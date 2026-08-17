@@ -1,416 +1,388 @@
-.. jupyter-execute::
-    :hide-code:
-
-    import os
-
-    import set_working_directory
-
-.. _load_seq:
-
-Loading a single sequence from a file
--------------------------------------
-
+---
+title: "Loading a single sequence from a file"
+---
 In this case, the filename suffix is used to infer the data format.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_seq
 
-    from cogent3 import load_seq
+seq = load_seq("data/mycoplasma-genitalium.fa", moltype="dna")
+seq
+```
 
-    seq = load_seq("data/mycoplasma-genitalium.fa", moltype="dna")
-    seq
+::: {.callout-warning}
+If a file has more than one sequence, only the first one is loaded.
+:::
 
-.. warning:: If a file has more than one sequence, only the first one is loaded.
+```{python}
+seq = load_seq("data/brca1-bats.fasta", moltype="dna")
+seq
+```
 
-.. jupyter-execute::
+::: {.callout-note}
+It's also possible to load a sequence from a [url](loading_sequences.qmd#load_url).
+:::
 
-    seq = load_seq("data/brca1-bats.fasta", moltype="dna")
-    seq
+# Directly use the fasta format parser to load a sequence
 
-.. note:: It's also possible to load a sequence from a :ref:`url <load_url>`.
+The `cogent3` parsers return standard Python data types. The `iter_fasta_records()` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
 
-Directly use the fasta format parser to load a sequence
--------------------------------------------------------
+```{python}
+from cogent3.parse.fasta import iter_fasta_records
 
-The ``cogent3`` parsers return standard Python data types. The ``iter_fasta_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
+label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa"))[0]
+label, seq[:10]
+```
 
-.. jupyter-execute::
+You can provide a converter that will transform the sequence data to the type you want. In this example, we use a `cogent3` builtin to return a `numpy` array of unsigned 8-bit integers. We first get all the IUPAC characters for DNA and construct the converter. The converter maps an integer the provided characters in their order of occurrence in `dna_alpha`.
 
-    from cogent3.parse.fasta import iter_fasta_records
+```{python}
+import numpy
 
-    label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa"))[0]
-    label, seq[:10]
+from cogent3.core.alphabet import bytes_to_array
+from cogent3.core.moltype import DNA
 
-You can provide a converter that will transform the sequence data to the type you want. In this example, we use a ``cogent3`` builtin to return a ``numpy`` array of unsigned 8-bit integers. We first get all the IUPAC characters for DNA and construct the converter. The converter maps an integer the provided characters in their order of occurrence in ``dna_alpha``.
+dna_alpha = "".join(DNA.most_degen_alphabet())
+converter = bytes_to_array(dna_alpha.encode("utf8"), delete=b"\r\n\t ", dtype=numpy.uint8)
+```
 
-.. jupyter-execute::
-
-    import numpy
-
-    from cogent3.core.alphabet import bytes_to_array
-    from cogent3.core.moltype import DNA
-    
-    dna_alpha = "".join(DNA.most_degen_alphabet())
-    converter = bytes_to_array(dna_alpha.encode("utf8"), delete=b"\r\n\t ", dtype=numpy.uint8)
-
-.. note:: The characters provided to the ``delete`` argument are white space and essential to ensure line feeds are removed.
+::: {.callout-note}
+The characters provided to the `delete` argument are white space and essential to ensure line feeds are removed.
+:::
 
 We then use the parser as before but provide our custom converter.
 
-.. jupyter-execute::
+```{python}
+label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa", converter=converter))[0]
+label, seq[:10]
+```
 
-    label, seq = list(iter_fasta_records("data/mycoplasma-genitalium.fa", converter=converter))[0]
-    label, seq[:10]
+# Directly use the genbank format parser to load a sequence and annotations {#load_fastq}
 
-.. _load_fastq:
+The `cogent3` parsers return standard Python data types. The `iter_genbank_records()` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
 
-Directly use the genbank format parser to load a sequence and annotations
--------------------------------------------------------------------------
+```{python}
+from cogent3.parse.genbank import iter_genbank_records
 
-The ``cogent3`` parsers return standard Python data types. The ``iter_genbank_records()`` is a generator, so it yields one record at a time. Because I know there's a single sequence in this file, I wrap the call with list and select the first record.
+label, seq, anns = list(iter_genbank_records("data/mycoplasma-genitalium.gb"))[0]
+label, seq[:10], anns.keys()
+```
 
-.. jupyter-execute::
+As the output indicates, variable `anns` is a dictionary. The features in the GenBank feature table are available as a list under the `"features"` key. (See [getting GenBank features as primitives](features.qmd#genbank-features).)
 
-    from cogent3.parse.genbank import iter_genbank_records
+# Directly use the fastq format parser to load reads with quality scores
 
-    label, seq, anns = list(iter_genbank_records("data/mycoplasma-genitalium.gb"))[0]
-    label, seq[:10], anns.keys()
+The `iter_fastq_records()` generator yields `(label, sequence, quality)` tuples for each record in a fastq file. By default both the sequence and quality strings are decoded to `str`.
 
-As the output indicates, variable ``anns`` is a dictionary. The features in the GenBank feature table are available as a list under the ``"features"`` key. (See :ref:`getting GenBank features as primitives <genbank-features>`.)
+```{python}
+from cogent3.parse.fastq import iter_fastq_records
 
-Directly use the fastq format parser to load reads with quality scores
-----------------------------------------------------------------------
+for label, seq, qual in iter_fastq_records("data/fastq.txt"):
+    ...  # do your work here
+```
 
-The ``iter_fastq_records()`` generator yields ``(label, sequence, quality)`` tuples for each record in a fastq file. By default both the sequence and quality strings are decoded to ``str``.
+To get a transformation of read quality into Phred scores, pass a converter built with `make_qual_converter` to get quality as a `numpy.uint8` array. The scoring scheme can be selected by a `PhredEncoding` member or by name (`"phred+33"` or `"phred+64"`, case insensitive).
 
-.. jupyter-execute::
+```{python}
+from cogent3.core.alphabet import PhredEncoding, make_qual_converter
 
-    from cogent3.parse.fastq import iter_fastq_records
+qual_converter = make_qual_converter(PhredEncoding.PHRED_33)
+label, seq, qual = next(
+    iter(iter_fastq_records("data/fastq.txt", qual_converter=qual_converter))
+)
+label, seq, qual
+```
 
-    for label, seq, qual in iter_fastq_records("data/fastq.txt"):
-        ...  # do your work here
+::: {.callout-note}
+As with the fasta and genbank iterative parsers, a `converter` argument exists for providing a custom transformer to be applied to the sequence data too.
+:::
 
-To get a transformation of read quality into Phred scores, pass a converter built with ``make_qual_converter`` to get quality as a ``numpy.uint8`` array. The scoring scheme can be selected by a ``PhredEncoding`` member or by name (``"phred+33"`` or ``"phred+64"``, case insensitive).
+# Loading sequence collections from a file or url {#load-seqs}
 
-.. jupyter-execute::
-
-    from cogent3.core.alphabet import PhredEncoding, make_qual_converter
-
-    qual_converter = make_qual_converter(PhredEncoding.PHRED_33)
-    label, seq, qual = next(
-        iter(iter_fastq_records("data/fastq.txt", qual_converter=qual_converter))
-    )
-    label, seq, qual
-
-.. note:: As with the fasta and genbank iterative parsers, a ``converter`` argument exists for providing a custom transformer to be applied to the sequence data too.
-
-.. _load-seqs:
-
-Loading sequence collections from a file or url
------------------------------------------------
-
-Loading aligned sequences
-^^^^^^^^^^^^^^^^^^^^^^^^^
+## Loading aligned sequences
 
 Any file in which the sequences have exactly the same length can be loaded as an alignment.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_aligned_seqs
 
-    from cogent3 import load_aligned_seqs
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+type(aln)
+```
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    type(aln)
+::: {.callout-note}
+The load functions record the origin of the data in a `.source` attribute.
+:::
 
-.. note:: The load functions record the origin of the data in a ``.source`` attribute.
+```{python}
+aln.source
+```
 
-.. jupyter-execute::
+## Loading unaligned sequences
 
-    aln.source
+Files containing sequences that may differ in length can be loaded using `load_unaligned_seqs()`, which returns a sequence collection.
 
-.. todo:: add cross ref for description of Info class
+```{python}
+from cogent3 import load_unaligned_seqs
 
-Loading unaligned sequences
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+seqs = load_unaligned_seqs("data/long_testseqs.fasta", moltype="dna")
+type(seqs)
+```
 
-Files containing sequences that may differ in length can be loaded using ``load_unaligned_seqs()``, which returns a sequence collection.
+## Loading unaligned sequences from multiple files
 
-.. jupyter-execute::
+You can create a single sequence collection containing sequences from all files in a directory that match a wildcard (or glob) pattern (e.g. `"path/to/dir/*.<filename suffix>"`). We load data from files ending with `.fa` using `load_unaligned_seqs()`. This approach can be taken for all supported sequence file formats.
 
-    from cogent3 import load_unaligned_seqs
+```{python}
+from cogent3 import load_unaligned_seqs
 
-    seqs = load_unaligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    type(seqs)
+seqs = load_unaligned_seqs("data/*.fa", moltype="dna")
+seqs
+```
 
-Loading unaligned sequences from multiple files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::: {.callout-note}
+The function limits loading to just one sequence per file.
+:::
 
-You can create a single sequence collection containing sequences from all files in a directory that match a wildcard (or glob) pattern (e.g. ``"path/to/dir/*.<filename suffix>"``). We load data from files ending with ``.fa`` using ``load_unaligned_seqs()``. This approach can be taken for all supported sequence file formats.
+## Loading from a url {#load_url}
 
-.. jupyter-execute::
+The `cogent3` load functions support loading from a url. We load the above fasta file directly from GitHub.
 
-    from cogent3 import load_unaligned_seqs
+```{python}
+from cogent3 import load_aligned_seqs
 
-    seqs = load_unaligned_seqs("data/*.fa", moltype="dna")
-    seqs
+aln = load_aligned_seqs(
+    "https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta",
+    moltype="dna",
+)
+```
 
-.. note:: The function limits loading to just one sequence per file.
+## Discovering the supported file formats
 
-.. _load_url:
+Use `available_seq_formats()` to see the formats that `load_seq()`, `load_aligned_seqs()` and `load_unaligned_seqs()` can read. The "suffixes" column lists the filename suffixes that map to each format.
 
-Loading from a url
-^^^^^^^^^^^^^^^^^^
+```{python}
+from cogent3 import available_seq_formats
 
-The ``cogent3`` load functions support loading from a url. We load the above fasta file directly from GitHub.
+available_seq_formats()
+```
 
-.. jupyter-execute::
+## Specifying the file format
 
-    from cogent3 import load_aligned_seqs
+The loading functions use the filename suffix to infer the file format. This can be overridden using the `format` argument.
 
-    aln = load_aligned_seqs(
-        "https://raw.githubusercontent.com/cogent3/cogent3/develop/doc/data/long_testseqs.fasta",
-        moltype="dna",
-    )
+```{python}
+from cogent3 import load_aligned_seqs
 
-Discovering the supported file formats
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna", format_name="fasta")
+aln
+```
 
-Use ``available_seq_formats()`` to see the formats that ``load_seq()``, ``load_aligned_seqs()`` and ``load_unaligned_seqs()`` can read. The "suffixes" column lists the filename suffixes that map to each format.
+# Specifying the sequence molecular type
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import available_seq_formats
+protein_seqs = {"seq1": "DEKQL-RG", "seq2": "DDK--SRG"}
+proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
+proteins_loaded.moltype
+proteins_loaded
+```
 
-    available_seq_formats()
+# Making an alignment from standard python objects
 
-Specifying the file format
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+## From a dict of strings
 
-The loading functions use the filename suffix to infer the file format. This can be overridden using the ``format`` argument.
+```{python}
+from cogent3 import make_aligned_seqs
 
-.. jupyter-execute::
+seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
+seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
+```
 
-    from cogent3 import load_aligned_seqs
+## From a dict of numpy arrays
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna", format_name="fasta")
-    aln
+```{python}
+from cogent3 import make_aligned_seqs
+from numpy import array, uint8
 
-Specifying the sequence molecular type
---------------------------------------
+seqs = {
+    "seq1": array([2, 2, 0, 1, 3, 9, 2], dtype=uint8),
+    "seq2": array([2, 2, 0, 1, 3, 3, 2], dtype=uint8),
+}
+seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
+```
 
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    protein_seqs = {"seq1": "DEKQL-RG", "seq2": "DDK--SRG"}
-    proteins_loaded = make_aligned_seqs(protein_seqs, moltype="protein")
-    proteins_loaded.moltype
-    proteins_loaded
-
-Making an alignment from standard python objects
-------------------------------------------------
-
-From a dict of strings
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    seqs = {"seq1": "AATCG-A", "seq2": "AATCGGA"}
-    seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
-
-From a dict of numpy arrays
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-    from numpy import array, uint8
-
-    seqs = {
-        "seq1": array([2, 2, 0, 1, 3, 9, 2], dtype=uint8),
-        "seq2": array([2, 2, 0, 1, 3, 3, 2], dtype=uint8),
-    }
-    seqs_loaded = make_aligned_seqs(seqs, moltype="dna")
-
-From a series of strings
-^^^^^^^^^^^^^^^^^^^^^^^^
+## From a series of strings
 
 The sequence names will be automatically created.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+data = ["AATCG-A", "AATCGGA"]
+coll = make_aligned_seqs(data, moltype="dna")
+coll
+```
 
-    data = ["AATCG-A", "AATCGGA"]
-    coll = make_aligned_seqs(data, moltype="dna")
-    coll
+## Changing sequence labels on loading
 
-Changing sequence labels on loading
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Load a list of aligned nucleotide sequences, while specifying the DNA molecule type and stripping the comments from the label. In this example, we rename sequences by passing a function that removes everything after the first whitespace to the `label_to_name` parameter.
 
-Load a list of aligned nucleotide sequences, while specifying the DNA molecule type and stripping the comments from the label. In this example, we rename sequences by passing a function that removes everything after the first whitespace to the ``label_to_name`` parameter.
+```{python}
+from cogent3 import make_aligned_seqs
 
-.. jupyter-execute::
+data = {
+    "sample1 Mus musculus": "AACCTGC--C",
+    "sample2 Gallus gallus": "AAC-TGCAAC",
+}
+loaded_seqs = make_aligned_seqs(
+    data, moltype="dna", label_to_name=lambda x: x.split()[0]
+)
+loaded_seqs
+```
 
-    from cogent3 import make_aligned_seqs
+# Making a sequence collection from standard python objects
 
-    data = {
-        "sample1 Mus musculus": "AACCTGC--C",
-        "sample2 Gallus gallus": "AAC-TGCAAC",
-    }
-    loaded_seqs = make_aligned_seqs(
-        data, moltype="dna", label_to_name=lambda x: x.split()[0]
-    )
-    loaded_seqs
+This is done using `make_unaligned_seqs()`, which returns a `SequenceCollection` instance. The function arguments match those of `make_aligned_seqs()`. We demonstrate only for the case where the input data is a `dict`.
 
-Making a sequence collection from standard python objects
----------------------------------------------------------
+```{python}
+from cogent3 import make_unaligned_seqs
 
-This is done using ``make_unaligned_seqs()``, which returns a ``SequenceCollection`` instance. The function arguments match those of ``make_aligned_seqs()``. We demonstrate only for the case where the input data is a ``dict``.
+seqs = {"seq1": "AATCA", "seq2": "AATCGGA"}
+seqs = make_unaligned_seqs(seqs, moltype="dna")
+seqs
+```
 
-.. jupyter-execute::
+# Loading sequences using format parsers
 
-    from cogent3 import make_unaligned_seqs
+`load_aligned_seqs()` and `load_unaligned_seqs()` are just convenience interfaces to format parsers. It can sometimes be more effective to use the parsers directly, say when you don't want to load everything into memory.
 
-    seqs = {"seq1": "AATCA", "seq2": "AATCGGA"}
-    seqs = make_unaligned_seqs(seqs, moltype="dna")
-    seqs
+## Loading FASTA sequences from an open file or list of lines
 
-Loading sequences using format parsers
---------------------------------------
+To load FASTA formatted sequences directly, you can use `iter_fasta_records`. This parser returns data as python strings.
 
-``load_aligned_seqs()`` and ``load_unaligned_seqs()`` are just convenience interfaces to format parsers. It can sometimes be more effective to use the parsers directly, say when you don't want to load everything into memory.
+::: {.callout-note}
+This returns the sequences as strings.
+:::
 
-Loading FASTA sequences from an open file or list of lines
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+from cogent3.parse.fasta import iter_fasta_records
 
-To load FASTA formatted sequences directly, you can use ``iter_fasta_records``. This parser returns data as python strings.
+seqs = list(iter_fasta_records("data/long_testseqs.fasta"))
+seqs
+```
 
-.. note:: This returns the sequences as strings.
+## Handling overloaded FASTA sequence labels
 
-.. jupyter-execute::
+The FASTA label field is frequently overloaded, with different information fields present in the field and separated by some delimiter. This can be flexibly addressed using the `LabelParser`. By creating a custom label parser, we can decide which part we use as the sequence name. We show how to convert a field into something specific.
 
-    from cogent3.parse.fasta import iter_fasta_records
+```{python}
+from cogent3.parse.fasta import LabelParser
 
-    seqs = list(iter_fasta_records("data/long_testseqs.fasta"))
-    seqs
+def latin_to_common(latin):
+    return {"Homo sapiens": "human", "Pan troglodtyes": "chimp"}[latin]
 
-Handling overloaded FASTA sequence labels
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+label_parser = LabelParser(
+    "%(species)s", [[1, "species", latin_to_common]], split_with=":"
+)
+for label in ">abcd:Homo sapiens:misc", ">abcd:Pan troglodtyes:misc":
+    label = label_parser(label)
+    print(label, type(label))
+```
 
-The FASTA label field is frequently overloaded, with different information fields present in the field and separated by some delimiter. This can be flexibly addressed using the ``LabelParser``. By creating a custom label parser, we can decide which part we use as the sequence name. We show how to convert a field into something specific.
+`RichLabel` objects have an `Info` object as an attribute, allowing specific reference to all the specified label fields.
 
-.. jupyter-execute::
+```{python}
+from cogent3.parse.fasta import LabelParser, iter_fasta_records
 
-    from cogent3.parse.fasta import LabelParser
+fasta_data = [
+    ">gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]",
+    "MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL",
+    "SEIQNIKSELKYVPKAEQ",
+    ">gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]",
+    "MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY",
+    "PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD",
+]
+label_to_name = LabelParser(
+    "%(ref)s",
+    [[1, "gi", str], [3, "ref", str], [4, "description", str]],
+    split_with="|",
+)
+for name, seq in iter_fasta_records(fasta_data, label_to_name=label_to_name):
+    print(name)
+    print(name.info.gi)
+    print(name.info.description)
+```
 
-    def latin_to_common(latin):
-        return {"Homo sapiens": "human", "Pan troglodtyes": "chimp"}[latin]
+# Using a third-party plugin for sequence storage {#storage-plugin}
 
-    label_parser = LabelParser(
-        "%(species)s", [[1, "species", latin_to_common]], split_with=":"
-    )
-    for label in ">abcd:Homo sapiens:misc", ">abcd:Pan troglodtyes:misc":
-        label = label_parser(label)
-        print(label, type(label))
+Sequence collections and alignments have a `.storage` attribute which holds the underlying sequence data and provides basic functions for obtaining it. Users can install a third-party plugin which is customized for different types of sequence data. The following examples require you install the `cogent3-h5seqs` plugin. This project provides alternative storage for both unaligned sequences and for alignments.
 
-``RichLabel`` objects have an ``Info`` object as an attribute, allowing specific reference to all the specified label fields.
+```shell
+$ pip install cogent3-h5seqs
+```
 
-.. jupyter-execute::
+## Selecting an alternate storage backend
 
-    from cogent3.parse.fasta import LabelParser, iter_fasta_records
+Specify the storage using the `storage_backend` argument.
 
-    fasta_data = [
-        ">gi|10047090|ref|NP_055147.1| small muscle protein, X-linked [Homo sapiens]",
-        "MNMSKQPVSNVRAIQANINIPMGAFRPGAGQPPRRKECTPEVEEGVPPTSDEEKKPIPGAKKLPGPAVNL",
-        "SEIQNIKSELKYVPKAEQ",
-        ">gi|10047092|ref|NP_037391.1| neuronal protein [Homo sapiens]",
-        "MANRGPSYGLSREVQEKIEQKYDADLENKLVDWIILQCAEDIEHPPPGRAHFQKWLMDGTVLCKLINSLY",
-        "PPGQEPIPKISESKMAFKQMEQISQFLKAAETYGVRTTDIFQTVDLWEGKDMAAVQRTLMALGSVAVTKD",
-    ]
-    label_to_name = LabelParser(
-        "%(ref)s",
-        [[1, "gi", str], [3, "ref", str], [4, "description", str]],
-        split_with="|",
-    )
-    for name, seq in iter_fasta_records(fasta_data, label_to_name=label_to_name):
-        print(name)
-        print(name.info.gi)
-        print(name.info.description)
+```{python}
+#| error: true
+from cogent3 import load_aligned_seqs
 
-.. _storage-plugin:
-
-Using a third-party plugin for sequence storage
------------------------------------------------
-
-Sequence collections and alignments have a ``.storage`` attribute which holds the underlying sequence data and provides basic functions for obtaining it. Users can install a third-party plugin which is customized for different types of sequence data. The following examples require you install the ``cogent3-h5seqs`` plugin. This project provides alternative storage for both unaligned sequences and for alignments.
-
-.. code-block:: shell
-
-    $ pip install cogent3-h5seqs
-
-Selecting an alternate storage backend
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Specify the storage using the ``storage_backend`` argument.
-
-.. jupyter-execute::
-    :raises: TypeError
-
-    from cogent3 import load_aligned_seqs
-
-    aln = load_aligned_seqs(
-        "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_aligned"
-    )
-    aln
+aln = load_aligned_seqs(
+    "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_aligned"
+)
+aln
+```
 
 That's it!
 
-.. jupyter-execute::
-    :raises: TypeError
+```{python}
+#| error: true
+type(aln.storage)
+```
 
-    type(aln.storage)
+For the `cogent3-h5seqs` package you specify a different storage backend for unaligned sequences.
 
-For the ``cogent3-h5seqs`` package you specify a different storage backend for unaligned sequences.
+```{python}
+#| error: true
+from cogent3 import load_unaligned_seqs
 
-.. jupyter-execute::
-    :raises: TypeError
+seqs = load_unaligned_seqs(
+    "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_unaligned"
+)
+type(seqs.storage)
+```
 
-    from cogent3 import load_unaligned_seqs
+## Set the default storage
 
-    seqs = load_unaligned_seqs(
-        "data/long_testseqs.fasta", moltype="dna", storage_backend="h5seqs_unaligned"
-    )
-    type(seqs.storage)
+You can set the default storage process-wide, so you don't need to use the `storage_backend` argument.
 
-Set the default storage
-^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+#| error: true
+import cogent3
 
-You can set the default storage process-wide, so you don't need to use the ``storage_backend`` argument.
+cogent3.set_storage_defaults(
+    unaligned_seqs="h5seqs_unaligned", aligned_seqs="h5seqs_aligned"
+)
 
-.. jupyter-execute::
-    :raises: TypeError
-
-    import cogent3
-
-    cogent3.set_storage_defaults(
-        unaligned_seqs="h5seqs_unaligned", aligned_seqs="h5seqs_aligned"
-    )
-
-    aln = cogent3.get_dataset("brca1")
-    type(aln.storage)
+aln = cogent3.get_dataset("brca1")
+type(aln.storage)
+```
 
 When you apply operations, the new backend storage setting is applied.
 
-.. jupyter-execute::
-    :raises: TypeError
+```{python}
+#| error: true
+coll = aln.degap()
+type(coll.storage)
+```
 
-    coll = aln.degap()
-    type(coll.storage)
-
-
-.. note:: To revert to the ``cogent3`` defaults, use the ``reset`` argument.
-
-    .. jupyter-execute::
-    
-        cogent3.set_storage_defaults(reset=True)
+::: {.callout-note}
+To revert to the `cogent3` defaults, use the `reset` argument.
+```{python}
+cogent3.set_storage_defaults(reset=True)
+```
+:::

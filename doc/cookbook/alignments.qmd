@@ -1,724 +1,680 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Sequence Collections and Alignments"
+---
+For loading collections of unaligned or aligned sequences see [Loading sequence collections from a file or url](loading_sequences.qmd#load-seqs).
 
-    import set_working_directory
+## Basic Collection objects
 
-Sequence Collections and Alignments
------------------------------------
+### Constructing a `SequenceCollection` or `Alignment` object from strings
 
-.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott, Jan Kosinski
+```{python}
+from cogent3 import make_aligned_seqs
 
-For loading collections of unaligned or aligned sequences see :ref:`load-seqs`.
+data = {"seq1": "ATGACC", "seq2": "ATCGCC"}
+# for an alignment, sequences must be the same length
+seqs = make_aligned_seqs(data, moltype="dna")
+type(seqs)
+```
 
-Basic Collection objects
-^^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+from cogent3 import make_unaligned_seqs
 
-Constructing a ``SequenceCollection`` or ``Alignment`` object from strings
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+data = {"seq1": "ATGCC", "seq2": "ATCG"}
+seqs = make_unaligned_seqs(data, moltype="dna")
+type(seqs)
+```
 
-.. jupyter-execute::
+### Converting a `SequenceCollection` to FASTA format
 
-    from cogent3 import make_aligned_seqs
+```{python}
+from cogent3 import load_unaligned_seqs
 
-    data = {"seq1": "ATGACC", "seq2": "ATCGCC"}
-    # for an alignment, sequences must be the same length
-    seqs = make_aligned_seqs(data, moltype="dna")
-    type(seqs)
+seqs = load_unaligned_seqs("data/test.paml", moltype="dna")
+print(seqs.to_fasta())
+```
 
-.. jupyter-execute::
+## Adding new sequences to an existing collection or alignment
 
-    from cogent3 import make_unaligned_seqs
+More than one sequence can be added to a collection simultaneously. Note that `add_seqs()` does not modify the existing collection/alignment, it creates a new one.
 
-    data = {"seq1": "ATGCC", "seq2": "ATCG"}
-    seqs = make_unaligned_seqs(data, moltype="dna")
-    type(seqs)
+## The elements of a collection or alignment
 
-Converting a ``SequenceCollection`` to FASTA format
-"""""""""""""""""""""""""""""""""""""""""""""""""""
+### Accessing individual sequences from a collection or alignment by name
 
-.. jupyter-execute::
+We can get a sequence by name by indexing the `.seqs` attribute.
 
-    from cogent3 import load_unaligned_seqs
+```{python}
+from cogent3 import make_unaligned_seqs
 
-    seqs = load_unaligned_seqs("data/test.paml", moltype="dna")
-    print(seqs.to_fasta())
-
-Adding new sequences to an existing collection or alignment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-More than one sequence can be added to a collection simultaneously. Note that ``add_seqs()`` does not modify the existing collection/alignment, it creates a new one.
-
-The elements of a collection or alignment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Accessing individual sequences from a collection or alignment by name
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-We can get a sequence by name by indexing the ``.seqs`` attribute.
-
-.. jupyter-execute::
-
-    from cogent3 import make_unaligned_seqs
-
-    seqcoll = make_unaligned_seqs(
-        [("seq1", "ATGAA"), ("seq2", "ATGAGTGATG"), ("seq3", "ATAGGATG")],
-        moltype="dna",
-    )
-    seq = seqcoll.seqs["seq1"]
-    seq
+seqcoll = make_unaligned_seqs(
+    [("seq1", "ATGAA"), ("seq2", "ATGAGTGATG"), ("seq3", "ATAGGATG")],
+    moltype="dna",
+)
+seq = seqcoll.seqs["seq1"]
+seq
+```
 
 For an alignment, the result is an `Aligned` instance.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+aln = make_aligned_seqs(
+    [("seq1", "ATGAA------"), ("seq2", "ATG-AGTGATG"), ("seq3", "AT--AG-GATG")],
+    moltype="dna",
+)
+aligned = aln.seqs["seq1"]
+aligned
+```
 
-    aln = make_aligned_seqs(
-        [("seq1", "ATGAA------"), ("seq2", "ATG-AGTGATG"), ("seq3", "AT--AG-GATG")],
-        moltype="dna",
-    )
-    aligned = aln.seqs["seq1"]
-    aligned
+For the alignment case, you can get the ungapped sequence by accessing the `.seq` attribute of the aligned instance.
 
-For the alignment case, you can get the ungapped sequence by accessing the ``.seq`` attribute of the aligned instance.
+```{python}
+aligned.seq
+```
 
-.. jupyter-execute::
+```{python}
+seq = aln.get_seq("seq1")
+seq.name
+type(seq)
+seq.is_gapped()
+```
 
-    aligned.seq
+Alternatively, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use `get_gapped_seq`.
 
-.. jupyter-execute::
+```{python}
+seq = aln.get_gapped_seq("seq1")
+seq.is_gapped()
+seq
+```
 
-    seq = aln.get_seq("seq1")
-    seq.name
-    type(seq)
-    seq.is_gapped()
+To see the names of the sequences in a sequence collection, use the `names` attribute.
 
-Alternatively, if you want to extract the aligned (i.e., gapped) sequence from an alignment, you can use ``get_gapped_seq``.
+```{python}
+aln.names
+```
 
-.. jupyter-execute::
+### Slice the sequences from a collection like a list
 
-    seq = aln.get_gapped_seq("seq1")
-    seq.is_gapped()
-    seq
+Use the `.seqs` attribute. We can index a single sequence
 
-To see the names of the sequences in a sequence collection, use the ``names`` attribute.
+```{python}
+from cogent3 import load_unaligned_seqs
 
-.. jupyter-execute::
+fn = "data/long_testseqs.fasta"
+seqs = load_unaligned_seqs(fn, moltype="dna")
+my_seq = seqs.seqs[0]
+my_seq
+```
 
-    aln.names
+but you cannot index a slice (Use `.take_seqs()` for that).
 
-Slice the sequences from a collection like a list
-"""""""""""""""""""""""""""""""""""""""""""""""""
+```{python}
+#| error: true
+seqs.seqs[:2]
+```
 
-Use the ``.seqs`` attribute. We can index a single sequence
+### Getting a subset of sequences from the alignment
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_aligned_seqs
 
-    from cogent3 import load_unaligned_seqs
+aln = load_aligned_seqs("data/test.paml", moltype="dna")
+aln.names
+```
 
-    fn = "data/long_testseqs.fasta"
-    seqs = load_unaligned_seqs(fn, moltype="dna")
-    my_seq = seqs.seqs[0]
-    my_seq
+```{python}
+new = aln.take_seqs(["Human", "HowlerMon"])
+new.names
+```
 
-but you cannot index a slice (Use ``.take_seqs()`` for that).
+Alternatively, you can extract only the sequences which are not specified by passing `negate=True`:
 
-.. jupyter-execute::
-    :raises: TypeError
+```{python}
+new = aln.take_seqs(["Human", "HowlerMon"], negate=True)
+new.names
+```
 
-    seqs.seqs[:2]
+::: {.callout-note}
+The subset contains references to the original sequences, not copies.
+:::
 
-Getting a subset of sequences from the alignment
-""""""""""""""""""""""""""""""""""""""""""""""""
+### Writing sequences to file
 
-.. jupyter-execute::
+Both collection and alignment objects have a `write()` method. The output format is inferred from the filename suffix,
 
-    from cogent3 import load_aligned_seqs
+```{python}
+from cogent3 import make_aligned_seqs
 
-    aln = load_aligned_seqs("data/test.paml", moltype="dna")
-    aln.names
+dna = {"seq1": "ATGACC", "seq2": "ATCGCC"}
+aln = make_aligned_seqs(dna, moltype="dna")
+aln.write("sample.fasta")
+```
 
-.. jupyter-execute::
+or by the `format` argument.
 
-    new = aln.take_seqs(["Human", "HowlerMon"])
-    new.names
+```{python}
+aln.write("sample", format_name="fasta")
+```
 
-Alternatively, you can extract only the sequences which are not specified by passing ``negate=True``:
+```{python}
+from cogent3.util.io import remove_files
 
-.. jupyter-execute::
+remove_files(["sample", "sample.fasta"], error_on_missing=False)
+```
 
-    new = aln.take_seqs(["Human", "HowlerMon"], negate=True)
-    new.names
+## Alignments
 
-.. note:: The subset contains references to the original sequences, not copies.
+### Creating an `Alignment` object from a `SequenceCollection`
 
-Writing sequences to file
-"""""""""""""""""""""""""
+```{python}
+from cogent3 import load_unaligned_seqs, make_aligned_seqs
 
-Both collection and alignment objects have a ``write()`` method. The output format is inferred from the filename suffix,
+seq = load_unaligned_seqs("data/test.paml", moltype="dna")
+seq
+```
 
-.. jupyter-execute::
+```{python}
+aln = make_aligned_seqs(list(seq.seqs), moltype=seqs.moltype)
+aln
+```
 
-    from cogent3 import make_aligned_seqs
-
-    dna = {"seq1": "ATGACC", "seq2": "ATCGCC"}
-    aln = make_aligned_seqs(dna, moltype="dna")
-    aln.write("sample.fasta")
-
-or by the ``format`` argument.
-
-.. jupyter-execute::
-
-    aln.write("sample", format_name="fasta")
-
-.. now clean the files up
-
-.. jupyter-execute::
-
-    from cogent3.util.io import remove_files
-
-    remove_files(["sample", "sample.fasta"], error_on_missing=False)
-
-Alignments
-^^^^^^^^^^
-
-Creating an ``Alignment`` object from a ``SequenceCollection``
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import load_unaligned_seqs, make_aligned_seqs
-
-    seq = load_unaligned_seqs("data/test.paml", moltype="dna")
-    seq
-
-.. jupyter-execute::
-
-    aln = make_aligned_seqs(list(seq.seqs), moltype=seqs.moltype)
-    aln
-
-Convert alignment to DNA, RNA or PROTEIN moltypes
-"""""""""""""""""""""""""""""""""""""""""""""""""
+### Convert alignment to DNA, RNA or PROTEIN moltypes
 
 This is useful if you've loaded a sequence alignment without specifying the moltype and later need to convert it using the dedicated method
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+data = [("a", "ACG---"), ("b", "CCTGGG")]
+aln = make_aligned_seqs(data, moltype="text")
+dna = aln.to_dna()
+dna
+```
 
-    data = [("a", "ACG---"), ("b", "CCTGGG")]
-    aln = make_aligned_seqs(data, moltype="text")
-    dna = aln.to_dna()
-    dna
+Or using the generic `to_moltype()` method
 
-Or using the generic ``to_moltype()`` method
-
-.. jupyter-execute::
-
-    aln.to_moltype("dna")
+```{python}
+aln.to_moltype("dna")
+```
 
 To RNA
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
-
-    data = [("a", "ACG---"), ("b", "CCUGGG")]
-    aln = make_aligned_seqs(data, moltype="text")
-    rna = aln.to_rna()
-    rna
+data = [("a", "ACG---"), ("b", "CCUGGG")]
+aln = make_aligned_seqs(data, moltype="text")
+rna = aln.to_rna()
+rna
+```
 
 To PROTEIN
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+data = [("x", "TYV"), ("y", "TE-")]
+aln = make_aligned_seqs(data, moltype="text")
+prot = aln.to_moltype("protein")
+prot
+```
 
-    data = [("x", "TYV"), ("y", "TE-")]
-    aln = make_aligned_seqs(data, moltype="text")
-    prot = aln.to_moltype("protein")
-    prot
+### Handling gaps
 
-Handling gaps
-"""""""""""""
+#### Remove all gaps from an alignment
 
-Remove all gaps from an alignment
-+++++++++++++++++++++++++++++++++
+This necessarily returns a `SequenceCollection`.
 
-This necessarily returns a ``SequenceCollection``.
+```{python}
+from cogent3 import load_aligned_seqs
 
-.. jupyter-execute::
+aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
+degapped = aln.degap()
+degapped
+```
 
-    from cogent3 import load_aligned_seqs
+#### Removing all columns with gaps in a named sequence
 
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
-    degapped = aln.degap()
-    degapped
+```{python}
+from cogent3 import make_aligned_seqs
 
-Removing all columns with gaps in a named sequence
-++++++++++++++++++++++++++++++++++++++++++++++++++
+aln = make_aligned_seqs(
+    [("seq1", "ATGAA---TG-"), ("seq2", "ATG-AGTGATG"), ("seq3", "AT--AG-GATG")],
+    moltype="dna",
+)
+new_aln = aln.get_degapped_relative_to("seq1")
+new_aln
+```
 
-.. jupyter-execute::
+### Converting an alignment to FASTA format
 
-    from cogent3 import make_aligned_seqs
+```{python}
+from cogent3 import load_aligned_seqs
 
-    aln = make_aligned_seqs(
-        [("seq1", "ATGAA---TG-"), ("seq2", "ATG-AGTGATG"), ("seq3", "AT--AG-GATG")],
-        moltype="dna",
-    )
-    new_aln = aln.get_degapped_relative_to("seq1")
-    new_aln
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+fasta_align = aln.to_fasta()
+```
 
-.. TODO the following should be preceded by a section describing the write method and format argument
+### Converting an alignment to Phylip format
 
-Converting an alignment to FASTA format
-"""""""""""""""""""""""""""""""""""""""
+```{python}
+from cogent3 import load_aligned_seqs
 
-.. jupyter-execute::
+aln = load_aligned_seqs("data/test.paml", moltype="dna")
+got = aln.to_phylip()
+print(got)
+```
 
-    from cogent3 import load_aligned_seqs
+### Converting an alignment to a list of strings
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    fasta_align = aln.to_fasta()
+```{python}
+from cogent3 import load_aligned_seqs
 
-Converting an alignment to Phylip format
-""""""""""""""""""""""""""""""""""""""""
+aln = load_aligned_seqs("data/test.paml", moltype="dna")
+data = [str(s) for s in aln.seqs]
+```
 
-.. jupyter-execute::
+### Converting an alignment to a list of arrays
 
-    from cogent3 import load_aligned_seqs
+```{python}
+import numpy
+from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/test.paml", moltype="dna")
-    got = aln.to_phylip()
-    print(got)
+aln = load_aligned_seqs("data/test.paml", moltype="dna")
+data = [numpy.array(s) for s in aln.seqs]
+data
+```
 
-Converting an alignment to a list of strings
-""""""""""""""""""""""""""""""""""""""""""""
+### Getting an alignment as an array
 
-.. jupyter-execute::
+The rows are sequences and their order corresponds to that of `aln.names`.
 
-    from cogent3 import load_aligned_seqs
+```{python}
+import numpy
+from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/test.paml", moltype="dna")
-    data = [str(s) for s in aln.seqs]
+aln = load_aligned_seqs("data/test.paml", moltype="dna")
+aln.array_seqs
+```
 
-Converting an alignment to a list of arrays
-"""""""""""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    import numpy
-    from cogent3 import load_aligned_seqs
-
-    aln = load_aligned_seqs("data/test.paml", moltype="dna")
-    data = [numpy.array(s) for s in aln.seqs]
-    data
-
-Getting an alignment as an array
-""""""""""""""""""""""""""""""""
-
-The rows are sequences and their order corresponds to that of ``aln.names``.
-
-.. jupyter-execute::
-
-    import numpy
-    from cogent3 import load_aligned_seqs
-
-    aln = load_aligned_seqs("data/test.paml", moltype="dna")
-    aln.array_seqs
-
-Slicing an alignment
-""""""""""""""""""""
+### Slicing an alignment
 
 Alignments can be thought of as a matrix, with sequences along the rows and alignment positions as the columns. However, all slicing is only along positions.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_aligned_seqs
 
-    from cogent3 import load_aligned_seqs
+fn = "data/long_testseqs.fasta"
+aln = load_aligned_seqs(fn, moltype="dna")
+aln[:24]
+```
 
-    fn = "data/long_testseqs.fasta"
-    aln = load_aligned_seqs(fn, moltype="dna")
-    aln[:24]
+::: {.callout-warning}
+A `SequenceCollection` cannot be sliced!
+:::
 
-.. warning:: A ``SequenceCollection`` cannot be sliced!
+### Getting a single column from an alignment
 
-Getting a single column from an alignment
-"""""""""""""""""""""""""""""""""""""""""
+```{python}
+from cogent3 import load_aligned_seqs
 
-.. jupyter-execute::
+aln = load_aligned_seqs("data/test.paml", moltype="dna")
+column_four = aln[3]
+column_four
+```
 
-    from cogent3 import load_aligned_seqs
+### Getting a region of contiguous columns
 
-    aln = load_aligned_seqs("data/test.paml", moltype="dna")
-    column_four = aln[3]
-    column_four
+```{python}
+from cogent3 import load_aligned_seqs
 
-Getting a region of contiguous columns
-""""""""""""""""""""""""""""""""""""""
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+region = aln[50:70]
+```
 
-.. jupyter-execute::
+### Iterating over alignment positions
 
-    from cogent3 import load_aligned_seqs
+```{python}
+from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    region = aln[50:70]
+aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
+col = list(aln[113:115].iter_positions())
+col
+```
 
-Iterating over alignment positions
-""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import load_aligned_seqs
-
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
-    col = list(aln[113:115].iter_positions())
-    col
-
-Getting codon 3rd positions
-"""""""""""""""""""""""""""
+### Getting codon 3rd positions
 
 We can use conventional slice notation. Note, because Python counts from 0, the 3rd position starts at index 2.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+aln = make_aligned_seqs(
+    {"seq1": "ATGATGATG---", "seq2": "ATGATGATGATG"},
+    moltype="dna",
+)
+aln[2::3]
+```
 
-    aln = make_aligned_seqs(
-        {"seq1": "ATGATGATG---", "seq2": "ATGATGATGATG"},
-        moltype="dna",
-    )
-    aln[2::3]
+### Filtering positions {#filter-positions}
 
-.. _filter-positions:
-
-Filtering positions
-"""""""""""""""""""
-
-Trim terminal stop codons
-+++++++++++++++++++++++++
+#### Trim terminal stop codons
 
 For evolutionary analyses that use codon models we need to exclude terminating stop codons. For the case where the sequences are all of length divisible by 3.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+aln = make_aligned_seqs(
+    {"seq1": "ACGTAA---", "seq2": "ACGACA---", "seq3": "ACGCAATGA"},
+    moltype="dna",
+)
+new = aln.trim_stop_codons()
+new
+```
 
-    aln = make_aligned_seqs(
-        {"seq1": "ACGTAA---", "seq2": "ACGACA---", "seq3": "ACGCAATGA"},
-        moltype="dna",
-    )
-    new = aln.trim_stop_codons()
-    new
+To detect if the alignment contains sequences not divisible by 3, use the `strict` argument. This argument covers both allowing partial terminating codons / not divisible by 3.
 
-To detect if the alignment contains sequences not divisible by 3, use the ``strict`` argument. This argument covers both allowing partial terminating codons / not divisible by 3.
+```{python}
+aln = make_aligned_seqs(
+    {
+        "seq1": "ACGTAA---",
+        "seq2": "ACGAC----",  # terminal codon incomplete
+        "seq3": "ACGCAATGA",
+    },
+    moltype="dna",
+)
+new = aln.trim_stop_codons(strict=True)
+```
 
-.. jupyter-execute::
+#### Eliminating columns with non-nucleotide characters
 
-    aln = make_aligned_seqs(
-        {
-            "seq1": "ACGTAA---",
-            "seq2": "ACGAC----",  # terminal codon incomplete
-            "seq3": "ACGCAATGA",
-        },
-        moltype="dna",
-    )
-    new = aln.trim_stop_codons(strict=True)
+We sometimes want to eliminate ambiguous or gap data from our alignments. We demonstrate how to exclude alignment columns based on the characters they contain. In the first instance, we do this just for single nucleotide columns, then for trinucleotides (equivalent for handling codons). Both are done using the `no_degenerates()` method.
 
-Eliminating columns with non-nucleotide characters
-++++++++++++++++++++++++++++++++++++++++++++++++++
+```{python}
+from cogent3 import make_aligned_seqs
 
-We sometimes want to eliminate ambiguous or gap data from our alignments. We demonstrate how to exclude alignment columns based on the characters they contain. In the first instance, we do this just for single nucleotide columns, then for trinucleotides (equivalent for handling codons). Both are done using the ``no_degenerates()`` method.
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    aln = make_aligned_seqs(
-        [
-            ("seq1", "ATGAAGGTG---"),
-            ("seq2", "ATGAAGGTGATG"),
-            ("seq3", "ATGAAGGNGATG"),
-        ],
-        moltype="dna",
-    )
+aln = make_aligned_seqs(
+    [
+        ("seq1", "ATGAAGGTG---"),
+        ("seq2", "ATGAAGGTGATG"),
+        ("seq3", "ATGAAGGNGATG"),
+    ],
+    moltype="dna",
+)
+```
 
 We apply to nucleotides,
 
-.. jupyter-execute::
+```{python}
+nucs = aln.no_degenerates()
+nucs
+```
 
-    nucs = aln.no_degenerates()
-    nucs
+Applying the same filter to trinucleotides (specified by setting `motif_length=3`).
 
-Applying the same filter to trinucleotides (specified by setting ``motif_length=3``).
+```{python}
+trinucs = aln.no_degenerates(motif_length=3)
+trinucs
+```
 
-.. jupyter-execute::
+#### Getting all variable positions from an alignment
 
-    trinucs = aln.no_degenerates(motif_length=3)
-    trinucs
+```{python}
+from cogent3 import load_aligned_seqs
 
-Getting all variable positions from an alignment
-++++++++++++++++++++++++++++++++++++++++++++++++
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+pos = aln.variable_positions()
+just_variable_aln = aln.take_positions(pos)
+just_variable_aln[:10]
+```
 
-.. jupyter-execute::
+#### Getting all constant positions from an alignment
 
-    from cogent3 import load_aligned_seqs
+```{python}
+from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    pos = aln.variable_positions()
-    just_variable_aln = aln.take_positions(pos)
-    just_variable_aln[:10]
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+pos = aln.variable_positions()
+just_constant_aln = aln.take_positions(pos, negate=True)
+just_constant_aln[:10]
+```
 
-Getting all constant positions from an alignment
-++++++++++++++++++++++++++++++++++++++++++++++++
+#### Getting all variable codons from an alignment
 
-.. jupyter-execute::
+This is done using the `filtered` method using the `motif_length` argument.
 
-    from cogent3 import load_aligned_seqs
+```{python}
+from cogent3 import load_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    pos = aln.variable_positions()
-    just_constant_aln = aln.take_positions(pos, negate=True)
-    just_constant_aln[:10]
+aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+pos = aln.variable_positions(motif_length=3)
+variable_codons = aln.take_positions(pos)
+just_variable_aln[:9]
+```
 
-Getting all variable codons from an alignment
-+++++++++++++++++++++++++++++++++++++++++++++
+### Filtering sequences
 
-This is done using the ``filtered`` method using the ``motif_length`` argument.
+#### Extracting sequences using an arbitrary function into a new alignment object
 
-.. jupyter-execute::
+You can use `take_seqs_if` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
 
-    from cogent3 import load_aligned_seqs
+```{python}
+from cogent3 import make_aligned_seqs
 
-    aln = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
-    pos = aln.variable_positions(motif_length=3)
-    variable_codons = aln.take_positions(pos)
-    just_variable_aln[:9]
+aln = make_aligned_seqs(
+    [
+        ("seq1", "ATGAAGGTG---"),
+        ("seq2", "ATGAAGGTGATG"),
+        ("seq3", "ATGAAGGNGATG"),
+    ],
+    moltype="dna",
+)
 
-Filtering sequences
-"""""""""""""""""""
+def no_N_chars(s):
+    return "N" not in str(s)
 
-Extracting sequences using an arbitrary function into a new alignment object
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-You can use ``take_seqs_if`` to extract sequences into a new alignment object based on whether an arbitrary function applied to the sequence evaluates to True. For example, to extract sequences which don't contain any N bases you could do the following:
-
-.. jupyter-execute::
-
-    from cogent3 import make_aligned_seqs
-
-    aln = make_aligned_seqs(
-        [
-            ("seq1", "ATGAAGGTG---"),
-            ("seq2", "ATGAAGGTGATG"),
-            ("seq3", "ATGAAGGNGATG"),
-        ],
-        moltype="dna",
-    )
-
-    def no_N_chars(s):
-        return "N" not in str(s)
-
-    aln.take_seqs_if(no_N_chars)
+aln.take_seqs_if(no_N_chars)
+```
 
 You can additionally get the sequences where the provided function evaluates to False:
 
-.. jupyter-execute::
+```{python}
+aln.take_seqs_if(no_N_chars, negate=True)
+```
 
-    aln.take_seqs_if(no_N_chars, negate=True)
+## Computing alignment statistics
 
-Computing alignment statistics
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Getting motif counts
-""""""""""""""""""""
+### Getting motif counts
 
 Motif counts are obtained from non-overlapping k-mers. (This is distinct from k-mer counting, in which they do overlap.)
 
 We state the motif length we want and whether to allow gap or ambiguous characters. The latter only has meaning for IPUAC character sets (the DNA, RNA or PROTEIN moltypes). We illustrate this for the DNA moltype with motif lengths of 1 and 3.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_aligned_seqs
 
-    from cogent3 import make_aligned_seqs
+aln = make_aligned_seqs(
+    [
+        ("seq1", "ATGAAGGTG---"),
+        ("seq2", "ATGAAGGTGATG"),
+        ("seq3", "ATGAAGGNGATG"),
+    ],
+    moltype="dna",
+)
+counts = aln.counts()
+counts
+```
 
-    aln = make_aligned_seqs(
-        [
-            ("seq1", "ATGAAGGTG---"),
-            ("seq2", "ATGAAGGTGATG"),
-            ("seq3", "ATGAAGGNGATG"),
-        ],
-        moltype="dna",
-    )
-    counts = aln.counts()
-    counts
+```{python}
+counts = aln.counts(motif_length=3)
+counts
+```
 
-.. jupyter-execute::
+```{python}
+counts = aln.counts(include_ambiguity=True)
+counts
+```
 
-    counts = aln.counts(motif_length=3)
-    counts
+::: {.callout-note}
+Only the observed motifs are returned, rather than all defined by the alphabet.
+:::
 
-.. jupyter-execute::
+### Calculating GC% for a collection
 
-    counts = aln.counts(include_ambiguity=True)
-    counts
+This is just a variant of the previous example but re-expressed for unaligned sequences. Note that the returned value from the `counts()` method acts like a dictionary, but also has an array attribute.
 
-.. note::
+```{python}
+from cogent3 import make_unaligned_seqs
 
-    Only the observed motifs are returned, rather than all defined by the alphabet.
+seqcoll = make_unaligned_seqs(
+    [
+        ("seq1", "ATGAAGGTG"),
+        ("seq2", "ATGAAGGTGATG"),
+        ("seq3", "ATGAAGGNGATG"),
+    ],
+    moltype="dna",
+)
+counts = seqcoll.counts()
+GC_frac = (counts["C"] + counts["G"]) / counts.array.sum()
+GC_frac * 100
+```
 
-Calculating GC% for a collection
-""""""""""""""""""""""""""""""""
-
-This is just a variant of the previous example but re-expressed for unaligned sequences. Note that the returned value from the ``counts()`` method acts like a dictionary, but also has an array attribute.
-
-.. jupyter-execute::
-
-    from cogent3 import make_unaligned_seqs
-
-    seqcoll = make_unaligned_seqs(
-        [
-            ("seq1", "ATGAAGGTG"),
-            ("seq2", "ATGAAGGTGATG"),
-            ("seq3", "ATGAAGGNGATG"),
-        ],
-        moltype="dna",
-    )
-    counts = seqcoll.counts()
-    GC_frac = (counts["C"] + counts["G"]) / counts.array.sum()
-    GC_frac * 100
-
-Getting k-mer counts
-""""""""""""""""""""
+### Getting k-mer counts
 
 This only applies to sequence collections. It returns the counts of k-mers per sequence as a numpy array with shape (number of sequences, number of k-mers). 
 
-.. jupyter-execute::
-
-    seqcoll = make_unaligned_seqs(
-        [
-            ("seq1", "ATGAAGGTG"),
-            ("seq2", "ATGAAGGTGATG"),
-            ("seq3", "ATGAAGGNGATG"),
-        ],
-        moltype="dna",
-    )
-    kcounts = seqcoll.count_kmers(k=2)
-    kcounts
+```{python}
+seqcoll = make_unaligned_seqs(
+    [
+        ("seq1", "ATGAAGGTG"),
+        ("seq2", "ATGAAGGTGATG"),
+        ("seq3", "ATGAAGGNGATG"),
+    ],
+    moltype="dna",
+)
+kcounts = seqcoll.count_kmers(k=2)
+kcounts
+```
 
 The order of elements in the numpy array corresponds to the result of
 
-.. jupyter-execute::
+```{python}
+seqcoll.moltype.alphabet.get_kmer_alphabet(k=2)
+```
 
-    seqcoll.moltype.alphabet.get_kmer_alphabet(k=2)
+::: {.callout-note}
+We support third-party plugins for k-mer counting. After installing one, they can be selected by specifying the package with the `.count_kmers(k=2, use_hook="<package name>")`.
+:::
 
-.. note:: We support third-party plugins for k-mer counting. After installing one, they can be selected by specifying the package with the ``.count_kmers(k=2, use_hook="<package name>")``.
+### Getting motif counts per position
 
-Getting motif counts per position
-"""""""""""""""""""""""""""""""""
+```{python}
+from cogent3 import make_aligned_seqs
 
-.. jupyter-execute::
+aln = make_aligned_seqs(
+    [
+        ("seq1", "ATGAAGGTG---"),
+        ("seq2", "ATGAAGGTGATG"),
+        ("seq3", "ATGAAGGNGATG"),
+    ],
+    moltype="dna",
+)
+counts = aln.counts_per_pos()
+counts
+```
 
-    from cogent3 import make_aligned_seqs
+::: {.callout-note}
+There are also `.probs_per_pos()` and `.entropy_per_pos()` methods.
+:::
 
-    aln = make_aligned_seqs(
-        [
-            ("seq1", "ATGAAGGTG---"),
-            ("seq2", "ATGAAGGTGATG"),
-            ("seq3", "ATGAAGGNGATG"),
-        ],
-        moltype="dna",
-    )
-    counts = aln.counts_per_pos()
-    counts
+### Computing motif probabilities from an alignment
 
-.. note:: There are also ``.probs_per_pos()`` and ``.entropy_per_pos()`` methods.
+The method `get_motif_probs` of `Alignment` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
 
-Computing motif probabilities from an alignment
-"""""""""""""""""""""""""""""""""""""""""""""""
+```{python}
+from cogent3 import load_aligned_seqs
 
-The method ``get_motif_probs`` of ``Alignment`` objects returns the probabilities for all motifs of a given length. For individual nucleotides:
+aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
+motif_probs = aln.get_motif_probs()
+motif_probs
+```
 
-.. jupyter-execute::
+For dinucleotides or longer, we need to pass in a `KmerAlphabet` with the appropriate word length. Here is an example with trinucleotides:
 
-    from cogent3 import load_aligned_seqs
+```{python}
+from cogent3 import get_moltype, load_aligned_seqs, make_table
 
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
-    motif_probs = aln.get_motif_probs()
-    motif_probs
+trinuc_alphabet = get_moltype("dna").alphabet.get_kmer_alphabet(3)
+aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
+motif_probs = aln.get_motif_probs(alphabet=trinuc_alphabet)
+table = make_table(header=["motif", "freq"], data=list(motif_probs.items()))
+table
+```
 
-For dinucleotides or longer, we need to pass in a ``KmerAlphabet`` with the appropriate word length. Here is an example with trinucleotides:
+Some calculations in `cogent3` require all non-zero values in the motif probabilities, in which case we use a pseudo-count. We illustrate that here with a simple example where T is missing. Without the pseudo-count, the frequency of T is 0.0, with the pseudo-count defined as 1e-6 then the frequency of T will be slightly less than 1e-6.
 
-.. jupyter-execute::
+```{python}
+aln = make_aligned_seqs([("a", "AACAAC"), ("b", "AAGAAG")], moltype="dna")
+motif_probs = aln.get_motif_probs()
+assert motif_probs["T"] == 0.0
+motif_probs = aln.get_motif_probs(pseudocount=1e-6)
+motif_probs
+```
 
-    from cogent3 import get_moltype, load_aligned_seqs, make_table
+::: {.callout-note}
+For alignments, motif probabilities are computed by treating sequences as non-overlapping tuples. To get all possible k-mers, use the `iter_kmers()` method on the sequence classes.
+:::
 
-    trinuc_alphabet = get_moltype("dna").alphabet.get_kmer_alphabet(3)
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
-    motif_probs = aln.get_motif_probs(alphabet=trinuc_alphabet)
-    table = make_table(header=["motif", "freq"], data=list(motif_probs.items()))
-    table
+### Working with alignment gaps
 
-Some calculations in ``cogent3`` require all non-zero values in the motif probabilities, in which case we use a pseudo-count. We illustrate that here with a simple example where T is missing. Without the pseudo-count, the frequency of T is 0.0, with the pseudo-count defined as 1e-6 then the frequency of T will be slightly less than 1e-6.
+#### Filtering extracted columns for the gap character
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_aligned_seqs
 
-    aln = make_aligned_seqs([("a", "AACAAC"), ("b", "AAGAAG")], moltype="dna")
-    motif_probs = aln.get_motif_probs()
-    assert motif_probs["T"] == 0.0
-    motif_probs = aln.get_motif_probs(pseudocount=1e-6)
-    motif_probs
+aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
+col = aln[113:115].iter_positions()
+c1, c2 = list(col)
+c1, c2
+list(filter(lambda x: x == "-", c1))
+list(filter(lambda x: x == "-", c2))
+```
 
-.. note:: For alignments, motif probabilities are computed by treating sequences as non-overlapping tuples. To get all possible k-mers, use the ``iter_kmers()`` method on the sequence classes.
+#### Calculating the gaps per position
 
-Working with alignment gaps
-"""""""""""""""""""""""""""
+```{python}
+from cogent3 import load_aligned_seqs
 
-Filtering extracted columns for the gap character
-+++++++++++++++++++++++++++++++++++++++++++++++++
-
-.. jupyter-execute::
-
-    from cogent3 import load_aligned_seqs
-
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
-    col = aln[113:115].iter_positions()
-    c1, c2 = list(col)
-    c1, c2
-    list(filter(lambda x: x == "-", c1))
-    list(filter(lambda x: x == "-", c2))
-
-Calculating the gaps per position
-+++++++++++++++++++++++++++++++++
-
-.. jupyter-execute::
-
-    from cogent3 import load_aligned_seqs
-
-    aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
-    gap_counts = aln.count_gaps_per_pos()
-    gap_counts  # this is a DictArray
+aln = load_aligned_seqs("data/primate_cdx2_promoter.fasta", moltype="dna")
+gap_counts = aln.count_gaps_per_pos()
+gap_counts  # this is a DictArray
+```
 
 To turn that into grap fraction
 
-.. jupyter-execute::
+```{python}
+gap_frac = gap_counts.array / aln.num_seqs
+```
 
-    gap_frac = gap_counts.array / aln.num_seqs
+#### Filtering alignments based on gaps
 
-Filtering alignments based on gaps
-++++++++++++++++++++++++++++++++++
+If we want to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, use the `omit_gap_pos()`.
 
-If we want to remove positions from the alignment which are gaps in more than a certain percentage of the sequences, use the ``omit_gap_pos()``.
+```{python}
+aln = make_aligned_seqs(
+    [
+        ("seq1", "ATGAA---TG-"),
+        ("seq2", "ATG-AGTGATG"),
+        ("seq3", "AT--AG-GATG"),
+    ],
+    moltype="dna",
+)
+filtered_aln = aln.omit_gap_pos(allowed_gap_frac=0.40)
+filtered_aln
+```
 
-.. jupyter-execute::
-
-    aln = make_aligned_seqs(
-        [
-            ("seq1", "ATGAA---TG-"),
-            ("seq2", "ATG-AGTGATG"),
-            ("seq3", "AT--AG-GATG"),
-        ],
-        moltype="dna",
-    )
-    filtered_aln = aln.omit_gap_pos(allowed_gap_frac=0.40)
-    filtered_aln
-
-.. note:: The default for ``filtered_aln.omit_gap_pos()`` is to remove columns with gaps in all the sequences. This can occur after sequences have been removed from the alignment.
+::: {.callout-note}
+The default for `filtered_aln.omit_gap_pos()` is to remove columns with gaps in all the sequences. This can occur after sequences have been removed from the alignment.
+:::

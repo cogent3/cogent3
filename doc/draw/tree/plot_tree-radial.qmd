@@ -1,33 +1,35 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Radial Dendrogram Style"
+image: plot_tree-radial.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
 
-    import set_working_directory
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
 
-Radial Dendrogram Style
-=======================
+```{python}
+import cogent3
 
-.. jupyter-execute::
+reader = cogent3.get_app("load_json")
 
-    import cogent3
+ens_tree = reader("data/GN-tree.json")
+fig = ens_tree.get_figure("radial", width=600, height=600)
+fig.show()
+```
 
-    reader = cogent3.get_app("load_json")
+```{python}
+#| echo: false
+outpath = "draw/tree/plot_tree-radial.png"
 
-    ens_tree = reader("data/GN-tree.json")
-    fig = ens_tree.get_figure("radial", width=600, height=600)
-    fig.show()
+fig.write(outpath)
+```
 
-.. jupyter-execute::
-    :hide-code:
+## With Contemporaneous Tips
 
-    outpath = set_working_directory.get_thumbnail_dir() / "plot_tree-radial.png"
-
-    fig.write(outpath)
-
-With Contemporaneous Tips
--------------------------
-
-.. jupyter-execute::
-
-    fig.contemporaneous = True
-    fig.label_pad = 0.23
-    fig.show()
+```{python}
+fig.contemporaneous = True
+fig.label_pad = 0.23
+fig.show()
+```

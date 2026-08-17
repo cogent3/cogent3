@@ -1,34 +1,36 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Angular Dendrogram Style"
+image: plot_tree-angular.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
 
-    import set_working_directory
-
-Angular Dendrogram Style
-========================
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
 
 This is a left-right style. You'll note that there's overlap of edges at the bottom -- a known issue with this display style.
 
-.. jupyter-execute::
+```{python}
+import cogent3
 
-    import cogent3
+reader = cogent3.get_app("load_json")
 
-    reader = cogent3.get_app("load_json")
+ens_tree = reader("data/GN-tree.json")
+fig = ens_tree.get_figure(style="angular", width=600, height=600)
+fig.show()
+```
 
-    ens_tree = reader("data/GN-tree.json")
-    fig = ens_tree.get_figure(style="angular", width=600, height=600)
-    fig.show()
+## With Contemporaneous Tips
 
-With Contemporaneous Tips
--------------------------
+```{python}
+fig.contemporaneous = True
+fig.show()
+```
 
-.. jupyter-execute::
+```{python}
+#| echo: false
+outpath = "draw/tree/plot_tree-angular.png"
 
-    fig.contemporaneous = True
-    fig.show()
-
-.. jupyter-execute::
-    :hide-code:
-
-    outpath = set_working_directory.get_thumbnail_dir() / "plot_tree-angular.png"
-
-    fig.write(outpath)
+fig.write(outpath)
+```

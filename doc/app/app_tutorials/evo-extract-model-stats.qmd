@@ -1,60 +1,53 @@
-.. jupyter-execute::
-    :hide-code:
-
-    import set_working_directory
-
-Extracting maximum likelihood estimates from a ``model_result``
----------------------------------------------------------------
-
-If you want to get the stats from a fitted model, use the ``tabulate_stats`` app.
+---
+title: "Extracting maximum likelihood estimates from a `model_result`"
+---
+If you want to get the stats from a fitted model, use the `tabulate_stats` app.
 
 We demonstrate this by first fitting a model.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import get_app
 
-    from cogent3 import get_app
+loader = get_app("load_aligned", format_name="fasta", moltype="dna")
+aln = loader("data/primate_brca1.fasta")
+model = get_app("model", "GN", tree="data/primate_brca1.tree")
+result = model(aln)
+```
 
-    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
-    aln = loader("data/primate_brca1.fasta")
-    model = get_app("model", "GN", tree="data/primate_brca1.tree")
-    result = model(aln)
+## Create and apply `tabulate_stats` app
 
-Create and apply ``tabulate_stats`` app
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+tabulator = get_app("tabulate_stats")
+tabulated = tabulator(result)
+tabulated
+```
 
-.. jupyter-execute::
+`tabulated` is a `tabular_result` instance which, like other result types, has `dict` like behaviour. It also contains key/value pairs for each model parameter type.
 
-    tabulator = get_app("tabulate_stats")
-    tabulated = tabulator(result)
-    tabulated
-
-``tabulated`` is a ``tabular_result`` instance which, like other result types, has ``dict`` like behaviour. It also contains key/value pairs for each model parameter type.
-
-Edge parameters
-^^^^^^^^^^^^^^^
+## Edge parameters
 
 These are all parameters that differ between edges. Since the current model is time-homogeneous (a single rate matrix), the table only has entries for the branch scalar (denoted “length”).
 
-.. jupyter-execute::
+```{python}
+tabulated["edge params"]
+```
 
-    tabulated["edge params"]
+::: {.callout-note}
+Unless the model is time-reversible, the lengths in that table are not ENS ([Kaehler et al](https://www.ncbi.nlm.nih.gov/pubmed/28175284)). As we used a non-stationary nucleotide model in this example, the length values are a scalar used to adjust the matrices during optimisation.
+:::
 
-.. note:: Unless the model is time-reversible, the lengths in that table are not ENS (`Kaehler et al <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`__). As we used a non-stationary nucleotide model in this example, the length values are a scalar used to adjust the matrices during optimisation.
-
-Global parameters
-^^^^^^^^^^^^^^^^^
+## Global parameters
 
 These are the elements of the rate matrix.
 
-.. jupyter-execute::
+```{python}
+tabulated["global params"]
+```
 
-    tabulated["global params"]
-
-Motif parameters
-^^^^^^^^^^^^^^^^
+## Motif parameters
 
 These are estimates of the nucleotide probabilities in the unobserved ancestor.
 
-.. jupyter-execute::
-
-    tabulated["motif params"]
+```{python}
+tabulated["motif params"]
+```

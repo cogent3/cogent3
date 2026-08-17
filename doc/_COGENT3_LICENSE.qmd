@@ -1,5 +1,4 @@
-Cogent3 License
----------------
+## Cogent3 License
 
 Copyright (c) 2019-date, Cogent3 Development Team
 All rights reserved.

@@ -1,354 +1,328 @@
-.. _dna-rna-seqs:
+---
+title: "Sequences"
+---
+The `Sequence` object provides generic biological sequence manipulation functions, plus functions that are critical for the `evolve` module calculations.
 
-Sequences
----------
+## Generic molecular types
 
-The ``Sequence`` object provides generic biological sequence manipulation functions, plus functions that are critical for the ``evolve`` module calculations.
+Sequence properties are affected by the moltype you specify. The default type for a sequence is `"text"`.
 
-Generic molecular types
-^^^^^^^^^^^^^^^^^^^^^^^
+```{python}
+from cogent3 import make_seq
 
-Sequence properties are affected by the moltype you specify. The default type for a sequence is ``"text"``.
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+my_seq.moltype.label
+```
 
-.. jupyter-execute::
+```{python}
+my_seq
+```
 
-    from cogent3 import make_seq
+In some circumstances you can also have a `"bytes"` moltype, which I'll explicitly construct here.
 
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    my_seq.moltype.label
+```{python}
+my_seq = make_seq("AGTACACTGGT", moltype="bytes")
+my_seq.moltype.label
+```
 
-.. jupyter-execute::
+```{python}
+my_seq
+```
 
-    my_seq
+## DNA and RNA sequences
 
-In some circumstances you can also have a ``"bytes"`` moltype, which I'll explicitly construct here.
+### Creating a DNA sequence from a string
 
-.. jupyter-execute::
+Sequence properties are affected by the moltype you specify. Here we specify the `DNA` molecular type.
 
-    my_seq = make_seq("AGTACACTGGT", moltype="bytes")
-    my_seq.moltype.label
+```{python}
+from cogent3 import make_seq
 
-.. jupyter-execute::
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+my_seq
+```
 
-    my_seq
+### Creating a RNA sequence from a string
 
-DNA and RNA sequences
-^^^^^^^^^^^^^^^^^^^^^
+```{python}
+from cogent3 import make_seq
 
-.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul, Tom Elliott, Tony Walters, Meg Pirrung
+rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
+```
 
-Creating a DNA sequence from a string
-"""""""""""""""""""""""""""""""""""""
+### Converting to FASTA format
 
-Sequence properties are affected by the moltype you specify. Here we specify the ``DNA`` molecular type.
+```{python}
+from cogent3 import make_seq
 
-.. jupyter-execute::
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+my_seq
+```
 
-    from cogent3 import make_seq
+### Convert a RNA sequence to FASTA format
 
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    my_seq
+```{python}
+from cogent3 import make_seq
 
-Creating a RNA sequence from a string
-"""""""""""""""""""""""""""""""""""""
+rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
+rnaseq
+```
 
-.. jupyter-execute::
+### Writing a sequence to file
 
-    from cogent3 import make_seq
+```{python}
+from cogent3 import make_seq
 
-    rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
+my_seq = make_seq("AGTACACTGGT", name="seq1", moltype="dna")
+my_seq.write("my_seq.fasta")
+```
 
-Converting to FASTA format
-""""""""""""""""""""""""""
+```{python}
+#| echo: false
+from cogent3.util.io import remove_files
 
-.. jupyter-execute::
+remove_files(["my_seq.fasta"], error_on_missing=False)
+```
 
-    from cogent3 import make_seq
+### Creating a named sequence
 
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    my_seq
+```{python}
+from cogent3 import make_seq
 
-Convert a RNA sequence to FASTA format
-""""""""""""""""""""""""""""""""""""""
+my_seq = make_seq("AGTACACTGGT", "my_gene", moltype="dna")
+my_seq
+type(my_seq)
+```
 
-.. jupyter-execute::
+### Setting or changing the name of a sequence
 
-    from cogent3 import make_seq
+```{python}
+from cogent3 import make_seq
 
-    rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
-    rnaseq
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+my_seq.name = "my_gene"
+my_seq
+```
 
-Writing a sequence to file
-""""""""""""""""""""""""""
+### Complementing a DNA sequence
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_seq
 
-    from cogent3 import make_seq
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+my_seq.complement()
+```
 
-    my_seq = make_seq("AGTACACTGGT", name="seq1", moltype="dna")
-    my_seq.write("my_seq.fasta")
+### Reverse complementing a DNA sequence
 
-.. jupyter-execute::
-    :hide-code:
+```{python}
+my_seq.rc()
+```
 
-    from cogent3.util.io import remove_files
+### Translate a sequence to protein {#translation}
 
-    remove_files(["my_seq.fasta"], error_on_missing=False)
+```{python}
+from cogent3 import make_seq
 
-Creating a named sequence
-"""""""""""""""""""""""""
+my_seq = make_seq("GCTTGGGAAAGTCAAATGGAA", name="s1", moltype="dna")
+pep = my_seq.get_translation()
+type(pep)
+```
 
-.. jupyter-execute::
+```{python}
+pep
+```
 
-    from cogent3 import make_seq
+The default is to trim a terminating stop if it exists. If you set `trim_stop=False` and there is a terminating stop, an `AlphabetError` is raised.
 
-    my_seq = make_seq("AGTACACTGGT", "my_gene", moltype="dna")
-    my_seq
-    type(my_seq)
+```{python}
+#| echo: false
+from cogent3.core.alphabet import AlphabetError
+```
 
-Setting or changing the name of a sequence
-""""""""""""""""""""""""""""""""""""""""""
+```{python}
+#| error: true
+from cogent3 import make_seq
 
-.. jupyter-execute::
+my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
+my_seq.get_translation(trim_stop=False)
+```
 
-    from cogent3 import make_seq
+You can also specify the [genetic code](genetic_code.qmd).
 
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    my_seq.name = "my_gene"
-    my_seq
+```{python}
+my_seq.get_translation(gc="Vertebrate Mitochondrial")  # or gc=2
+```
 
-Complementing a DNA sequence
-""""""""""""""""""""""""""""
+### Translating a DNA sequence containing stop codons
 
-.. jupyter-execute::
+By default, `get_translation()` will fail if there are any stop codons in frame in the sequence. You can allow translation in these cases by setting the optional argument `include_stop=True`.
 
-    from cogent3 import make_seq
+```{python}
+from cogent3 import make_seq
 
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    my_seq.complement()
+seq = make_seq("ATGTGATGGTAA", name="s1", moltype="dna")
+pep = seq.get_translation(include_stop=True)
+pep
+```
 
-Reverse complementing a DNA sequence
-""""""""""""""""""""""""""""""""""""
+### Converting a DNA sequence to RNA
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_seq
 
-    my_seq.rc()
+my_seq = make_seq("ACGTACGTACGTACGT", moltype="dna")
+rnaseq = my_seq.to_rna()
+rnaseq
+```
 
-.. _translation:
+### Convert an RNA sequence to DNA
 
-Translate a sequence to protein
-"""""""""""""""""""""""""""""""
+```{python}
+from cogent3 import make_seq
 
-.. jupyter-execute::
+rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
+dnaseq = rnaseq.to_dna()
+dnaseq
+```
 
-    from cogent3 import make_seq
+### Testing complementarity
 
-    my_seq = make_seq("GCTTGGGAAAGTCAAATGGAA", name="s1", moltype="dna")
-    pep = my_seq.get_translation()
-    type(pep)
+```{python}
+from cogent3 import make_seq
 
-.. jupyter-execute::
+a = make_seq("AGTACACTGGT", moltype="dna")
+a.can_pair(a.complement())
+```
 
-    pep
+```{python}
+a.can_pair(a.rc())
+```
 
-The default is to trim a terminating stop if it exists. If you set ``trim_stop=False`` and there is a terminating stop, an ``AlphabetError`` is raised.
+### Joining two DNA sequences
 
-.. jupyter-execute::
-    :hide-code:
+```{python}
+from cogent3 import make_seq
 
-    from cogent3.core.alphabet import AlphabetError
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+extra_seq = make_seq("CTGAC", moltype="dna")
+long_seq = my_seq + extra_seq
+long_seq
+```
 
-.. jupyter-execute::
-    :raises: AlphabetError
+### Getting all *k*-mers from a sequence
 
-    from cogent3 import make_seq
+```{python}
+from cogent3 import make_seq
 
-    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
-    my_seq.get_translation(trim_stop=False)
+my_seq = make_seq("AGTACACTGGT", moltype="dna")
+list(my_seq.iter_kmers(k=2))
+```
 
-You can also specify the :ref:`genetic code <genetic-codes>`.
+::: {.callout-note}
+By default, any *k*-mer that contains an ambiguity code is excluded from the output.
+:::
 
-.. jupyter-execute::
+You can include ALL *k*-mers by setting `strict=False`.
 
-    my_seq.get_translation(gc="Vertebrate Mitochondrial")  # or gc=2
+```{python}
+my_seq = make_seq("AGTANACTGGT", moltype="dna")
+list(my_seq.iter_kmers(k=2, strict=False))
+```
 
-Translating a DNA sequence containing stop codons
-"""""""""""""""""""""""""""""""""""""""""""""""""
+### Slicing DNA sequences
 
-By default, ``get_translation()`` will fail if there are any stop codons in frame in the sequence. You can allow translation in these cases by setting the optional argument ``include_stop=True``.
+```{python}
+my_seq[1:6]
+```
 
-.. jupyter-execute::
+### Obtaining the codons from a `DnaSequence` object
 
-    from cogent3 import make_seq
+Use the method `get_in_motif_size`
 
-    seq = make_seq("ATGTGATGGTAA", name="s1", moltype="dna")
-    pep = seq.get_translation(include_stop=True)
-    pep
+```{python}
+from cogent3 import make_seq
 
-Converting a DNA sequence to RNA
-""""""""""""""""""""""""""""""""
+my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
+codons = my_seq.get_in_motif_size(3)
+codons
+```
 
-.. jupyter-execute::
+### Getting 3rd positions from codons
 
-    from cogent3 import make_seq
+```{python}
+from cogent3 import make_seq
 
-    my_seq = make_seq("ACGTACGTACGTACGT", moltype="dna")
-    rnaseq = my_seq.to_rna()
-    rnaseq
+seq = make_seq("ATGATGATGATG", moltype="dna")
+pos3 = seq[2::3]
+assert str(pos3) == "GGGG"
+```
 
-Convert an RNA sequence to DNA
-""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    rnaseq = make_seq("ACGUACGUACGUACGU", moltype="rna")
-    dnaseq = rnaseq.to_dna()
-    dnaseq
-
-Testing complementarity
-"""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    a = make_seq("AGTACACTGGT", moltype="dna")
-    a.can_pair(a.complement())
-
-.. jupyter-execute::
-
-    a.can_pair(a.rc())
-
-Joining two DNA sequences
-"""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    extra_seq = make_seq("CTGAC", moltype="dna")
-    long_seq = my_seq + extra_seq
-    long_seq
-
-Getting all *k*-mers from a sequence
-""""""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    my_seq = make_seq("AGTACACTGGT", moltype="dna")
-    list(my_seq.iter_kmers(k=2))
-
-.. note:: By default, any *k*-mer that contains an ambiguity code is excluded from the output.
-
-You can include ALL *k*-mers by setting ``strict=False``.
-
-.. jupyter-execute::
-
-    my_seq = make_seq("AGTANACTGGT", moltype="dna")
-    list(my_seq.iter_kmers(k=2, strict=False))
-
-Slicing DNA sequences
-"""""""""""""""""""""
-
-.. jupyter-execute::
-
-    my_seq[1:6]
-
-Obtaining the codons from a ``DnaSequence`` object
-""""""""""""""""""""""""""""""""""""""""""""""""""
-
-Use the method ``get_in_motif_size``
-
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    my_seq = make_seq("ATGCACTGGTAA", name="my_gene", moltype="dna")
-    codons = my_seq.get_in_motif_size(3)
-    codons
-
-Getting 3rd positions from codons
-"""""""""""""""""""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    seq = make_seq("ATGATGATGATG", moltype="dna")
-    pos3 = seq[2::3]
-    assert str(pos3) == "GGGG"
-
-Getting 1st and 2nd positions from codons
-"""""""""""""""""""""""""""""""""""""""""
+### Getting 1st and 2nd positions from codons
 
 In this instance we can use features.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_seq
 
-    from cogent3 import make_seq
+seq = make_seq("ATGATGATGATG", moltype="dna")
+indices = [(i, i + 2) for i in range(len(seq))[::3]]
+pos12 = seq.add_feature(biotype="pos12", name="pos12", spans=indices)
+pos12 = pos12.get_slice()
+assert str(pos12) == "ATATATAT"
+```
 
-    seq = make_seq("ATGATGATGATG", moltype="dna")
-    indices = [(i, i + 2) for i in range(len(seq))[::3]]
-    pos12 = seq.add_feature(biotype="pos12", name="pos12", spans=indices)
-    pos12 = pos12.get_slice()
-    assert str(pos12) == "ATATATAT"
+### Return a randomised version of the sequence
 
-Return a randomised version of the sequence
-"""""""""""""""""""""""""""""""""""""""""""
+```{python}
+rnaseq.shuffle()
+```
 
-.. jupyter-execute::
+### Remove gaps from a sequence
 
-    rnaseq.shuffle()
+```{python}
+from cogent3 import make_seq
 
-Remove gaps from a sequence
-"""""""""""""""""""""""""""
+s = make_seq("--AUUAUGCUAU-UAU--", moltype="rna")
+s.degap()
+```
 
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    s = make_seq("--AUUAUGCUAU-UAU--", moltype="rna")
-    s.degap()
-
-Getting GC% by counting states
-""""""""""""""""""""""""""""""
+### Getting GC% by counting states
 
 We can obtain the percentage of GC nucleotides by using the counts method on sequences. This returns an object that behaves like a dictionary.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_seq
 
-    from cogent3 import make_seq
+s = make_seq("ACCGTGACGA", moltype="dna")
+counts = s.counts()
+GC = counts["G"] + counts["C"]
+GC_frac = GC / sum(counts.values())
+GC_frac * 100
+```
 
-    s = make_seq("ACCGTGACGA", moltype="dna")
-    counts = s.counts()
-    GC = counts["G"] + counts["C"]
-    GC_frac = GC / sum(counts.values())
-    GC_frac * 100
+::: {.callout-note}
+Other arguments on the `counts()` method allow including ambiguous or gap characters in the result.
+:::
 
-.. note:: Other arguments on the ``counts()`` method allow including ambiguous or gap characters in the result.
+### Counting k-mers
 
-Counting k-mers
-"""""""""""""""
+A k-mer is a word of size $k$ and, as is the convention, its counts are derived from all possible positions (as distinct from non-overlapping words which is how motif counts are calculated).
 
-A k-mer is a word of size :math:`k` and, as is the convention, its counts are derived from all possible positions (as distinct from non-overlapping words which is how motif counts are calculated).
+```{python}
+from cogent3 import make_seq
 
-.. jupyter-execute::
-
-    from cogent3 import make_seq
-
-    s = make_seq("ACCGTGACGA", moltype="dna")
-    kcounts = s.count_kmers(k=2)
-    kcounts
+s = make_seq("ACCGTGACGA", moltype="dna")
+kcounts = s.count_kmers(k=2)
+kcounts
+```
 
 In this case, the result is a numpy array with the order of elements corresponding to the result of
 
-.. jupyter-execute::
+```{python}
+s.moltype.alphabet.get_kmer_alphabet(2)
+```
 
-    s.moltype.alphabet.get_kmer_alphabet(2)
-
-.. note:: We support third-party plugins for k-mer counting. After installing one, they can be selected by specifying the package with the ``.count_kmers(k=2, use_hook="<package name>")``.
+::: {.callout-note}
+We support third-party plugins for k-mer counting. After installing one, they can be selected by specifying the package with the `.count_kmers(k=2, use_hook="<package name>")`.
+:::

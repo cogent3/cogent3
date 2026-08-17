@@ -1,941 +1,886 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Tabular data"
+---
+`Table` handles tabular data, storing as columns in a, you guessed it, `columns` attribute. The latter acts like a dictionary, with the column names as the keys and the column values being  `numpy.ndarray` instances. The table itself is iterable over rows.
 
-    import set_working_directory
+::: {.callout-note}
+`Table` is immutable at the level of the individual `ndarray` not being writable.
+:::
 
-************
-Tabular data
-************
+{{< include _loading_tabular.qmd >}}
 
-.. authors, Gavin Huttley, Kristian Rother, Patrick Yannul
+## Adding a new column
 
-``Table`` handles tabular data, storing as columns in a, you guessed it, ``columns`` attribute. The latter acts like a dictionary, with the column names as the keys and the column values being  ``numpy.ndarray`` instances. The table itself is iterable over rows.
+```{python}
+from cogent3 import make_table
 
-.. note:: ``Table`` is immutable at the level of the individual ``ndarray`` not being writable.
+table = make_table()
+table.columns["a"] = [1, 3, 5]
+table.columns["b"] = [2, 4, 6]
+table
+```
 
-.. include:: ./loading_tabular.rst
-
-Adding a new column
-===================
-
-.. jupyter-execute::
-
-    from cogent3 import make_table
-
-    table = make_table()
-    table.columns["a"] = [1, 3, 5]
-    table.columns["b"] = [2, 4, 6]
-    table
-
-Add a title and a legend to a table
-===================================
+## Add a title and a legend to a table
 
 This can be done when you create the table.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_table
 
-    from cogent3 import make_table
-
-    data = dict(a=[0, 3], b=["a", "c"])
-    table = make_table(data=data, title="Sample title", legend="a legend")
-    table
+data = dict(a=[0, 3], b=["a", "c"])
+table = make_table(data=data, title="Sample title", legend="a legend")
+table
+```
 
 It can be done by directly assigning to the corresponding attributes.
 
-.. jupyter-execute::
+```{python}
+data = dict(a=[0, 3], b=["a", "c"])
+table = make_table(data=data)
+table.title = "My title"
+table
+```
 
-    data = dict(a=[0, 3], b=["a", "c"])
-    table = make_table(data=data)
-    table.title = "My title"
-    table
+## Iterating over table rows
 
-Iterating over table rows
-=========================
+`Table` is a row oriented object. Iterating on the table returns each row as a new `Table` instance.
 
-``Table`` is a row oriented object. Iterating on the table returns each row as a new ``Table`` instance.
+```{python}
+from cogent3 import load_table
 
-.. jupyter-execute::
-
-    from cogent3 import load_table
-
-    table = load_table("data/stats.tsv")
-    for row in table:
-        print(row)
-        break
+table = load_table("data/stats.tsv")
+for row in table:
+    print(row)
+    break
+```
 
 The resulting rows can be indexed using their column names.
 
-.. jupyter-execute::
+```{python}
+for row in table:
+    print(row["Locus"])
+```
 
-    for row in table:
-        print(row["Locus"])
+## How many rows are there?
 
-How many rows are there?
-========================
+The `Table.shape` attribute is like that of a `numpy` `array`. The first element (`Table.shape[0]`) is the number of rows.
 
-The ``Table.shape`` attribute is like that of a ``numpy`` ``array``. The first element (``Table.shape[0]``) is the number of rows.
+```{python}
+from cogent3 import make_table
 
-.. jupyter-execute::
+data = dict(a=[0, 3, 5], b=["a", "c", "d"])
+table = make_table(data=data)
+table.shape[0] == 3
+```
 
-    from cogent3 import make_table
+## How many columns are there?
 
-    data = dict(a=[0, 3, 5], b=["a", "c", "d"])
-    table = make_table(data=data)
-    table.shape[0] == 3
+`Table.shape[1]` is the number of columns. Using the table from above.
 
-How many columns are there?
-===========================
+```{python}
+table.shape[1] == 2
+```
 
-``Table.shape[1]`` is the number of columns. Using the table from above.
+## Iterating over table columns
 
-.. jupyter-execute::
+The `Table.columns` attribute is a `Columns` instance, an object with `dict` attributes.
 
-    table.shape[1] == 2
+```{python}
+from cogent3 import load_table
 
-Iterating over table columns
-============================
+table = load_table("data/stats.tsv")
+table.columns
+```
 
-The ``Table.columns`` attribute is a ``Columns`` instance, an object with ``dict`` attributes.
-
-.. jupyter-execute::
-
-    from cogent3 import load_table
-
-    table = load_table("data/stats.tsv")
-    table.columns
-
-.. jupyter-execute::
-
-    table.columns["Region"]
+```{python}
+table.columns["Region"]
+```
 
 So iteration is the same as for dicts.
 
-.. jupyter-execute::
+```{python}
+for name in table.columns:
+    print(name)
+```
 
-    for name in table.columns:
-        print(name)
+## Table slicing using column names
 
-Table slicing using column names
-================================
-
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    table
+```{python}
+table = load_table("data/stats.tsv")
+table
+```
 
 Slice using the column name.
 
-.. jupyter-execute::
+```{python}
+table[:2, "Region":]
+```
 
-    table[:2, "Region":]
+## Table slicing using indices
 
-Table slicing using indices
-===========================
+```{python}
+table = load_table("data/stats.tsv")
+table[:2, :1]
+```
 
-.. jupyter-execute::
+## Changing displayed numerical precision
 
-    table = load_table("data/stats.tsv")
-    table[:2, :1]
+We change the `Ratio` column to using scientific notation.
 
-Changing displayed numerical precision
-======================================
+```{python}
+from cogent3 import load_table
 
-We change the ``Ratio`` column to using scientific notation.
+table = load_table("data/stats.tsv")
+table.format_column("Ratio", "%.1e")
+table
+```
 
-.. jupyter-execute::
-
-    from cogent3 import load_table
-
-    table = load_table("data/stats.tsv")
-    table.format_column("Ratio", "%.1e")
-    table
-
-Change digits or column spacing
-===============================
+## Change digits or column spacing
 
 This can be done on table loading,
 
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv", digits=1, space=2)
-    table
+```{python}
+table = load_table("data/stats.tsv", digits=1, space=2)
+table
+```
 
 or, for spacing at least, by modifying the attributes
 
-.. jupyter-execute::
+```{python}
+table.space = "    "
+table
+```
 
-    table.space = "    "
-    table
-
-Wrapping tables for display
-===========================
+## Wrapping tables for display
 
 Wrapping generates neat looking tables whether or not you index the table rows. We demonstrate here
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_table
 
-    from cogent3 import make_table
+h = ["name", "A/C", "A/G", "A/T", "C/A"]
+rows = [["tardigrade", 0.0425, 0.1424, 0.0226, 0.0391]]
+wrap_table = make_table(header=h, data=rows, max_width=30)
+wrap_table
+```
 
-    h = ["name", "A/C", "A/G", "A/T", "C/A"]
-    rows = [["tardigrade", 0.0425, 0.1424, 0.0226, 0.0391]]
-    wrap_table = make_table(header=h, data=rows, max_width=30)
-    wrap_table
+```{python}
+wrap_table = make_table(header=h, data=rows, max_width=30, index_name="name")
+wrap_table
+```
 
-.. jupyter-execute::
+## Display the top of a table using `head()`
 
-    wrap_table = make_table(header=h, data=rows, max_width=30, index_name="name")
-    wrap_table
-
-Display the top of a table using ``head()``
-===========================================
-
-.. jupyter-execute::
-
-    table = make_table(data=dict(a=list(range(10)), b=list(range(10))))
-    table.head()
+```{python}
+table = make_table(data=dict(a=list(range(10)), b=list(range(10))))
+table.head()
+```
 
 You change how many rows are displayed.
 
-.. jupyter-execute::
-
-    table.head(2)
+```{python}
+table.head(2)
+```
 
 The table shape is that of the original table.
 
-Display the bottom of a table using ``tail()``
-==============================================
+## Display the bottom of a table using `tail()`
 
-.. jupyter-execute::
-
-    table.tail()
+```{python}
+table.tail()
+```
 
 You change how many rows are displayed.
 
-.. jupyter-execute::
+```{python}
+table.tail(1)
+```
 
-    table.tail(1)
+## Display random rows from a table
 
-Display random rows from a table
-================================
+```{python}
+table.set_repr_policy(random=3)
+table
+```
 
-.. jupyter-execute::
+## Change the number of rows displayed by `repr()`
 
-    table.set_repr_policy(random=3)
-    table
+```{python}
+table.set_repr_policy(head=2, tail=3)
+table
+```
 
-Change the number of rows displayed by ``repr()``
-=================================================
+::: {.callout-note}
+The `...` indicates the break between the top and bottom rows.
+:::
 
-.. jupyter-execute::
+## Changing column headings
 
-    table.set_repr_policy(head=2, tail=3)
-    table
+The table `header` is immutable. Changing column headings is done as follows.
 
-.. note:: The ``...`` indicates the break between the top and bottom rows.
+```{python}
+table = load_table("data/stats.tsv")
+print(table.header)
+table = table.with_new_header("Ratio", "Stat")
+print(table.header)
+```
 
-Changing column headings
-========================
+## Adding a new column
 
-The table ``header`` is immutable. Changing column headings is done as follows.
+```{python}
+from cogent3 import make_table
 
-.. jupyter-execute::
+table = make_table()
+table
+```
 
-    table = load_table("data/stats.tsv")
-    print(table.header)
-    table = table.with_new_header("Ratio", "Stat")
-    print(table.header)
+```{python}
+table.columns["a"] = [1, 3, 5]
+table.columns["b"] = [2, 4, 6]
+table
+```
 
-Adding a new column
-===================
-
-.. jupyter-execute::
-
-    from cogent3 import make_table
-
-    table = make_table()
-    table
-
-.. jupyter-execute::
-
-    table.columns["a"] = [1, 3, 5]
-    table.columns["b"] = [2, 4, 6]
-    table
-
-Create a new column from existing ones
-======================================
+## Create a new column from existing ones
 
 This can be used to take a single, or multiple columns and generate a new column of values. Here we'll take 2 columns and return True/False based on a condition.
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+table = table.with_new_column(
+    "LargeCon",
+    lambda r_v: r_v[0] == "Con" and r_v[1] > 10.0,
+    columns=["Region", "Ratio"],
+)
+table
+```
 
-    table = load_table("data/stats.tsv")
-    table = table.with_new_column(
-        "LargeCon",
-        lambda r_v: r_v[0] == "Con" and r_v[1] > 10.0,
-        columns=["Region", "Ratio"],
-    )
-    table
+## Get table data as a numpy array
 
-Get table data as a numpy array
-===============================
+```{python}
+table = load_table("data/stats.tsv")
+table.array
+```
 
-.. jupyter-execute::
+## Get a table column as a list
 
-    table = load_table("data/stats.tsv")
-    table.array
+Via the `Table.to_list()` method.
 
-Get a table column as a list
-============================
-
-Via the ``Table.to_list()`` method.
-
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    locus = table.to_list("Locus")
-    locus
+```{python}
+table = load_table("data/stats.tsv")
+locus = table.to_list("Locus")
+locus
+```
 
 Or directly from the column array object.
 
-.. jupyter-execute::
+```{python}
+table.columns["Locus"].tolist()
+```
 
-    table.columns["Locus"].tolist()
+::: {.callout-note}
+`table.columns["Locus"]` is a `numpy.ndarray`, hence the different method call.
+:::
 
-.. note:: ``table.columns["Locus"]`` is a ``numpy.ndarray``, hence the different method call.
-
-Get multiple table columns as a list
-====================================
+## Get multiple table columns as a list
 
 This returns a row oriented list.
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+rows = table.to_list(["Region", "Locus"])
+rows
+```
 
-    table = load_table("data/stats.tsv")
-    rows = table.to_list(["Region", "Locus"])
-    rows
+::: {.callout-note}
+column name order dictates the element order per row
+:::
 
-.. note:: column name order dictates the element order per row
-
-Get the table as a row oriented ``dict``
-========================================
+## Get the table as a row oriented `dict`
 
 Keys in the resulting dict are the row indices, the value is a dict of column name, value pairs.
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+table.to_dict()
+```
 
-    table = load_table("data/stats.tsv")
-    table.to_dict()
-
-Get the table as a column oriented ``dict``
-===========================================
+## Get the table as a column oriented `dict`
 
 Keys in the resulting dict are the column names, the value is a list.
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+table.columns.to_dict()
+```
 
-    table = load_table("data/stats.tsv")
-    table.columns.to_dict()
+## Get the table as a `pandas.DataFrame`
 
-Get the table as a ``pandas.DataFrame``
-=======================================
-
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    df = table.to_pandas()
-    df
+```{python}
+table = load_table("data/stats.tsv")
+df = table.to_pandas()
+df
+```
 
 You can also specify column(s) are categories
 
-.. jupyter-execute::
+```{python}
+df = table.to_pandas(categories="Region")
+```
 
-    df = table.to_pandas(categories="Region")
+## Get a table of counts as a contingency table
 
-Get a table of counts as a contingency table
-============================================
+If our table consists of counts data, the `Table` can convert it into a `CategoryCount` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the `index_name` argument.
 
-If our table consists of counts data, the ``Table`` can convert it into a ``CategoryCount`` instance that can be used for performing basic contingency table statistical tests, e.g. chisquare, G-test of independence, etc.. To do this, we must specify which column contains the row names using the ``index_name`` argument.
+```{python}
+table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}, index_name="")
+table
+```
 
-.. jupyter-execute::
+```{python}
+contingency = table.to_categorical(["Ts", "Tv"])
+contingency
+```
 
-    table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]}, index_name="")
-    table
+```{python}
+g_test = contingency.G_independence()
+g_test
+```
 
-.. jupyter-execute::
+Alternatively, you could also specify the `index_name` of the category column as
 
-    contingency = table.to_categorical(["Ts", "Tv"])
-    contingency
+```{python}
+table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]})
+contingency = table.to_categorical(["Ts", "Tv"], index_name="")
+```
 
-.. jupyter-execute::
+## Appending tables
 
-    g_test = contingency.G_independence()
-    g_test
+::: {.callout-warning}
+Only for tables with the same columns.
+:::
 
-Alternatively, you could also specify the ``index_name`` of the category column as
+Can be done without specifying a new column (set the first argument to `appended` to be `None`). Here we simply use the same table data.
 
-.. jupyter-execute::
-    
-    table = make_table(data={"Ts": [31, 58], "Tv": [36, 138], "": ["syn", "nsyn"]})
-    contingency = table.to_categorical(["Ts", "Tv"], index_name="")
+```{python}
+table1 = load_table("data/stats.tsv")
+table2 = load_table("data/stats.tsv")
+table = table1.appended(None, table2)
+table
+```
 
-Appending tables
-================
+Specifying with a new column. In this case, the value of the `table.title` becomes the value for the new column.
 
-.. warning:: Only for tables with the same columns.
+```{python}
+table1.title = "Data1"
+table2.title = "Data2"
+table = table1.appended("Data#", table2, title="")
+table
+```
 
-Can be done without specifying a new column (set the first argument to ``appended`` to be ``None``). Here we simply use the same table data.
+::: {.callout-note}
+We assigned an empty string to `title`, otherwise the resulting table has the same `title` attribute as that of `table1`.
+:::
 
-.. jupyter-execute::
+## Summing a single column
 
-    table1 = load_table("data/stats.tsv")
-    table2 = load_table("data/stats.tsv")
-    table = table1.appended(None, table2)
-    table
+```{python}
+table = load_table("data/stats.tsv")
+table.summed("Ratio")
+```
 
-Specifying with a new column. In this case, the value of the ``table.title`` becomes the value for the new column.
+Because each column is just a `numpy.ndarray`, this also can be done directly via the array methods.
 
-.. jupyter-execute::
+```{python}
+table.columns["Ratio"].sum()
+```
 
-    table1.title = "Data1"
-    table2.title = "Data2"
-    table = table1.appended("Data#", table2, title="")
-    table
-
-.. note:: We assigned an empty string to ``title``, otherwise the resulting table has the same ``title`` attribute as that of ``table1``.
-
-Summing a single column
-=======================
-
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    table.summed("Ratio")
-
-Because each column is just a ``numpy.ndarray``, this also can be done directly via the array methods.
-
-.. jupyter-execute::
-
-    table.columns["Ratio"].sum()
-
-Summing multiple columns or rows - strictly numerical data
-==========================================================
+## Summing multiple columns or rows - strictly numerical data
 
 We define a strictly numerical table,
 
-.. jupyter-execute::
+```{python}
+from cogent3 import make_table
 
-    from cogent3 import make_table
-
-    all_numeric = make_table(
-        header=["A", "B", "C"], data=[range(3), range(3, 6), range(6, 9), range(9, 12)]
-    )
-    all_numeric
+all_numeric = make_table(
+    header=["A", "B", "C"], data=[range(3), range(3, 6), range(6, 9), range(9, 12)]
+)
+all_numeric
+```
 
 and sum all columns (default condition)
 
-.. jupyter-execute::
-
-    all_numeric.summed()
+```{python}
+all_numeric.summed()
+```
 
 and all rows
 
-.. jupyter-execute::
+```{python}
+all_numeric.summed(col_sum=False)
+```
 
-    all_numeric.summed(col_sum=False)
-
-Summing multiple columns or rows with mixed non-numeric/numeric data
-====================================================================
+## Summing multiple columns or rows with mixed non-numeric/numeric data
 
 We define a table with mixed data, like a distance matrix.
 
-.. jupyter-execute::
-
-    mixed = make_table(
-        header=["A", "B", "C"], data=[["*", 1, 2], [3, "*", 5], [6, 7, "*"]]
-    )
-    mixed
+```{python}
+mixed = make_table(
+    header=["A", "B", "C"], data=[["*", 1, 2], [3, "*", 5], [6, 7, "*"]]
+)
+mixed
+```
 
 and sum all columns (default condition), ignoring non-numerical data
 
-.. jupyter-execute::
-
-    mixed.summed(strict=False)
+```{python}
+mixed.summed(strict=False)
+```
 
 and all rows
 
-.. jupyter-execute::
+```{python}
+mixed.summed(col_sum=False, strict=False)
+```
 
-    mixed.summed(col_sum=False, strict=False)
-
-Filtering table rows
-====================
+## Filtering table rows
 
 We can do this by providing a reference to an external function
 
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    sub_table = table.filtered(lambda x: x < 10.0, columns="Ratio")
-    sub_table
+```{python}
+table = load_table("data/stats.tsv")
+sub_table = table.filtered(lambda x: x < 10.0, columns="Ratio")
+sub_table
+```
 
 or using valid python syntax within a string, which is executed
 
-.. jupyter-execute::
-
-    sub_table = table.filtered("Ratio < 10.0")
-    sub_table
+```{python}
+sub_table = table.filtered("Ratio < 10.0")
+sub_table
+```
 
 You can also filter for values in multiple columns
 
-.. jupyter-execute::
+```{python}
+sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
+sub_table
+```
 
-    sub_table = table.filtered("Ratio < 10.0 and Region == 'NonCon'")
-    sub_table
+## Filtering table columns
 
-Filtering table columns
-=======================
+We select only columns that have a sum > 20 from the `all_numeric` table constructed above.
 
-We select only columns that have a sum > 20 from the ``all_numeric`` table constructed above.
+```{python}
+big_numeric = all_numeric.filtered_by_column(lambda x: sum(x) > 20)
+big_numeric
+```
 
-.. jupyter-execute::
+## Standard sorting
 
-    big_numeric = all_numeric.filtered_by_column(lambda x: sum(x) > 20)
-    big_numeric
+```{python}
+table = load_table("data/stats.tsv")
+table.sorted(columns="Ratio")
+```
 
-Standard sorting
-================
+## Reverse sorting
 
-.. jupyter-execute::
+```{python}
+table.sorted(columns="Ratio", reverse="Ratio")
+```
 
-    table = load_table("data/stats.tsv")
-    table.sorted(columns="Ratio")
+## Sorting involving multiple columns, one reversed
 
-Reverse sorting
-===============
+```{python}
+table.sorted(columns=["Region", "Ratio"], reverse="Ratio")
+```
 
-.. jupyter-execute::
+## Getting raw data for a single column
 
-    table.sorted(columns="Ratio", reverse="Ratio")
+```{python}
+table = load_table("data/stats.tsv")
+raw = table.to_list("Region")
+raw
+```
 
-Sorting involving multiple columns, one reversed
-================================================
+## Getting raw data for multiple columns
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+raw = table.to_list(["Locus", "Region"])
+raw
+```
 
-    table.sorted(columns=["Region", "Ratio"], reverse="Ratio")
+## Getting distinct values
 
-Getting raw data for a single column
-====================================
+```{python}
+table = load_table("data/stats.tsv")
+assert table.distinct_values("Region") == set(["NonCon", "Con"])
+```
 
-.. jupyter-execute::
+## Counting occurrences of values
 
-    table = load_table("data/stats.tsv")
-    raw = table.to_list("Region")
-    raw
+```{python}
+table = load_table("data/stats.tsv")
+assert table.count("Region == 'NonCon' and Ratio > 1") == 1
+```
 
-Getting raw data for multiple columns
-=====================================
+## Counting unique values
 
-.. jupyter-execute::
+This returns a `CategoryCounter`, a dict like class.
 
-    table = load_table("data/stats.tsv")
-    raw = table.to_list(["Locus", "Region"])
-    raw
+```{python}
+from cogent3 import make_table
 
-Getting distinct values
-=======================
+table = make_table(
+    data=dict(A=["a", "b", "b", "b", "a"], B=["c", "c", "c", "c", "d"])
+)
+unique = table.count_unique("A")
+type(unique)
+```
 
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    assert table.distinct_values("Region") == set(["NonCon", "Con"])
-
-Counting occurrences of values
-==============================
-
-.. jupyter-execute::
-
-    table = load_table("data/stats.tsv")
-    assert table.count("Region == 'NonCon' and Ratio > 1") == 1
-
-Counting unique values
-======================
-
-This returns a ``CategoryCounter``, a dict like class.
-
-.. jupyter-execute::
-
-    from cogent3 import make_table
-
-    table = make_table(
-        data=dict(A=["a", "b", "b", "b", "a"], B=["c", "c", "c", "c", "d"])
-    )
-    unique = table.count_unique("A")
-    type(unique)
-
-.. jupyter-execute::
-
-    unique
+```{python}
+unique
+```
 
 For multiple columns.
 
-.. jupyter-execute::
+```{python}
+unique = table.count_unique(["A", "B"])
+unique
+```
 
-    unique = table.count_unique(["A", "B"])
-    unique
+```{python}
+r = unique.to_table()
+r
+```
 
-.. jupyter-execute::
+## Grouping and aggregating
 
-    r = unique.to_table()
-    r
+`Table.group_by()` groups rows by one or more columns, returning a `GroupBy` object for aggregation.
 
-Grouping and aggregating
-========================
+```{python}
+from cogent3 import make_table
 
-``Table.group_by()`` groups rows by one or more columns, returning a ``GroupBy`` object for aggregation.
+table = make_table(
+    data={
+        "category": ["a", "b", "a", "b", "a"],
+        "value": [1, 2, 3, 4, 5],
+        "extra": [10, 20, 30, 40, 50],
+    }
+)
+table
+```
 
-.. jupyter-execute::
+### Aggregating columns
 
-    from cogent3 import make_table
-
-    table = make_table(
-        data={
-            "category": ["a", "b", "a", "b", "a"],
-            "value": [1, 2, 3, 4, 5],
-            "extra": [10, 20, 30, 40, 50],
-        }
-    )
-    table
-
-Aggregating columns
--------------------
-
-Each aggregation is a ``(column, function)`` tuple. Result columns are
-automatically named ``"function(column)"``. Functions can be string names
-that map to ``numpy`` functions (``"sum"``, ``"mean"``, ``"median"``,
-``"min"``, ``"max"``, ``"std"``, ``"var"``, ``"count"``, ``"first"``,
-``"last"``) or callables. ``"std"`` and ``"var"`` use ``ddof=1``
+Each aggregation is a `(column, function)` tuple. Result columns are
+automatically named `"function(column)"`. Functions can be string names
+that map to `numpy` functions (`"sum"`, `"mean"`, `"median"`,
+`"min"`, `"max"`, `"std"`, `"var"`, `"count"`, `"first"`,
+`"last"`) or callables. `"std"` and `"var"` use `ddof=1`
 (unbiased estimators).
 
-.. jupyter-execute::
+```{python}
+table.group_by("category").agg(("value", "sum"), ("extra", "mean"))
+```
 
-    table.group_by("category").agg(("value", "sum"), ("extra", "mean"))
+### Multiple aggregations on the same column
 
-Multiple aggregations on the same column
------------------------------------------
+```{python}
+table.group_by("category").agg(
+    ("value", "sum"),
+    ("value", "mean"),
+    ("value", "std"),
+)
+```
 
-.. jupyter-execute::
-
-    table.group_by("category").agg(
-        ("value", "sum"),
-        ("value", "mean"),
-        ("value", "std"),
-    )
-
-Using a callable instead of a string name
-------------------------------------------
+### Using a callable instead of a string name
 
 You can pass any callable as the aggregation function. For example,
-``math.fsum`` provides a numerically stable sum that avoids catastrophic
-cancellation, unlike ``numpy.sum``.
+`math.fsum` provides a numerically stable sum that avoids catastrophic
+cancellation, unlike `numpy.sum`.
 
-.. jupyter-execute::
+```{python}
+import math
 
-    import math
+table = make_table(
+    data={
+        "category": ["a", "a", "a"],
+        "value": [1e16, 1.0, -1e16],
+    }
+)
+table.group_by("category").agg(("value", "sum"), ("value", math.fsum))
+```
 
-    table = make_table(
-        data={
-            "category": ["a", "a", "a"],
-            "value": [1e16, 1.0, -1e16],
-        }
-    )
-    table.group_by("category").agg(("value", "sum"), ("value", math.fsum))
+### Counting rows per group
 
-Counting rows per group
------------------------
+```{python}
+table.group_by("category").count()
+```
 
-.. jupyter-execute::
+### Convenience aggregation methods
 
-    table.group_by("category").count()
+```{python}
+table.group_by("category").sum(columns="value")
+```
 
-Convenience aggregation methods
--------------------------------
+```{python}
+table.group_by("category").mean(columns="value")
+```
 
-.. jupyter-execute::
+### Grouping by multiple columns
 
-    table.group_by("category").sum(columns="value")
+```{python}
+table = make_table(
+    data={
+        "cat": ["a", "b", "a", "b", "a"],
+        "sub": ["x", "x", "y", "y", "x"],
+        "value": [1, 2, 3, 4, 5],
+    }
+)
+table.group_by(["cat", "sub"]).agg(("value", "sum"))
+```
 
-.. jupyter-execute::
+### Iterating over groups
 
-    table.group_by("category").mean(columns="value")
+```{python}
+for key, sub_table in table.group_by("cat"):
+    print(f"group {key!r}: {sub_table.shape[0]} rows")
+```
 
-Grouping by multiple columns
------------------------------
+## Joining or merging tables
 
-.. jupyter-execute::
+We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use `Locus`.
 
-    table = make_table(
-        data={
-            "cat": ["a", "b", "a", "b", "a"],
-            "sub": ["x", "x", "y", "y", "x"],
-            "value": [1, 2, 3, 4, 5],
-        }
-    )
-    table.group_by(["cat", "sub"]).agg(("value", "sum"))
+```{python}
+rows = [
+    ["NP_004893", True],
+    ["NP_005079", True],
+    ["NP_005500", False],
+    ["NP_055852", False],
+]
+region_type = make_table(header=["Locus", "LargeCon"], data=rows)
+stats_table = load_table("data/stats.tsv")
+new = stats_table.joined(region_type, columns_self="Locus")
+new
+```
 
-Iterating over groups
----------------------
+::: {.callout-note}
+If the tables have titles, column names are prefixed with those instead of `right_`.
+:::
 
-.. jupyter-execute::
+::: {.callout-note}
+The `joined()` method is just a wrapper for the `inner_join()` and `cross_join()` (row cartesian product) methods, which you can use directly.
+:::
 
-    for key, sub_table in table.group_by("cat"):
-        print(f"group {key!r}: {sub_table.shape[0]} rows")
+## Transpose a table
 
-Joining or merging tables
-=========================
+```{python}
+from cogent3 import make_table
 
-We do a standard inner join here for a restricted subset. We must specify the columns that will be used for the join. Here we just use ``Locus``.
-
-.. jupyter-execute::
-
-    rows = [
-        ["NP_004893", True],
-        ["NP_005079", True],
-        ["NP_005500", False],
-        ["NP_055852", False],
-    ]
-    region_type = make_table(header=["Locus", "LargeCon"], data=rows)
-    stats_table = load_table("data/stats.tsv")
-    new = stats_table.joined(region_type, columns_self="Locus")
-    new
-
-.. note:: If the tables have titles, column names are prefixed with those instead of ``right_``.
-
-.. note:: The ``joined()`` method is just a wrapper for the ``inner_join()`` and ``cross_join()`` (row cartesian product) methods, which you can use directly.
-
-Transpose a table
-=================
-
-.. jupyter-execute::
-
-    from cogent3 import make_table
-
-    header = ["#OTU ID", "14SK041", "14SK802"]
-    rows = [
-        [-2920, "332", 294],
-        [-1606, "302", 229],
-        [-393, 141, 125],
-        [-2109, 138, 120],
-    ]
-    table = make_table(header=header, rows=rows)
-    table
+header = ["#OTU ID", "14SK041", "14SK802"]
+rows = [
+    [-2920, "332", 294],
+    [-1606, "302", 229],
+    [-393, 141, 125],
+    [-2109, 138, 120],
+]
+table = make_table(header=header, rows=rows)
+table
+```
 
 We require a new column heading for the current header data. We also need to specify which existing column will become the header.
 
-.. jupyter-execute::
+```{python}
+tp = table.transposed(new_column_name="sample", select_as_header="#OTU ID")
+tp
+```
 
-    tp = table.transposed(new_column_name="sample", select_as_header="#OTU ID")
-    tp
-
-Specify markdown as the ``str()`` format
-========================================
-
-Using the method provides finer control over formatting.
-
-.. jupyter-execute::
-
-    from cogent3 import load_table
-
-    table = load_table("data/stats.tsv", format_name="md")
-    print(table)
-
-Specify latex as the ``str()`` format
-=====================================
+## Specify markdown as the `str()` format
 
 Using the method provides finer control over formatting.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_table
 
-    from cogent3 import load_table
+table = load_table("data/stats.tsv", format_name="md")
+print(table)
+```
 
-    table = load_table("data/stats.tsv", format_name="tex")
-    print(table)
+## Specify latex as the `str()` format
 
-Get a table as a markdown formatted string
-==========================================
+Using the method provides finer control over formatting.
 
-We use the ``justify`` argument to indicate the column justification.
+```{python}
+from cogent3 import load_table
 
-.. jupyter-execute::
+table = load_table("data/stats.tsv", format_name="tex")
+print(table)
+```
 
-    table = load_table("data/stats.tsv")
-    print(table.to_markdown(justify="ccr"))
+## Get a table as a markdown formatted string
 
-Get a table as a latex formatted string
-=======================================
+We use the `justify` argument to indicate the column justification.
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+print(table.to_markdown(justify="ccr"))
+```
 
-    table = load_table(
-        "data/stats.tsv", title="Some stats.", legend="Derived from something."
-    )
-    print(table.to_latex(justify="ccr", label="tab:table1"))
+## Get a table as a latex formatted string
 
-Get a table as a restructured text csv-table
-============================================
+```{python}
+table = load_table(
+    "data/stats.tsv", title="Some stats.", legend="Derived from something."
+)
+print(table.to_latex(justify="ccr", label="tab:table1"))
+```
 
-.. jupyter-execute::
+## Get a table as a restructured text csv-table
 
-    table = load_table(
-        "data/stats.tsv", title="Some stats.", legend="Derived from something."
-    )
-    print(table.to_rst(csv_table=True))
+```{python}
+table = load_table(
+    "data/stats.tsv", title="Some stats.", legend="Derived from something."
+)
+print(table.to_rst(csv_table=True))
+```
 
-Get a table as a restructured text grid table
-=============================================
+## Get a table as a restructured text grid table
 
-.. jupyter-execute::
+```{python}
+table = load_table(
+    "data/stats.tsv", title="Some stats.", legend="Derived from something."
+)
+print(table.to_rst())
+```
 
-    table = load_table(
-        "data/stats.tsv", title="Some stats.", legend="Derived from something."
-    )
-    print(table.to_rst())
-
-Getting a latex format table with ``to_string()``
-=================================================
+## Getting a latex format table with `to_string()`
 
 It is also possible to specify column alignment, table caption and other arguments.
 
-.. jupyter-execute::
+```{python}
+table = load_table("data/stats.tsv")
+print(table.to_string(format_name="latex"))
+```
 
-    table = load_table("data/stats.tsv")
-    print(table.to_string(format_name="latex"))
-
-Getting a bedGraph format with ``to_string()``
-==============================================
+## Getting a bedGraph format with `to_string()`
 
 This format allows display of annotation tracks on genome browsers. A small sample of a bigger table.
 
-.. jupyter-execute::
-    :hide-code:
+```{python}
+#| echo: false
+rows = [
+    ["1", 100, 101, 1.123],
+    ["1", 101, 102, 1.123],
+    ["1", 102, 103, 1.123],
+    ["1", 103, 104, 1.123],
+    ["1", 104, 105, 1.123],
+    ["1", 105, 106, 1.123],
+    ["1", 106, 107, 1.123],
+    ["1", 107, 108, 1.123],
+    ["1", 108, 109, 1],
+    ["1", 109, 110, 1],
+    ["1", 110, 111, 1],
+    ["1", 111, 112, 1],
+    ["1", 112, 113, 1],
+    ["1", 113, 114, 1],
+    ["1", 114, 115, 1],
+    ["1", 115, 116, 1],
+    ["1", 116, 117, 1],
+    ["1", 117, 118, 1],
+    ["1", 118, 119, 2],
+    ["1", 119, 120, 2],
+    ["1", 120, 121, 2],
+    ["1", 150, 151, 2],
+    ["1", 151, 152, 2],
+    ["1", 152, 153, 2],
+    ["1", 153, 154, 2],
+    ["1", 154, 155, 2],
+    ["1", 155, 156, 2],
+    ["1", 156, 157, 2],
+    ["1", 157, 158, 2],
+    ["1", 158, 159, 2],
+    ["1", 159, 160, 2],
+    ["1", 160, 161, 2],
+]
+bgraph = make_table(header=["chrom", "start", "end", "value"], rows=rows)
+```
 
-    rows = [
-        ["1", 100, 101, 1.123],
-        ["1", 101, 102, 1.123],
-        ["1", 102, 103, 1.123],
-        ["1", 103, 104, 1.123],
-        ["1", 104, 105, 1.123],
-        ["1", 105, 106, 1.123],
-        ["1", 106, 107, 1.123],
-        ["1", 107, 108, 1.123],
-        ["1", 108, 109, 1],
-        ["1", 109, 110, 1],
-        ["1", 110, 111, 1],
-        ["1", 111, 112, 1],
-        ["1", 112, 113, 1],
-        ["1", 113, 114, 1],
-        ["1", 114, 115, 1],
-        ["1", 115, 116, 1],
-        ["1", 116, 117, 1],
-        ["1", 117, 118, 1],
-        ["1", 118, 119, 2],
-        ["1", 119, 120, 2],
-        ["1", 120, 121, 2],
-        ["1", 150, 151, 2],
-        ["1", 151, 152, 2],
-        ["1", 152, 153, 2],
-        ["1", 153, 154, 2],
-        ["1", 154, 155, 2],
-        ["1", 155, 156, 2],
-        ["1", 156, 157, 2],
-        ["1", 157, 158, 2],
-        ["1", 158, 159, 2],
-        ["1", 159, 160, 2],
-        ["1", 160, 161, 2],
-    ]
-    bgraph = make_table(header=["chrom", "start", "end", "value"], rows=rows)
-
-.. jupyter-execute::
-
-    bgraph.head()
+```{python}
+bgraph.head()
+```
 
 Then converted.
 
-.. jupyter-execute::
-
-    print(
-        bgraph.to_string(
-            format_name="bedgraph",
-            name="test track",
-            description="test of bedgraph",
-            color=(255, 0, 0),
-            digits=0,
-        )
+```{python}
+print(
+    bgraph.to_string(
+        format_name="bedgraph",
+        name="test track",
+        description="test of bedgraph",
+        color=(255, 0, 0),
+        digits=0,
     )
+)
+```
 
-Getting a table as html
-=======================
+## Getting a table as html
 
-.. jupyter-execute::
+```{python}
+from cogent3 import load_table
 
-    from cogent3 import load_table
+table = load_table("data/stats.tsv")
+straight_html = table.to_html()
+```
 
-    table = load_table("data/stats.tsv")
-    straight_html = table.to_html()
-
-What formats can be written?
-============================
+## What formats can be written?
 
 Appending any of the following to a filename will cause that format to be used for writing.
 
-.. jupyter-execute::
+```{python}
+from cogent3.format.table import known_formats
 
-    from cogent3.format.table import known_formats
+known_formats
+```
 
-    known_formats
+## Writing a latex formmated file
 
-Writing a latex formmated file
-==============================
+```{python}
+table.write("stats_tab.tex", justify="ccr", label="tab:table1")
+```
 
-.. jupyter-execute::
+## Writing delimited formats
 
-    table.write("stats_tab.tex", justify="ccr", label="tab:table1")
+The delimiter can be specified explicitly using the `sep` argument or implicitly via the file name suffix.
 
-Writing delimited formats
-=========================
+```{python}
+table = load_table("data/stats.tsv")
+table.write("stats_tab.txt", sep="\t")
+```
 
-The delimiter can be specified explicitly using the ``sep`` argument or implicitly via the file name suffix.
+::: {.callout-note}
+`Table.write` and `Table.to_string` both accept `with_title` and
+`with_legend` arguments for controlling whether the table title and legend
+are included in the output. For `to_string`, leaving them as `None`
+(the default) uses each format's convention: shown for the `simple`,
+`rst` and `latex` formats, omitted for `csv` and `tsv`. Setting
+either to `True` or `False` overrides that for every format.
 
-.. jupyter-execute::
+```{python}
+table = load_table(
+    "data/stats.tsv", title="Some stats.", legend="Derived from something."
+)
+print(table.to_string(format_name="csv", with_title=True, with_legend=True))
+print(table.to_string(format_name="rst", with_title=False, with_legend=False))
+```
+:::
 
-    table = load_table("data/stats.tsv")
-    table.write("stats_tab.txt", sep="\t")
+```{python}
+#| echo: false
+import pathlib
 
-.. note::
-
-    ``Table.write`` and ``Table.to_string`` both accept ``with_title`` and
-    ``with_legend`` arguments for controlling whether the table title and legend
-    are included in the output. For ``to_string``, leaving them as ``None``
-    (the default) uses each format's convention: shown for the ``simple``,
-    ``rst`` and ``latex`` formats, omitted for ``csv`` and ``tsv``. Setting
-    either to ``True`` or ``False`` overrides that for every format.
-
-    .. jupyter-execute::
-
-        table = load_table(
-            "data/stats.tsv", title="Some stats.", legend="Derived from something."
-        )
-        print(table.to_string(format_name="csv", with_title=True, with_legend=True))
-        print(table.to_string(format_name="rst", with_title=False, with_legend=False))
-
-..  cleanup
-
-.. jupyter-execute::
-    :hide-code:
-
-    import pathlib
-    
-    for name in ("stats_tab.txt", "stats_tab.tex"):
-        p = pathlib.Path(name)
-        if p.exists():
-            p.unlink()
+for name in ("stats_tab.txt", "stats_tab.tex"):
+    p = pathlib.Path(name)
+    if p.exists():
+        p.unlink()
+```

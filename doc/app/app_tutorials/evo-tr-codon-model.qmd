@@ -1,38 +1,32 @@
-.. jupyter-execute::
-    :hide-code:
-
-    import set_working_directory
-
-Applying a time-reversible codon model
---------------------------------------
-
+---
+title: "Applying a time-reversible codon model"
+---
 We display the full set of codon models available.
 
-.. jupyter-execute::
+```{python}
+from cogent3 import available_models
 
-    from cogent3 import available_models
+available_models("codon")
+```
 
-    available_models("codon")
+## Using the conditional nucleotide form codon model
 
-Using the conditional nucleotide form codon model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The CNFGTR model ([Yap et al](https://www.ncbi.nlm.nih.gov/pubmed/19815689)) is the most robust of the time-reversible codon models available ([Kaehler et al](https://www.ncbi.nlm.nih.gov/pubmed/28175284)). By default, this model does not optimise the codon frequencies but uses the average estimated from the alignment. We configure the model to optimise the root motif probabilities.
 
-The CNFGTR model (`Yap et al <https://www.ncbi.nlm.nih.gov/pubmed/19815689>`__) is the most robust of the time-reversible codon models available (`Kaehler et al <https://www.ncbi.nlm.nih.gov/pubmed/28175284>`__). By default, this model does not optimise the codon frequencies but uses the average estimated from the alignment. We configure the model to optimise the root motif probabilities.
+```{python}
+from cogent3 import get_app
 
-.. jupyter-execute::
+loader = get_app("load_aligned", format_name="fasta", moltype="dna")
+aln = loader("data/primate_brca1.fasta")
+model = get_app("model",
+    "CNFGTR",
+    tree="data/primate_brca1.tree",
+    optimise_motif_probs=True,
+)
+result = model(aln)
+result
+```
 
-    from cogent3 import get_app
-
-    loader = get_app("load_aligned", format_name="fasta", moltype="dna")
-    aln = loader("data/primate_brca1.fasta")
-    model = get_app("model",
-        "CNFGTR",
-        tree="data/primate_brca1.tree",
-        optimise_motif_probs=True,
-    )
-    result = model(aln)
-    result
-
-.. jupyter-execute::
-
-    result.lf
+```{python}
+result.lf
+```

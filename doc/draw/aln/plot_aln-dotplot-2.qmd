@@ -1,49 +1,50 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Dotplot with annotated sequences"
+image: plot_aln-dotplot-2.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
 
-    import set_working_directory
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
 
-Dotplot with annotated sequences
-================================
+If sequences in a dotplot have been annotated, the `dotplot()` method returns an `AnnotatedDrawable`.
 
-If sequences in a dotplot have been annotated, the ``dotplot()`` method returns an ``AnnotatedDrawable``.
+## Reloading sequences and annotations
 
-Reloading sequences and annotations
------------------------------------
+The data file, `tp53-annotations.json`, was created from a query of Ensembl for one-to-one orthologs of human TP53 between Human, Macaque, Orangutan and Marmoset. The resulting sequences were annotated with the location of the CDS for the canonical transcript, then the `annotation_db` was saved as json using `annotation_db.to_json()`.
 
-The data file, ``tp53-annotations.json``, was created from a query of Ensembl for one-to-one orthologs of human TP53 between Human, Macaque, Orangutan and Marmoset. The resulting sequences were annotated with the location of the CDS for the canonical transcript, then the ``annotation_db`` was saved as json using ``annotation_db.to_json()``.
+```{python}
+import cogent3
 
-.. jupyter-execute::
+ann_db = cogent3.load_annotations(
+    path="data/tp53-annotations.json"
+)
+seqs = cogent3.load_unaligned_seqs(
+    "data/tp53.fa", moltype="dna"
+)
+seqs.annotation_db = ann_db
+dp = seqs.dotplot(name1="Macaque", name2="Marmoset", width=600)
+dp.show()
+```
 
-    import cogent3
+```{python}
+#| echo: false
+outpath = "draw/aln/plot_aln-dotplot-2.png"
 
-    ann_db = cogent3.load_annotations(
-        path="data/tp53-annotations.json"
-    )
-    seqs = cogent3.load_unaligned_seqs(
-        "data/tp53.fa", moltype="dna"
-    )
-    seqs.annotation_db = ann_db
-    dp = seqs.dotplot(name1="Macaque", name2="Marmoset", width=600)
-    dp.show()
+dp.write(outpath)
+```
 
-.. jupyter-execute::
-    :hide-code:
+## Removing annotation tracks
 
-    outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-dotplot-2.png"
-
-    dp.write(outpath)
-
-Removing annotation tracks
---------------------------
-
-.. jupyter-execute::
-
-    help(dp.remove_track)
+```{python}
+help(dp.remove_track)
+```
 
 Thus we could remove the left annotation track, for instance with
 
-.. jupyter-execute::
-
-    dp.remove_track(left_track=True)
-    dp.show()
+```{python}
+dp.remove_track(left_track=True)
+dp.show()
+```

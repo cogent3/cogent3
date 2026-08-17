@@ -1,57 +1,55 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Coevolution analysis"
+image: plot_aln-coevolution.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
 
-    import set_working_directory
-
-Coevolution analysis
-====================
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
 
 A method on the alignment provides an interface to the simple (and yet robust and fast) methods for estimating coevolution. The default measure is normalised mutual information (NMI).
 
-.. todo:: add citation for RMI
+```{python}
+import os
 
-.. jupyter-execute::
+# using new types without requiring an explicit argument
+os.environ["COGENT3_NEW_TYPE"] = "1"
+```
 
-    import os
+## Display coevolution as a heatmap
 
-    # using new types without requiring an explicit argument
-    os.environ["COGENT3_NEW_TYPE"] = "1"
+Using the `drawable` argument causes the returned object to have a `drawable` attribute (type `Drawable` which has `show()` and `write()` methods), for the corresponding plot types -- a heatmap in this case.
 
-Display coevolution as a heatmap
---------------------------------
+```{python}
+from cogent3 import load_aligned_seqs
 
-Using the ``drawable`` argument causes the returned object to have a ``drawable`` attribute (type ``Drawable`` which has ``show()`` and ``write()`` methods), for the corresponding plot types -- a heatmap in this case.
+aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
+aln = aln.no_degenerates(motif_length=3)
+aln = aln.get_translation()
+aln = aln[:100]  # sliced to simplify the visual display
+coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="heatmap")
+coevo.drawable.show()
+```
 
-.. jupyter-execute::
+```{python}
+#| echo: false
+outpath = "draw/aln/plot_aln-coevolution.png"
 
-    from cogent3 import load_aligned_seqs
+coevo.drawable.write(outpath)
+```
 
-    aln = load_aligned_seqs("data/brca1.fasta", moltype="dna")
-    aln = aln.no_degenerates(motif_length=3)
-    aln = aln.get_translation()
-    aln = aln[:100]  # sliced to simplify the visual display
-    coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="heatmap")
-    coevo.drawable.show()
+## Display coevolution scores as a Violin plot
 
-.. jupyter-execute::
-    :hide-code:
+```{python}
+coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="violin")
+coevo.drawable.show(width=300)
+```
 
-    outpath = set_working_directory.get_thumbnail_dir() / "plot_aln-coevolution.png"
+## Display coevolution scores as a Boxplot
 
-    coevo.drawable.write(outpath)
-
-Display coevolution scores as a Violin plot
--------------------------------------------
-
-.. jupyter-execute::
-
-    coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="violin")
-    coevo.drawable.show(width=300)
-
-Display coevolution scores as a Boxplot
----------------------------------------
-
-.. jupyter-execute::
-
-    coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="box")
-    coevo.drawable.show(width=300)
+```{python}
+coevo = aln.coevolution(stat="nmi", show_progress=False, drawable="box")
+coevo.drawable.show(width=300)
+```

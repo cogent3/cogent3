@@ -1,141 +1,129 @@
-.. _genetic-codes:
+---
+title: "Using genetic codes"
+---
+## Selecting codes in methods that support them
 
-Using genetic codes
-^^^^^^^^^^^^^^^^^^^
+In cases where a `cogent3` object method has a `gc` argument, you can just use the number under "Code ID" column.
 
-Selecting codes in methods that support them
-""""""""""""""""""""""""""""""""""""""""""""
+For example, I've created a partial codon in `"s1"`
 
-In cases where a ``cogent3`` object method has a ``gc`` argument, you can just use the number under "Code ID" column.
+```{python}
+from cogent3 import make_aligned_seqs
 
-For example, I've created a partial codon in ``"s1"``
+data = {
+    "s1": "GCTCATGCCAGCTCTTTACAGCATGAGAACA--AGT",
+    "s2": "ACTCATGCCAACTCATTACAGCATGAGAACAGCAGT",
+    "s3": "ACTCATGCCAGCTCATTACAGCATGAGAACAGCAGT",
+    "s4": "ACTCATGCCAGCTCATTACAGCATGAGAACAGCAGT",
+    "s5": "ACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGT",
+}
 
-.. jupyter-execute::
+nt_seqs = make_aligned_seqs(data, moltype="dna")
+nt_seqs
+```
 
-    from cogent3 import make_aligned_seqs
+We specify the genetic code, and we allow incomplete codons. In this case, if a codon contains a gap, they are converted to `?` in the translation.
 
-    data = {
-        "s1": "GCTCATGCCAGCTCTTTACAGCATGAGAACA--AGT",
-        "s2": "ACTCATGCCAACTCATTACAGCATGAGAACAGCAGT",
-        "s3": "ACTCATGCCAGCTCATTACAGCATGAGAACAGCAGT",
-        "s4": "ACTCATGCCAGCTCATTACAGCATGAGAACAGCAGT",
-        "s5": "ACTCATGCCAGCTCAGTACAGCATGAGAACAGCAGT",
-    }
+```{python}
+nt_seqs.get_translation(gc=1, incomplete_ok=True)
+```
 
-    nt_seqs = make_aligned_seqs(data, moltype="dna")
-    nt_seqs
-
-We specify the genetic code, and we allow incomplete codons. In this case, if a codon contains a gap, they are converted to ``?`` in the translation.
-
-.. jupyter-execute::
-
-    nt_seqs.get_translation(gc=1, incomplete_ok=True)
-
-Translate DNA sequences
-"""""""""""""""""""""""
+## Translate DNA sequences
 
 From a string
 
-.. jupyter-execute::
+```{python}
+from cogent3 import get_code
 
-    from cogent3 import get_code
-
-    standard_code = get_code(1)
-    standard_code.translate("TTTGCAAAC")
+standard_code = get_code(1)
+standard_code.translate("TTTGCAAAC")
+```
 
 This can also be applied to a numpy array.
 
-.. jupyter-execute::
+```{python}
+import numpy
+from cogent3 import get_code
 
-    import numpy
-    from cogent3 import get_code
+standard_code = get_code(1)
 
-    standard_code = get_code(1)
+standard_code.translate(numpy.array([0, 0, 0, 3, 1, 2, 2, 2, 1], dtype=numpy.uint8))
+```
 
-    standard_code.translate(numpy.array([0, 0, 0, 3, 1, 2, 2, 2, 1], dtype=numpy.uint8))
+Conversion to a `ProteinSequence` from a `DnaSequence` is shown in [Translate a sequence to protein](DNA_and_RNA_sequences.qmd#translation).
 
-Conversion to a ``ProteinSequence`` from a ``DnaSequence`` is shown in :ref:`translation`.
+## Translate all six frames
 
-Translate all six frames
-""""""""""""""""""""""""
+```{python}
+from cogent3 import get_code, make_seq
 
-.. jupyter-execute::
+standard_code = get_code(1)
+seq = make_seq("ATGCTAACATAAA", moltype="dna")
+translations = standard_code.sixframes(seq)
+print(translations)
+```
 
-    from cogent3 import get_code, make_seq
+## Translate a codon
 
-    standard_code = get_code(1)
-    seq = make_seq("ATGCTAACATAAA", moltype="dna")
-    translations = standard_code.sixframes(seq)
-    print(translations)
+```{python}
+from cogent3 import get_code, make_seq
 
-Translate a codon
-"""""""""""""""""
-
-.. jupyter-execute::
-
-    from cogent3 import get_code, make_seq
-
-    standard_code = get_code(1)
-    standard_code["TTT"]
+standard_code = get_code(1)
+standard_code["TTT"]
+```
 
 or get the codons for a single amino acid
 
-.. jupyter-execute::
+```{python}
+standard_code["A"]
+```
 
-    standard_code["A"]
+## Look up the amino acid corresponding to a single codon
 
-Look up the amino acid corresponding to a single codon
-""""""""""""""""""""""""""""""""""""""""""""""""""""""
+```{python}
+from cogent3 import get_code
 
-.. jupyter-execute::
+standard_code = get_code(1)
+standard_code["TTT"]
+```
 
-    from cogent3 import get_code
+## Get all the codons for one amino acid
 
-    standard_code = get_code(1)
-    standard_code["TTT"]
+```{python}
+from cogent3 import get_code
 
-Get all the codons for one amino acid
-"""""""""""""""""""""""""""""""""""""
+standard_code = get_code(1)
+standard_code["A"]
+```
 
-.. jupyter-execute::
+## Get all the codons for a group of amino acids
 
-    from cogent3 import get_code
+```{python}
+targets = ["A", "C"]
+codons = [standard_code[aa] for aa in targets]
+codons
+```
 
-    standard_code = get_code(1)
-    standard_code["A"]
+## Getting the alphabet for the genetic code
 
-Get all the codons for a group of amino acids
-"""""""""""""""""""""""""""""""""""""""""""""
+The default for the `get_alphabet()` method is to return an alphabet representing just the sense codons (a `SenseCodonAlphabet` instance).
 
-.. jupyter-execute::
+```{python}
+from cogent3 import get_code
 
-    targets = ["A", "C"]
-    codons = [standard_code[aa] for aa in targets]
-    codons
+gc = get_code(1)
+alphabet = gc.get_alphabet()
+len(alphabet)
+```
 
-Getting the alphabet for the genetic code
-"""""""""""""""""""""""""""""""""""""""""
+Setting `include_stop=True` returns all codons.
 
-The default for the ``get_alphabet()`` method is to return an alphabet representing just the sense codons (a ``SenseCodonAlphabet`` instance).
+```{python}
+from cogent3 import get_code
 
-.. jupyter-execute::
+gc = get_code(1)
+alphabet = gc.get_alphabet(include_stop=True)
+type(alphabet)
+```
 
-    from cogent3 import get_code
-
-    gc = get_code(1)
-    alphabet = gc.get_alphabet()
-    len(alphabet)
-
-Setting ``include_stop=True`` returns all codons.
-
-.. jupyter-execute::
-
-    from cogent3 import get_code
-
-    gc = get_code(1)
-    alphabet = gc.get_alphabet(include_stop=True)
-    type(alphabet)
-
-You can also include "gap state" (i.e. ``"---"``) or "missing state" (``"???"``) codons with the arguments ``include_gap`` and ``include_missing`` respectively.
-
-
+You can also include "gap state" (i.e. `"---"`) or "missing state" (`"???"`) codons with the arguments `include_gap` and `include_missing` respectively.

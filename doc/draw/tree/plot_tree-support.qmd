@@ -1,38 +1,40 @@
-.. jupyter-execute::
-    :hide-code:
+---
+title: "Showing Bootstrap Support"
+image: plot_tree-support.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
 
-    import set_working_directory
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
 
-Showing Bootstrap Support
-=========================
+We use a tree saved in `json` format from a 100 replicate bootstrap resamplings. The `show_support=True` argument controls whether or not to display support. The `threshold=80` argument indicates only nodes with a support level ≤80 will have support text displayed.
 
-We use a tree saved in ``json`` format from a 100 replicate bootstrap resamplings. The ``show_support=True`` argument controls whether or not to display support. The ``threshold=80`` argument indicates only nodes with a support level ≤80 will have support text displayed.
+```{python}
+import cogent3
 
-.. jupyter-execute::
+tree = cogent3.load_tree("data/tree-with-support.json")
+fig = tree.get_figure(show_support=True, threshold=80, contemporaneous=True)
+fig.scale_bar = None
+fig.show(width=500, height=400)
+```
 
-    import cogent3
+## Change the placement of support text
 
-    tree = cogent3.load_tree("data/tree-with-support.json")
-    fig = tree.get_figure(show_support=True, threshold=80, contemporaneous=True)
-    fig.scale_bar = None
-    fig.show(width=500, height=400)
+The support text is positioned relative to the `x`, `y` coordinates of the tree node. Control over support text placement is achieved using the `support_xshift` and `support_yshift` attributes. These are expressed in terms of pixels.
 
-Change the placement of support text
-------------------------------------
+To place the support text internal to the node, we set the `yshift=0` (so at the same y-value of the node) and xshift it to the right using a positive integer.
 
-The support text is positioned relative to the ``x``, ``y`` coordinates of the tree node. Control over support text placement is achieved using the ``support_xshift`` and ``support_yshift`` attributes. These are expressed in terms of pixels.
+```{python}
+fig.support_xshift = 15
+fig.support_yshift = 0
+fig.show(width=500, height=400)
+```
 
-To place the support text internal to the node, we set the ``yshift=0`` (so at the same y-value of the node) and xshift it to the right using a positive integer.
+```{python}
+#| echo: false
+outpath = "draw/tree/plot_tree-support.png"
 
-.. jupyter-execute::
-
-    fig.support_xshift = 15
-    fig.support_yshift = 0
-    fig.show(width=500, height=400)
-
-.. jupyter-execute::
-    :hide-code:
-
-    outpath = set_working_directory.get_thumbnail_dir() / "plot_tree-support.png"
-
-    fig.write(outpath)
+fig.write(outpath)
+```
