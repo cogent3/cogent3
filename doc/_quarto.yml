@@ -1,0 +1,174 @@
+project:
+  type: website
+  output-dir: _site
+  # run every code cell with the working directory set to this project root
+  # so that relative paths like "data/brca1-bats.fasta" resolve. This replaces
+  # the old set_working_directory.py hack used under Sphinx.
+  execute-dir: project
+  # data files are linked from the docs rather than referenced as markdown
+  # images, so name them explicitly to have them copied into the output
+  resources:
+    - data/
+
+# the kernel comes from the doc dependency group, so a plain ipykernel name
+# resolves to whichever interpreter is running the build
+jupyter: python3
+
+execute:
+  # only re-run a page when its source changes. _freeze/ is not committed, so
+  # this is a local development convenience only and CI renders from scratch
+  freeze: auto
+  # intentional exception demos are marked per-cell with `#| error: true`;
+  # any other cell error should fail the build (doctest-like safety)
+  error: false
+
+bibliography: cogent3.bib
+
+website:
+  title: "cogent3"
+  navbar:
+    search: true
+    left:
+      - text: Home
+        href: index.qmd
+      - text: Apps
+        href: app/index.qmd
+      - text: Cookbook
+        href: cookbook/index.qmd
+      - text: Tutorials
+        href: examples/index.qmd
+      - text: Gallery
+        href: draw/index.qmd
+      - text: API
+        href: reference/index.qmd
+  sidebar:
+    - id: main
+      style: docked
+      search: true
+      collapse-level: 1
+      contents:
+        - index.qmd
+        - section: "Apps"
+          href: app/index.qmd
+          contents:
+            - section: "Overview"
+              contents: app/app_overview/*.qmd
+            - section: "Cookbook"
+              contents: app/app_cookbook/*.qmd
+            - section: "Tutorials"
+              contents: app/app_tutorials/*.qmd
+        - section: "Cookbook"
+          href: cookbook/index.qmd
+          contents: cookbook/*.qmd
+        - section: "Tutorials"
+          href: examples/index.qmd
+          contents: examples/*.qmd
+        - section: "Image Gallery"
+          href: draw/index.qmd
+          contents:
+            - draw/aln/*.qmd
+            - draw/annotations/*.qmd
+            - draw/tree/*.qmd
+        - section: "API Reference"
+          contents:
+            - reference/index.qmd
+        - section: "About"
+          contents:
+            - install.qmd
+            - community.qmd
+            - data_file_links.qmd
+            - licenses.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: custom.css
+    toc: true
+    toc-depth: 4
+    # cogent3 objects render their own styled HTML tables. Leave them untouched
+    # rather than converting to Bootstrap tables, which forces full body width.
+    html-table-processing: none
+
+# API reference generated from numpydoc docstrings via griffe (static analysis).
+# cogent3's top-level exports are lazy (__getattr__), so several are referenced
+# by their real module path to be statically resolvable.
+quartodoc:
+  package: cogent3
+  dir: reference
+  parser: numpy
+  title: API Reference
+  sidebar: reference/_sidebar.yml
+  options:
+    include_inherited: true
+  sections:
+    - title: Loading data from file
+      desc: Top-level functions for loading data.
+      contents:
+        - load_seq
+        - load_aligned_seqs
+        - load_unaligned_seqs
+        - parse.table.load_delimited
+        - core.table.load_table
+        - core.tree.load_tree
+        - core.annotation_db.load_annotations
+    - title: Making cogent3 objects
+      desc: Constructors from standard Python types.
+      contents:
+        - make_seq
+        - core.alignment.make_aligned_seqs
+        - core.alignment.make_unaligned_seqs
+        - core.table.make_table
+        - core.tree.make_tree
+    - title: Getting commonly used types
+      contents:
+        - core.genetic_code.get_code
+        - core.moltype.get_moltype
+        - evolve.models.get_model
+    - title: Listing builtins
+      contents:
+        - core.genetic_code.available_codes
+        - core.moltype.available_moltypes
+        - evolve.models.available_models
+        - app.available_apps
+    - title: Sequences
+      desc: Biological sequence objects.
+      contents:
+        - core.sequence.Sequence
+        - core.sequence.DnaSequence
+        - core.sequence.RnaSequence
+        - core.sequence.ProteinSequence
+    - title: Sequence collections & alignments
+      contents:
+        - core.alignment.SequenceCollection
+        - core.alignment.Alignment
+        - core.alignment.Aligned
+    - title: Sequence storage & views
+      contents:
+        - core.seq_storage.SeqsData
+        - core.seq_storage.AlignedSeqsData
+        - core.seqview.SeqView
+        - core.seqview.SeqDataView
+        - core.seqview.AlignedDataView
+        - core.slice_record.SliceRecord
+    - title: Annotations
+      contents:
+        - core.annotation.Feature
+        - core.annotation_db.BasicAnnotationDb
+        - core.annotation_db.GffAnnotationDb
+        - core.annotation_db.GenbankAnnotationDb
+    - title: Molecular types & alphabets
+      contents:
+        - core.moltype.MolType
+        - core.genetic_code.GeneticCode
+        - core.alphabet.CharAlphabet
+        - core.alphabet.KmerAlphabet
+        - core.alphabet.SenseCodonAlphabet
+        - core.alphabet.PhredEncoding
+    - title: Tables
+      contents:
+        - core.table.Table
+        - core.table.Columns
+        - parse.table.FilteringParser
+    - title: Trees
+      contents:
+        - core.tree.PhyloNode
