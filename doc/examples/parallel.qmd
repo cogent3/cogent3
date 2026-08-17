@@ -125,16 +125,20 @@ Second, as described in the documentation on [mpi4py futures](https://mpi4py.rea
 1. a script performing the computations you actually care about
 2. a bash script for the queuing system setting out the job parameters and invoking (1)
 
-The example code presented below is based on the `mpi4py` demo script for computing prime numbers. In addition to validating the prime numbers, it also prints out the "MPI rank" of the processor [1]_. The script relies on the environment variable, `PBS_NCPUS` [2]_, to establish the number of CPUs that are available. It prints to stdout, the rank of each processor [3]_. 
+The example code presented below is based on the `mpi4py` demo script for computing prime numbers. In addition to validating the prime numbers, it also prints out the "MPI rank" of the processor [^1]. The script relies on the environment variable, `PBS_NCPUS` [^2], to establish the number of CPUs that are available. It prints to stdout, the rank of each processor [^3]. 
 
-To execute this script as part of a PBS job script you need to use the following command::
+To execute this script as part of a PBS job script you need to use the following command:
 
+```bash
 $ mpiexec -n $PBS_NCPUS python3 -m mpi4py.futures demo-mpi-parallel.py
+```
 
 ::: {.callout-note}
-To execute it directly with 4 CPUs do::
+To execute it directly with 4 CPUs do:
 
+```bash
 $ PBS_NCPUS=4 mpiexec -n 4 python3 -m mpi4py.futures demo-mpi-parallel.py
+```
 :::
 
 The `-n` argument tells `mpiexec` to use this number of CPUs.
@@ -221,3 +225,7 @@ if __name__ == "__main__":
     # for why it needs to be done
     main()
 ```
+
+[^1]: On MPI, the main process has rank 0, all others have rank > 0.
+[^2]: This environment variable is created by the PBS system on executing the job script.
+[^3]: You can check your execution of the script is correct by validating you get all the ranks up to one minus the number of CPUs you requested.

@@ -41,6 +41,8 @@ website:
         href: draw/index.qmd
       - text: API
         href: reference/index.qmd
+  # pages are listed explicitly, in the order the sphinx toctrees defined. A
+  # glob would sort them alphabetically and lose the teaching sequence
   sidebar:
     - id: main
       style: docked
@@ -51,18 +53,124 @@ website:
         - section: "Apps"
           href: app/index.qmd
           contents:
-            - section: "Overview"
-              contents: app/app_overview/*.qmd
-            - section: "Cookbook"
-              contents: app/app_cookbook/*.qmd
-            - section: "Tutorials"
-              contents: app/app_tutorials/*.qmd
+            - section: "Overview of apps"
+              href: app/index-app.qmd
+              contents:
+                - app/app_overview/app-overview.qmd
+                - app/app_overview/app-help.qmd
+                - app/app_overview/app-get.qmd
+                - app/app_overview/available-apps.qmd
+                - app/app_overview/dstore.qmd
+                - app/app_overview/not-completed.qmd
+                - app/app_overview/user_function.qmd
+            - section: "App Cookbook"
+              href: app/index-cookbook.qmd
+              contents:
+                - section: "Loading data"
+                  href: app/app_cookbook/index-loaders.qmd
+                  contents:
+                    - app/app_cookbook/load-aligned.qmd
+                    - app/app_cookbook/load-unaligned.qmd
+                    - app/app_cookbook/load-tabular.qmd
+                    - app/app_cookbook/load-json.qmd
+                - section: "Sequence Alignment"
+                  href: app/app_cookbook/index-align.qmd
+                  contents:
+                    - app/app_cookbook/align-nucleotide.qmd
+                    - app/app_cookbook/align-codon.qmd
+                    - app/app_cookbook/align-protein.qmd
+                - section: "Filtering data"
+                  href: app/app_cookbook/index-sample.qmd
+                  contents:
+                    - app/app_cookbook/sample-omit-degen.qmd
+                    - app/app_cookbook/sample-omit-gap.qmd
+                    - app/app_cookbook/sample-omit-bad.qmd
+                    - app/app_cookbook/sample-omit-duplicated.qmd
+                    - app/app_cookbook/sample-min-len.qmd
+                    - app/app_cookbook/sample-fixed-len.qmd
+                    - app/app_cookbook/sample-trim-stops.qmd
+                    - app/app_cookbook/sample-take-pos.qmd
+                    - app/app_cookbook/sample-take-seqs.qmd
+                    - app/app_cookbook/sample-take-n-seqs.qmd
+                    - app/app_cookbook/sample-concat.qmd
+                - section: "Writing Data"
+                  href: app/app_cookbook/index-writers.qmd
+                  contents:
+                    - app/app_cookbook/write-seqs.qmd
+                    - app/app_cookbook/write-tabular.qmd
+                    - app/app_cookbook/write-json.qmd
+                    - app/app_cookbook/write-db.qmd
+            - section: "App Tutorials"
+              href: app/index-tutorials.qmd
+              contents:
+                - section: "Modelling sequence evolution"
+                  href: app/app_tutorials/index-evo-model.qmd
+                  contents:
+                    - app/app_tutorials/evo-model.qmd
+                    - app/app_tutorials/evo-model-with-tree.qmd
+                    - app/app_tutorials/evo-model-timehet.qmd
+                    - app/app_tutorials/evo-extract-model-stats.qmd
+                    - app/app_tutorials/evo-ancestral-states.qmd
+                    - app/app_tutorials/evo-dt-nuc-model.qmd
+                    - app/app_tutorials/evo-tr-nuc-model.qmd
+                    - app/app_tutorials/evo-nstat-codon-model.qmd
+                    - app/app_tutorials/evo-tr-codon-model.qmd
+                - section: "Testing hypotheses about sequence evolution"
+                  href: app/app_tutorials/index-evo-hypothesis.qmd
+                  contents:
+                    - app/app_tutorials/evo-hypothesis.qmd
+                - section: "Testing for natural selection"
+                  href: app/app_tutorials/index-evo-natsel.qmd
+                  contents:
+                    - app/app_tutorials/evo-natsel_neutral.qmd
+                    - app/app_tutorials/evo-natsel_timehet.qmd
+                    - app/app_tutorials/evo-natsel_sitehet.qmd
+                    - app/app_tutorials/evo-natsel_zhang.qmd
         - section: "Cookbook"
           href: cookbook/index.qmd
-          contents: cookbook/*.qmd
+          contents:
+            - section: "Manipulating biological data"
+              href: cookbook/manipulating_biological_data.qmd
+              contents:
+                - cookbook/loading_sequences.qmd
+                - cookbook/DNA_and_RNA_sequences.qmd
+                - cookbook/protein_sequences.qmd
+                - cookbook/alignments.qmd
+                - cookbook/features.qmd
+                - cookbook/annotation_db.qmd
+                - cookbook/moltypes.qmd
+                - cookbook/alphabet.qmd
+                - cookbook/what_codes.qmd
+                - cookbook/genetic_code.qmd
+                - cookbook/simple_trees.qmd
+            - cookbook/tables.qmd
+            - cookbook/building_alignments.qmd
+            - cookbook/calc_genetic_distance.qmd
+            - cookbook/building_phylogenies.qmd
+            - cookbook/evo_modelling.qmd
+            - cookbook/useful_utilities.qmd
         - section: "Tutorials"
           href: examples/index.qmd
-          contents: examples/*.qmd
+          contents:
+            - examples/align_codons_to_protein.qmd
+            - examples/period_estimation.qmd
+            - examples/simple.qmd
+            - examples/relative_rate.qmd
+            - examples/neutral_test.qmd
+            - examples/scope_model_params_on_trees.qmd
+            - examples/codon_models.qmd
+            - examples/empirical_protein_models.qmd
+            - examples/testing_multi_loci.qmd
+            - examples/simulate_alignment.qmd
+            - examples/parametric_bootstrap.qmd
+            - examples/rate_heterogeneity.qmd
+            - examples/hmm_par_heterogeneity.qmd
+            - examples/nonstationary_inference.qmd
+            - examples/calculate_pairwise_distances.qmd
+            - examples/calculate_neigbourjoining_tree.qmd
+            - examples/calculate_UPGMA_cluster.qmd
+            - examples/phylo_by_ls.qmd
+            - examples/parallel.qmd
         - section: "Image Gallery"
           href: draw/index.qmd
           contents:
@@ -77,6 +185,7 @@ website:
             - install.qmd
             - community.qmd
             - data_file_links.qmd
+            - pycogent.qmd
             - licenses.qmd
 
 format:

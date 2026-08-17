@@ -1,4 +1,27 @@
 ---
 title: "apps"
 ---
+
 Pre-defined "apps" simplify complex tasks. They provide capabilities that can be used by themselves or added together to define a pipeline. Find out more about apps below!
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+### [App Overview](index-app.qmd)
+
+An overview of the basic usage of apps.
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [App Cookbook](index-cookbook.qmd)
+
+Short "how-to" code recipes solving specific problems using apps.
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [App Tutorials](index-tutorials.qmd)
+
+Using apps to solve more extensive problems.
+:::
+
+:::
