@@ -51,7 +51,9 @@ not all browsers handle the file suffixes well, so you may need to rename the do
 
 [SCA1-cds.fasta](data/SCA1-cds.fasta)
 
-[SCA1-cds.fasta](data/tp53.json)
+[tp53.fa](data/tp53.fa)
+
+[tp53-annotations.json](data/tp53-annotations.json)
 
 [brca1-bats.fasta](data/brca1-bats.fasta)
 

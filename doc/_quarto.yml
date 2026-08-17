@@ -26,11 +26,26 @@ bibliography: cogent3.bib
 
 website:
   title: "cogent3"
+  favicon: images/c3-square.svg
+  # This navbar is mirrored in the cogent3.org repo's doc/_quarto.yml. That
+  # project renders into the site root and this one into <site>/doc/, so each
+  # spells the same menu with hrefs relative to its own project root; the `../`
+  # entries below are the cogent3.org wrapper pages. Quarto rewrites an href it
+  # cannot resolve to a project input into a site-root-relative path and then
+  # offsets it per page, so they stay correct at every depth -- but only once
+  # deployed under cogent3.org. A standalone `quarto render doc` leaves them as
+  # dead links; it does not fail. An entry added here needs the matching entry
+  # there, or the header changes as you cross the /doc/ boundary.
   navbar:
+    logo: images/c3-logo.svg
+    logo-alt: "cogent3"
+    # unlike the entries below, logo-href is emitted verbatim rather than being
+    # offset per page, so it has to be site-root-relative to survive nesting
+    logo-href: /index.html
     search: true
     left:
       - text: Home
-        href: index.qmd
+        href: ../index.html
       - text: Apps
         href: app/index.qmd
       - text: Cookbook
@@ -41,6 +56,31 @@ website:
         href: draw/index.qmd
       - text: API
         href: reference/index.qmd
+      - text: Install
+        href: install.qmd
+    right:
+      - text: About
+        menu:
+          - text: User Guides
+            href: index.qmd
+          - text: Code Sharing
+            href: ../codeshare.html
+          - text: Community
+            href: community.qmd
+          - text: Project History
+            href: ../history.html
+          - text: How cogent3 relates to PyCogent
+            href: pycogent.qmd
+          - text: Projects using cogent3
+            href: ../projects.html
+          - text: Data files
+            href: data_file_links.qmd
+          - text: License
+            href: licenses.qmd
+    tools:
+      - icon: github
+        href: https://github.com/cogent3/cogent3
+        text: "cogent3 on GitHub"
   # pages are listed explicitly, in the order the sphinx toctrees defined. A
   # glob would sort them alphabetically and lose the teaching sequence
   sidebar:
