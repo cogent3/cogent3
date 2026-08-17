@@ -90,26 +90,22 @@ doc = [
     "click",
     "cogent3[extra]",
     "cogent3-h5seqs>=0.8.0",
-    "jupyter-sphinx",
+    "ipykernel",
     "jupyter_client",
     "jupytext",
+    "nbclient",
     "nbconvert>5.4",
     "nbformat",
-    "nbsphinx",
-    "numpydoc",
     "piqtree>=0.8.0; python_version > '3.11'",
-    "sphinx",
-    "sphinx-autobuild",
-    "pydata_sphinx_theme",
-    "sphinx_design",
-    "sphinxcontrib-bibtex",
-    "sphinxcontrib-video",
+    "quartodoc",
+    # quartodoc 0.11.1 requires only griffe>=0.33, but griffe 2 dropped the
+    # allow_section_blank_line argument it passes to parse_numpy
+    "griffe<2",
     "iplotx>=1.7.1",
 ]
 dev = [
     "flit",
     "nox",
-    "numpydoc",
     "scriv",
     "types-tqdm",
     { include-group = "doc" },
@@ -119,7 +115,7 @@ dev = [
 
 [tool.flit.sdist]
 include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
-exclude = ["doc/*.html"]
+exclude = ["doc/*.html", "doc/_site/", "doc/_freeze/", "doc/.quarto/", "doc/reference/"]
 
 [tool.pytest.ini_options]
 markers = [

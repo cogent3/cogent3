@@ -73,18 +73,11 @@ def test_module_docs(session):
 
 @nox.session(python=[f"3.{v}" for v in _py_versions])
 def testdocs(session):
+    """render the docs, which executes every code cell"""
     py = pathlib.Path(session.bin_paths[0]) / "python"
     session.install("-e", ".", "--group", "doc")
-    session.chdir("doc")
-    for docdir in ("app", "cookbook", "draw", "examples"):
-        session.run(
-            str(py),
-            "doctest_rsts.py",
-            "-f",
-            docdir,
-            "-1",
-            "-s",
-            "rst",
-            *session.posargs,
-            external=True,
-        )
+    # quarto discovers the interpreter, and so the ipykernel to execute cells
+    # with, from QUARTO_PYTHON
+    session.env["QUARTO_PYTHON"] = str(py)
+    session.run("quartodoc", "build", "--config", "doc/_quarto.yml")
+    session.run("quarto", "render", "doc", *session.posargs, external=True)
