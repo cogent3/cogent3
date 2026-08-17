@@ -72,3 +72,6 @@ doc/objects.json
 doc/*.sqlitedb
 # gallery thumbnails, written by the gallery pages themselves at render time
 doc/draw/**/*.png
+# rendered pages and their support files, written beside the .qmd sources
+doc/**/*.html
+doc/site_libs/
