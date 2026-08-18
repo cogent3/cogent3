@@ -223,7 +223,7 @@ def test_available_apps_license(package, pkg_license):
 def test_available_apps_license_col():
     available = available_apps()
     assert "licenses" in available.columns
-    assert "BSD" in available.columns["licenses"]
+    assert "BSD-3-Clause" in available.columns["licenses"]
 
 
 def test_app_module_lazy_import_open_data_store(monkeypatch):
