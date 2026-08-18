@@ -1,0 +1,4 @@
+---
+title: "App Cookbook"
+---
+*Small code snippets on how-to use apps to solve individual problems*

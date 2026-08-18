@@ -1,0 +1,49 @@
+---
+title: "Make a neighbor joining tree"
+---
+An example of how to calculate the pairwise distances for a set of sequences.
+
+```{python}
+from cogent3 import load_aligned_seqs
+from cogent3.evolve import distance
+from cogent3.phylo import nj
+```
+
+Import a substitution model (or create your own)
+
+```{python}
+from cogent3.evolve.models import get_model
+```
+
+Load the alignment.
+
+```{python}
+al = load_aligned_seqs("data/long_testseqs.fasta", moltype="dna")
+```
+
+Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
+
+```{python}
+d = distance.EstimateDistances(al, submodel=get_model("HKY85"))
+d.run(show_progress=False)
+```
+
+Now use this matrix to build a neighbour joining tree.
+
+```{python}
+mytree = nj.nj(d.get_pairwise_distances(), show_progress=False)
+print(mytree.ascii_art())
+```
+
+We can save this tree to file.
+
+```{python}
+mytree.write("test_nj.tree")
+```
+
+```{python}
+#| echo: false
+import os
+
+os.remove("test_nj.tree")
+```

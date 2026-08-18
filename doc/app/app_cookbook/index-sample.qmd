@@ -1,0 +1,4 @@
+---
+title: "Filtering data"
+---
+`cogent3` apps provide simple and sophisticated means to filter genomic data.

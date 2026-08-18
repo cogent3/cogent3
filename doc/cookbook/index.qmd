@@ -1,0 +1,4 @@
+---
+title: "Cookbook"
+---
+*How-to's, small code snippets to solve individual problems. Select from the menu on the left.*

@@ -1,0 +1,53 @@
+---
+title: "Make a UPGMA cluster"
+---
+An example of how to calculate the pairwise distances for a set of sequences.
+
+::: {.callout-note}
+UPGMA should not be used for phylogenetic reconstruction.
+:::
+
+```{python}
+from cogent3 import load_aligned_seqs
+from cogent3.cluster.UPGMA import upgma
+from cogent3.evolve import distance
+```
+
+Import a substitution model (or create your own)
+
+```{python}
+from cogent3.evolve.models import HKY85
+```
+
+Load the alignment.
+
+```{python}
+al = load_aligned_seqs("data/test.paml", moltype="dna")
+```
+
+Create a pairwise distances object calculator for the alignment, providing a substitution model instance.
+
+```{python}
+d = distance.EstimateDistances(al, submodel=HKY85())
+d.run(show_progress=False)
+```
+
+Now use this matrix to build a UPGMA cluster.
+
+```{python}
+mycluster = upgma(d.get_pairwise_distances())
+print(mycluster.ascii_art())
+```
+
+We demonstrate saving this UPGMA cluster to a file.
+
+```{python}
+mycluster.write("test_upgma.tree")
+```
+
+```{python}
+#| echo: false
+import os
+
+os.remove("test_upgma.tree")
+```

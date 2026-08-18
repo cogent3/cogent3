@@ -63,6 +63,9 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
+      - name: Install quarto
+        uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b # v2.2.0
+
       - name: "Installs for ${{ matrix.python-version }}"
         run: |
           uv venv venv -p python${{ matrix.python-version }}

@@ -1,0 +1,48 @@
+---
+title: "Installation"
+---
+For most users we recommend
+
+```bash
+$ pip install "cogent3[extra]"
+```
+
+This installs support for data visualisation (which requires [Plotly](https://pypi.org/project/plotly/)) and extensions for jupyter notebooks.
+
+## Minimal installation
+
+If you don't need plotting, such as if you're running on a high-performance computing system, we recommend
+
+```bash
+$ pip install cogent3
+```
+
+## Install with developer tools
+
+Everything we use for `cogent3` development. Run this from a clone of the repository.
+
+```bash
+$ pip install -e . --group dev
+```
+
+::: {.callout-note}
+Installs all dependencies that can be installed using `pip`.
+:::
+
+## Installing the development version
+
+```bash
+$ pip install git+https://github.com/cogent3/cogent3.git@develop#egg=cogent3
+```
+
+::: {.callout-warning}
+The interface can change without warning.
+:::
+
+## Installing using `conda` / `mamba`
+
+Activate your [conda](https://docs.conda.io/en/latest/miniconda.html) environment, then
+
+```bash
+(myenv) $ conda install cogent3
+```

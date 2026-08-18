@@ -1,0 +1,43 @@
+---
+title: "Information analysis of an alignment"
+image: plot_aln-info-plot.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
+
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
+
+Information here is in the formal sense -- maximum entropy minus the entropy at a position. This is fast to compute and is an indicator of the variability at a position.
+
+## Illustrated with a simple example
+
+```{python}
+from cogent3 import load_aligned_seqs, make_aligned_seqs, make_seq
+
+s1 = make_seq("TGATGTAAGGTAGTT", name="s1", moltype="dna")
+s2 = make_seq("--CTGGAAGGGT---", name="s2", moltype="dna")
+
+seqs = make_aligned_seqs([s1, s2], moltype="dna")
+draw = seqs.information_plot(window=2, include_gap=True)
+draw.show(width=500, height=400)
+```
+
+## On a sample data set
+
+Clicking on any of the legend items causes that to disappear from the plot.
+
+```{python}
+aln = load_aligned_seqs("data/brca1.fasta", moltype="protein")
+
+fig = aln.information_plot(stat="median")
+fig.show(width=500, height=400)
+```
+
+```{python}
+#| echo: false
+outpath = "draw/aln/plot_aln-info-plot.png"
+
+fig.write(outpath)
+```

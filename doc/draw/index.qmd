@@ -1,0 +1,59 @@
+---
+title: "Image Gallery"
+# pages are listed in the order the sphinx nbgallery directives produced, which
+# expanded each glob and then reversed it
+listing:
+  - id: annotations-listing
+    contents:
+      - annotations/plot_seq-features.qmd
+      - annotations/plot_annotation-db.qmd
+    type: grid
+    grid-columns: 3
+    image-height: 200px
+    fields: [image, title]
+    sort: false
+  - id: aln-listing
+    contents:
+      - aln/plot_aln-seqlogo.qmd
+      - aln/plot_aln-info-plot.qmd
+      - aln/plot_aln-gaps-per-seq.qmd
+      - aln/plot_aln-dotplot-3.qmd
+      - aln/plot_aln-dotplot-2.qmd
+      - aln/plot_aln-dotplot-1.qmd
+      - aln/plot_aln-coevolution.qmd
+    type: grid
+    grid-columns: 3
+    image-height: 200px
+    fields: [image, title]
+    sort: false
+  - id: tree-listing
+    contents:
+      - tree/plot_tree-support.qmd
+      - tree/plot_tree-square.qmd
+      - tree/plot_tree-radial.qmd
+      - tree/plot_tree-iplotx.qmd
+      - tree/plot_tree-circular.qmd
+      - tree/plot_tree-angular.qmd
+    type: grid
+    grid-columns: 3
+    image-height: 200px
+    fields: [image, title]
+    sort: false
+---
+
+We use [Plotly](https://plotly.com/python/) as our backend for visualisation. It provides excellent graph interactivity in Jupyter notebooks.
+
+## Annotations {#annotations-gallery}
+
+:::{#annotations-listing}
+:::
+
+## Alignments & Sequences
+
+:::{#aln-listing}
+:::
+
+## Phylogenetic Trees {#tree-gallery}
+
+:::{#tree-listing}
+:::

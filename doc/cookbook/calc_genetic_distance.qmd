@@ -1,0 +1,104 @@
+---
+title: "Genetic distance calculation"
+---
+## Fast pairwise distance estimation
+
+For a limited number of evolutionary models a fast implementation is
+available.
+
+```{python}
+from cogent3 import available_distances
+
+available_distances()
+```
+
+## Computing genetic distances using the `Alignment` object
+
+Abbreviations listed from `available_distances()` can be used as values for the `distance_matrix(calc=<abbreviation>)`.
+
+```{python}
+from cogent3 import load_aligned_seqs
+
+aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+dists = aln.distance_matrix(calc="tn93")
+dists
+```
+
+## Using the distance calculator directly
+
+```{python}
+from cogent3 import get_distance_calculator, load_aligned_seqs
+
+aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+dist_calc = get_distance_calculator("tn93", alignment=aln)
+dist_calc
+```
+
+```{python}
+dist_calc.run(show_progress=False)
+dists = dist_calc.get_pairwise_distances()
+dists
+```
+
+The distance calculation object can provide more information, for instance, the standard errors.
+
+```{python}
+dist_calc.stderr
+```
+
+## Likelihood based pairwise distance estimation
+
+The standard `cogent3` likelihood function can also be used to estimate distances. Because these require numerical optimisation they can be significantly slower than the fast estimation approach above.
+
+The following will use the F81 nucleotide substitution model and perform numerical optimisation.
+
+```{python}
+from cogent3 import get_model, load_aligned_seqs
+from cogent3.evolve import distance
+
+aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+d = distance.EstimateDistances(aln, submodel=get_model("F81"))
+d.run(show_progress=False)
+dists = d.get_pairwise_distances()
+dists
+```
+
+# Get the names of sequences with max pairwise distance
+
+Given a `DistanceMatrix` object, finding the sequences that have the maximum pairwise distance is achieved through the `max_pair` method. 
+
+```{python}
+from cogent3 import load_aligned_seqs
+
+aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+dists = aln.distance_matrix(calc="tn93")
+dists.max_pair()
+```
+
+To find the maximum distance, index the `DistanceMatrix` with the result of `max_pair`.
+
+```{python}
+dists[dists.max_pair()]
+```
+
+# Get the names of sequences with min pairwise distance
+
+Given a `DistanceMatrix` object, finding the sequences that have the minimum pairwise distance is achieved through the `min_pair` method. 
+
+::: {.callout-note}
+As the distance between a sequence and itself is zero, and this is not informative, `min_pair` will return the smallest distance not on the diagonal.
+:::
+
+```{python}
+from cogent3 import load_aligned_seqs
+
+aln = load_aligned_seqs("data/primate_brca1.fasta", moltype="dna")
+dists = aln.distance_matrix(calc="tn93")
+dists.min_pair()
+```
+
+To find the minimum distance, index the `DistanceMatrix` with the result of `min_pair`.
+
+```{python}
+dists[dists.min_pair()]
+```

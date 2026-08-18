@@ -1,0 +1,47 @@
+---
+title: "Apply a non-stationary nucleotide model to an alignment with a tree"
+---
+We analyse an alignment with sequences from 6 primates.
+
+```{python}
+from cogent3 import get_app
+
+loader = get_app("load_aligned", format_name="fasta", moltype="dna")
+aln = loader("data/primate_brca1.fasta")
+aln.names
+```
+
+## Specify the tree via a tree instance
+
+```{python}
+from cogent3 import load_tree
+from cogent3 import get_app
+
+tree = load_tree("data/primate_brca1.tree")
+gn = get_app("model", "GN", tree=tree)
+gn
+```
+
+## Specify the tree via a path.
+
+```{python}
+gn = get_app("model", "GN", tree="data/primate_brca1.tree")
+gn
+```
+
+## Apply the model to an alignment
+
+```{python}
+fitted = gn(aln)
+fitted
+```
+
+In the above, no value is shown for `unique_Q`. This can happen because of numerical precision issues.
+
+::: {.callout-note}
+in the display of the `lf` below, the “length” parameter is not the ENS. It is, instead, just a scalar.
+:::
+
+```{python}
+fitted.lf
+```

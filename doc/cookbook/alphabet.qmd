@@ -1,0 +1,94 @@
+---
+title: "Alphabets"
+---
+## `CharAlphabet` and `MolType`
+
+`MolType` instances have an `CharAlphabet`.
+
+```{python}
+from cogent3 import get_moltype
+
+dna = get_moltype("dna")
+print(dna.alphabet)
+protein = get_moltype("protein")
+print(protein.alphabet)
+```
+
+`CharAlphabet` instances reference the `MolType` that created them.
+
+```{python}
+dna.alphabet.moltype is dna
+```
+
+## Creating tuple alphabets
+
+You can create a tuple alphabet of, for example, dinucleotides or trinucleotides.
+
+```{python}
+dinuc_alphabet = dna.alphabet.get_kmer_alphabet(2)
+trinuc_alphabet = dna.alphabet.get_kmer_alphabet(3)
+print(dinuc_alphabet, trinuc_alphabet, sep="\n")
+```
+
+## Convert a sequence into integers
+
+```{python}
+seq = "TAGT"
+indices = dna.alphabet.to_indices(seq)
+indices
+```
+
+## Convert integers to a sequence
+
+```{python}
+import numpy
+
+data = numpy.array([0, 2, 3, 0], dtype=numpy.uint8)
+seq = dna.alphabet.from_indices(data)
+seq
+```
+
+## Converting a sequence into k-mer indices
+
+You can use a `KmerAlphabet` to convert a standard sequence into a `numpy` array of integers. In this case, each integer is the encoding of the dinucleotide string into the index of that dinucleotide. Because the `CharAlphabet` and `KmerAlphabet` both inherit from  `tuple`, they have the built-in `.index()` method.
+
+```{python}
+import numpy
+
+bases = dna.alphabet
+dinucs = bases.get_kmer_alphabet(2)
+dinucs.index("TG")    
+```
+
+The `to_indices()` method is faster and provides more flexibility. We use that on the single dinucleotide
+
+```{python}
+dinucs.to_indices("TG")
+```
+
+and on a longer sequence where we want the independent *k*-mers.
+
+```{python}
+seq = "TGTGGCACAAATACTCATGCCAGCTCATTA"
+dinuc_indices = dinucs.to_indices(seq, independent_kmer=True)
+dinuc_indices
+```
+
+We can also convert the sequence into all possible k-mers.
+
+```{python}
+dinucs.to_indices(seq, independent_kmer=False)
+```
+
+## Quality score converters
+
+`make_qual_converter` builds a callable that maps a fastq quality string (as `bytes`) into a `numpy.uint8` array of Phred scores. Both Phred+33 and Phred+64 encodings are supported.
+
+```{python}
+from cogent3.core.alphabet import make_qual_converter
+
+conv = make_qual_converter("phred+33")
+conv(b"!I~")
+```
+
+See [Directly use the genbank format parser to load a sequence and annotations](loading_sequences.qmd#load_fastq) for an example combining this with `iter_fastq_records`.

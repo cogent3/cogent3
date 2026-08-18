@@ -1,0 +1,26 @@
+/* cogent3 rich HTML reprs (sequences, alignments, tables) set no table width.
+   A block-level table with width:auto fills its containing block, so the theme
+   stretches these to the full content column. max-content sizes them to their
+   own content instead; wide tables scroll via the cell output's overflow-x.
+
+   This file is the single source for these rules: cogent3.org composes it in
+   and loads it alongside its own site-only stylesheet, so they are not
+   duplicated there. Site branding does not belong here. */
+.c3seq table,
+.c3table table,
+.c3align table {
+  width: -moz-max-content !important;
+  width: max-content !important;
+  max-width: 100% !important;
+}
+
+.c3seq td.label {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.c3table td:first-child,
+.c3table th:first-child {
+  width: 1%;
+  white-space: nowrap;
+}

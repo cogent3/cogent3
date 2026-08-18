@@ -1,0 +1,35 @@
+---
+title: "Radial Dendrogram Style"
+image: plot_tree-radial.png
+---
+```{python}
+#| echo: false
+import plotly.io as pio
+
+pio.renderers.default = "plotly_mimetype+notebook_connected"
+```
+
+```{python}
+import cogent3
+
+reader = cogent3.get_app("load_json")
+
+ens_tree = reader("data/GN-tree.json")
+fig = ens_tree.get_figure("radial", width=600, height=600)
+fig.show()
+```
+
+```{python}
+#| echo: false
+outpath = "draw/tree/plot_tree-radial.png"
+
+fig.write(outpath)
+```
+
+## With Contemporaneous Tips
+
+```{python}
+fig.contemporaneous = True
+fig.label_pad = 0.23
+fig.show()
+```

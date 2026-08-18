@@ -1,0 +1,344 @@
+project:
+  type: website
+  output-dir: _site
+  # run every code cell with the working directory set to this project root
+  # so that relative paths like "data/brca1-bats.fasta" resolve.
+  execute-dir: project
+  # data files are linked from the docs rather than referenced as markdown
+  # images, so name them explicitly to have them copied into the output
+  resources:
+    - data/
+
+# the kernel comes from the doc dependency group, so a plain ipykernel name
+# resolves to whichever interpreter is running the build
+jupyter: python3
+
+execute:
+  # only re-run a page when its source changes. _freeze/ is not committed, so
+  # this is a local development convenience only and CI renders from scratch
+  freeze: auto
+  # intentional exception demos are marked per-cell with `#| error: true`;
+  # any other cell error should fail the build (doctest-like safety)
+  error: false
+
+bibliography: cogent3.bib
+
+website:
+  title: "cogent3"
+  favicon: images/c3-square.svg
+  # This navbar is mirrored in the cogent3.org repo's doc/_quarto.yml.
+  navbar:
+    logo: images/c3-logo.svg
+    logo-alt: "cogent3"
+    # the logo is a cogent3 wordmark and is itself a link home
+    title: false
+    logo-href: /index.html
+    search: true
+    left:
+      # no "Home" entry -- the logo above is the link to the site root.
+      - text: Image Gallery
+        href: draw/index.qmd
+      - text: Installation
+        href: install.qmd
+      - text: User Guides
+        href: index.qmd
+      - text: License
+        href: licenses.qmd
+      - text: Code Sharing
+        href: ../codeshare.html
+      - text: More
+        menu:
+          - text: Community
+            href: community.qmd
+          - text: Project History
+            href: ../history.html
+          - text: How does cogent3 relate to PyCogent?
+            href: pycogent.qmd
+          - text: Projects using cogent3
+            href: ../projects.html
+          - text: Data Files Used in the Documentation
+            href: data_file_links.qmd
+          - text: Index
+            href: ../genindex.html
+    tools:
+      - icon: github
+        href: https://github.com/cogent3/cogent3
+        text: "cogent3 on GitHub"
+  # pages are listed explicitly, in the order the sphinx toctrees defined. A
+  # glob would sort them alphabetically and lose the teaching sequence
+  sidebar:
+    # Deliberately no `id:`. Quarto gives a page the `docked` grid only if it
+    # belongs to a sidebar, and a page not listed in any sidebar inherits "the
+    # first sidebar without an id or title". Leaving the id off therefore docks
+    # the pages that are not listed below -- install, community,
+    # data_file_links, pycogent, licenses, and the generated reference/*.qmd --
+    # so body text starts at the same x on every page with no CSS overrides.
+    # Adding an id here silently un-docks all of them.
+    - style: docked
+      search: true
+      collapse-level: 1
+      contents:
+        - index.qmd
+        - section: "Apps"
+          href: app/index.qmd
+          contents:
+            - section: "Overview of apps"
+              href: app/index-app.qmd
+              contents:
+                - app/app_overview/app-overview.qmd
+                - app/app_overview/app-help.qmd
+                - app/app_overview/app-get.qmd
+                - app/app_overview/available-apps.qmd
+                - app/app_overview/dstore.qmd
+                - app/app_overview/not-completed.qmd
+                - app/app_overview/user_function.qmd
+            - section: "App Cookbook"
+              href: app/index-cookbook.qmd
+              contents:
+                - section: "Loading data"
+                  href: app/app_cookbook/index-loaders.qmd
+                  contents:
+                    - app/app_cookbook/load-aligned.qmd
+                    - app/app_cookbook/load-unaligned.qmd
+                    - app/app_cookbook/load-tabular.qmd
+                    - app/app_cookbook/load-json.qmd
+                - section: "Sequence Alignment"
+                  href: app/app_cookbook/index-align.qmd
+                  contents:
+                    - app/app_cookbook/align-nucleotide.qmd
+                    - app/app_cookbook/align-codon.qmd
+                    - app/app_cookbook/align-protein.qmd
+                - section: "Filtering data"
+                  href: app/app_cookbook/index-sample.qmd
+                  contents:
+                    - app/app_cookbook/sample-omit-degen.qmd
+                    - app/app_cookbook/sample-omit-gap.qmd
+                    - app/app_cookbook/sample-omit-bad.qmd
+                    - app/app_cookbook/sample-omit-duplicated.qmd
+                    - app/app_cookbook/sample-min-len.qmd
+                    - app/app_cookbook/sample-fixed-len.qmd
+                    - app/app_cookbook/sample-trim-stops.qmd
+                    - app/app_cookbook/sample-take-pos.qmd
+                    - app/app_cookbook/sample-take-seqs.qmd
+                    - app/app_cookbook/sample-take-n-seqs.qmd
+                    - app/app_cookbook/sample-concat.qmd
+                - section: "Writing Data"
+                  href: app/app_cookbook/index-writers.qmd
+                  contents:
+                    - app/app_cookbook/write-seqs.qmd
+                    - app/app_cookbook/write-tabular.qmd
+                    - app/app_cookbook/write-json.qmd
+                    - app/app_cookbook/write-db.qmd
+            - section: "App Tutorials"
+              href: app/index-tutorials.qmd
+              contents:
+                - section: "Modelling sequence evolution"
+                  href: app/app_tutorials/index-evo-model.qmd
+                  contents:
+                    - app/app_tutorials/evo-model.qmd
+                    - app/app_tutorials/evo-model-with-tree.qmd
+                    - app/app_tutorials/evo-model-timehet.qmd
+                    - app/app_tutorials/evo-extract-model-stats.qmd
+                    - app/app_tutorials/evo-ancestral-states.qmd
+                    - app/app_tutorials/evo-dt-nuc-model.qmd
+                    - app/app_tutorials/evo-tr-nuc-model.qmd
+                    - app/app_tutorials/evo-nstat-codon-model.qmd
+                    - app/app_tutorials/evo-tr-codon-model.qmd
+                - section: "Testing hypotheses about sequence evolution"
+                  href: app/app_tutorials/index-evo-hypothesis.qmd
+                  contents:
+                    - app/app_tutorials/evo-hypothesis.qmd
+                - section: "Testing for natural selection"
+                  href: app/app_tutorials/index-evo-natsel.qmd
+                  contents:
+                    - app/app_tutorials/evo-natsel_neutral.qmd
+                    - app/app_tutorials/evo-natsel_timehet.qmd
+                    - app/app_tutorials/evo-natsel_sitehet.qmd
+                    - app/app_tutorials/evo-natsel_zhang.qmd
+        - section: "Cookbook"
+          href: cookbook/index.qmd
+          contents:
+            - section: "Manipulating biological data"
+              href: cookbook/manipulating_biological_data.qmd
+              contents:
+                - cookbook/loading_sequences.qmd
+                - cookbook/DNA_and_RNA_sequences.qmd
+                - cookbook/protein_sequences.qmd
+                - cookbook/alignments.qmd
+                - cookbook/features.qmd
+                - cookbook/annotation_db.qmd
+                - cookbook/moltypes.qmd
+                - cookbook/alphabet.qmd
+                - cookbook/what_codes.qmd
+                - cookbook/genetic_code.qmd
+                - cookbook/simple_trees.qmd
+            - cookbook/tables.qmd
+            - cookbook/building_alignments.qmd
+            - cookbook/calc_genetic_distance.qmd
+            - cookbook/building_phylogenies.qmd
+            - cookbook/evo_modelling.qmd
+            - cookbook/useful_utilities.qmd
+        - section: "Tutorials"
+          href: examples/index.qmd
+          contents:
+            - examples/align_codons_to_protein.qmd
+            - examples/period_estimation.qmd
+            - examples/simple.qmd
+            - examples/relative_rate.qmd
+            - examples/neutral_test.qmd
+            - examples/scope_model_params_on_trees.qmd
+            - examples/codon_models.qmd
+            - examples/empirical_protein_models.qmd
+            - examples/testing_multi_loci.qmd
+            - examples/simulate_alignment.qmd
+            - examples/parametric_bootstrap.qmd
+            - examples/rate_heterogeneity.qmd
+            - examples/hmm_par_heterogeneity.qmd
+            - examples/nonstationary_inference.qmd
+            - examples/calculate_pairwise_distances.qmd
+            - examples/calculate_neigbourjoining_tree.qmd
+            - examples/calculate_UPGMA_cluster.qmd
+            - examples/phylo_by_ls.qmd
+            - examples/parallel.qmd
+        - section: "Image Gallery"
+          href: draw/index.qmd
+          # A bare `draw/aln/*.qmd` does NOT expand in sidebar contents -- quarto
+          # emits it as literal, unlinked text. The `auto:` form does expand, but
+          # sorts alphabetically, which is the reverse of the order the gallery
+          # presents. So these are listed explicitly, matching the listings in
+          # draw/index.qmd; keep the two in step when adding a gallery page.
+          contents:
+            - draw/annotations/plot_seq-features.qmd
+            - draw/annotations/plot_annotation-db.qmd
+            - draw/aln/plot_aln-seqlogo.qmd
+            - draw/aln/plot_aln-info-plot.qmd
+            - draw/aln/plot_aln-gaps-per-seq.qmd
+            - draw/aln/plot_aln-dotplot-3.qmd
+            - draw/aln/plot_aln-dotplot-2.qmd
+            - draw/aln/plot_aln-dotplot-1.qmd
+            - draw/aln/plot_aln-coevolution.qmd
+            - draw/tree/plot_tree-support.qmd
+            - draw/tree/plot_tree-square.qmd
+            - draw/tree/plot_tree-radial.qmd
+            - draw/tree/plot_tree-iplotx.qmd
+            - draw/tree/plot_tree-circular.qmd
+            - draw/tree/plot_tree-angular.qmd
+        # a plain entry rather than a section: quartodoc's per-symbol
+        # reference/_sidebar.yml is not merged into this sidebar, so a section
+        # here would collapse to a single child linking back to its own header
+        - reference/index.qmd
+        # install / community / data_file_links / pycogent / licenses are not
+        # listed here on purpose: they are reached from the cogent3.org header,
+        # and listing them would duplicate it in the sidebar. They still get the
+        # docked layout by inheriting this sidebar -- see the note on the missing
+        # `id:` above.
+
+format:
+  html:
+    # declaring both variants makes quarto render a light/dark toggle in the
+    # navbar, which the pydata-themed sphinx site also had. Must match
+    # cogent3.org's doc/_quarto.yml or the toggle state and colours change as
+    # you cross the /doc/ boundary.
+    theme:
+      light: cosmo
+      dark: darkly
+    css: custom.css
+    # page geometry is declared here rather than by overriding quarto's CSS
+    # grid: quarto derives the responsive (mobile vs desktop, docked vs
+    # floating) behaviour from these four values, and hand-writing
+    # grid-template-columns discards that. Must match cogent3.org's
+    # doc/_quarto.yml or the body column changes width across the /doc/ boundary.
+    grid:
+      sidebar-width: 250px
+      body-width: 800px
+      margin-width: 250px
+      gutter-width: 1.5em
+    toc: true
+    toc-depth: 4
+    # cogent3 objects render their own styled HTML tables. Leave them untouched
+    # rather than converting to Bootstrap tables, which forces full body width.
+    html-table-processing: none
+
+# API reference generated from numpydoc docstrings via griffe (static analysis).
+# cogent3's top-level exports are lazy (__getattr__), so several are referenced
+# by their real module path to be statically resolvable.
+quartodoc:
+  package: cogent3
+  dir: reference
+  parser: numpy
+  title: API Reference
+  sidebar: reference/_sidebar.yml
+  options:
+    include_inherited: true
+  sections:
+    - title: Loading data from file
+      desc: Top-level functions for loading data.
+      contents:
+        - load_seq
+        - load_aligned_seqs
+        - load_unaligned_seqs
+        - parse.table.load_delimited
+        - core.table.load_table
+        - core.tree.load_tree
+        - core.annotation_db.load_annotations
+    - title: Making cogent3 objects
+      desc: Constructors from standard Python types.
+      contents:
+        - make_seq
+        - core.alignment.make_aligned_seqs
+        - core.alignment.make_unaligned_seqs
+        - core.table.make_table
+        - core.tree.make_tree
+    - title: Getting commonly used types
+      contents:
+        - core.genetic_code.get_code
+        - core.moltype.get_moltype
+        - evolve.models.get_model
+    - title: Listing builtins
+      contents:
+        - core.genetic_code.available_codes
+        - core.moltype.available_moltypes
+        - evolve.models.available_models
+        - app.available_apps
+    - title: Sequences
+      desc: Biological sequence objects.
+      contents:
+        - core.sequence.Sequence
+        - core.sequence.DnaSequence
+        - core.sequence.RnaSequence
+        - core.sequence.ProteinSequence
+    - title: Sequence collections & alignments
+      contents:
+        - core.alignment.SequenceCollection
+        - core.alignment.Alignment
+        - core.alignment.Aligned
+    - title: Sequence storage & views
+      contents:
+        - core.seq_storage.SeqsData
+        - core.seq_storage.AlignedSeqsData
+        - core.seqview.SeqView
+        - core.seqview.SeqDataView
+        - core.seqview.AlignedDataView
+        - core.slice_record.SliceRecord
+    - title: Annotations
+      contents:
+        - core.annotation.Feature
+        - core.annotation_db.BasicAnnotationDb
+        - core.annotation_db.GffAnnotationDb
+        - core.annotation_db.GenbankAnnotationDb
+    - title: Molecular types & alphabets
+      contents:
+        - core.moltype.MolType
+        - core.genetic_code.GeneticCode
+        - core.alphabet.CharAlphabet
+        - core.alphabet.KmerAlphabet
+        - core.alphabet.SenseCodonAlphabet
+        - core.alphabet.PhredEncoding
+    - title: Tables
+      contents:
+        - core.table.Table
+        - core.table.Columns
+        - parse.table.FilteringParser
+    - title: Trees
+      contents:
+        - core.tree.PhyloNode
