@@ -1,11 +1,11 @@
 [build-system]
-requires = ["flit_core >=3.2,<5"]
-build-backend = "flit_core.buildapi"
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
 
 [project]
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
-dynamic = ["version"]
+version = "2026.7.30a0"
 
 authors = [{ name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" }]
 keywords = [
@@ -17,7 +17,8 @@ keywords = [
     "bioinformatics",
 ]
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 dependencies = [
     "charset_normalizer",
     "citeable",
@@ -41,7 +42,6 @@ requires-python = ">=3.11,<3.15"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Operating System :: OS Independent",
@@ -104,7 +104,6 @@ doc = [
     "iplotx>=1.7.1",
 ]
 dev = [
-    "flit",
     "nox",
     "scriv",
     "types-tqdm",
@@ -113,9 +112,20 @@ dev = [
     { include-group = "typing" },
 ]
 
-[tool.flit.sdist]
-include = ["doc/", "requirements.txt", "src/*", "pyproject.toml"]
-exclude = ["doc/*.html", "doc/_site/", "doc/_freeze/", "doc/.quarto/", "doc/reference/"]
+[tool.uv.build-backend]
+module-root = "src"
+module-name = "cogent3"
+source-include = ["doc/**"]
+source-exclude = [
+    "**/__pycache__",
+    "**/.mypy_cache",
+    "doc/*.html",
+    "doc/_site",
+    "doc/_freeze",
+    "doc/.quarto",
+    "doc/reference",
+]
+wheel-exclude = ["**/__pycache__", "**/.mypy_cache"]
 
 [tool.pytest.ini_options]
 markers = [
@@ -157,7 +167,7 @@ categories = [
     "Discontinued",
 ]
 output_file = "changelog.md"
-version = "literal: src/cogent3/_version.py:__version__"
+version = "literal: pyproject.toml: project.version"
 skip_fragments = "README.*"
 new_fragment_template = "file: changelog.d/templates/new.md.j2"
 entry_title_template = "file: changelog.d/templates/title.md.j2"
