@@ -1,1 +1,3 @@
-__version__ = "2026.7.30a0"
+from importlib.metadata import version
+
+__version__ = version("cogent3")
