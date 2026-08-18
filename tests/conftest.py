@@ -1,6 +1,12 @@
+import os
 import pathlib
 
 import pytest
+
+
+def pytest_configure() -> None:
+    # tests use paths relative to this directory
+    os.chdir(pathlib.Path(__file__).parent)
 
 
 @pytest.fixture(scope="session")
