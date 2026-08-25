@@ -249,7 +249,7 @@ class GeneticCode:
         -------
         The amino acid sequence as a string.
         """
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # previous implementation converted mix of ambigs and nt to '?', potentially
         # we should change the behaviour to match this.
         if start:
@@ -581,7 +581,7 @@ def get_code(code_id: str | int | GeneticCode = 1) -> GeneticCode:
         genetic code identifier, name, number or string(number), defaults to
         standard genetic code
     """
-    # refactor: simplify
+    # refactor: simplify   # noqa: ERA001, RUF100
     # added for compatibility with previous API, should be removed when
     # support for old style is dropped
     code_id = code_id or 1

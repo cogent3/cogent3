@@ -142,9 +142,6 @@ class TransitionMatrix:
             def blended(a, b):
                 return (a + b) / 2.0
 
-            # blended = lambda a,b: numpy.sqrt(a*b)
-            # blended = lambda a,b: b
-
         R = self.Matrix
         n = len(R)
         assert len(Ts) == n

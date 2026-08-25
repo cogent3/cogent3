@@ -88,8 +88,7 @@ def pkolmogorov2x(statistic, n):
 
 def pkstwo(x_vector, tolerance=1e-6):
     """Probability from the Kolmogorov asymptotic distribution."""
-    # if isinstance(x_vector, float):
-    #    x_vector = asarray(x_vector)
+
     x_vector = array(x_vector, ndmin=1)
     size = len(x_vector)
     k_max = int(sqrt(2 - log(tolerance)))

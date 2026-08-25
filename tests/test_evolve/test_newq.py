@@ -79,13 +79,13 @@ class NewQ(TestCase):
     # Each of these (data, model) pairs should give a result different
     # from any of the simpler models applied to the same data.
     ordered_by_complexity = [
-        # P(AA) == P(GG) == P(AG)
+        # P(AA) == P(GG) == P(AG)  # noqa: ERA001, RUF100
         [symm_root_probs, "tuple"],
-        # P(GA) == P(AG) but P(AA) != P(GG)
+        # P(GA) == P(AG) but P(AA) != P(GG)  # noqa: ERA001, RUF100
         [asymm_root_probs, "monomer"],
-        # P(AG) == P(A?)*P(?G) but P(A?) != P(?A)
+        # P(AG) == P(A?)*P(?G) but P(A?) != P(?A)  # noqa: ERA001, RUF100
         [posn_root_probs, "monomers"],
-        # P(AG) != P(A?)*P(?G)
+        # P(AG) != P(A?)*P(?G)  # noqa: ERA001, RUF100
         [cond_root_probs, "conditional"],
     ]
 

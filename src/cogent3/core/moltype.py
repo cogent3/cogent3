@@ -975,7 +975,7 @@ class MolType(Generic[TStrOrBytes]):
         AlphabetError
             if invalid characters present
         """
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # cache translation callables (using alpabet.convert_alphabet)
         # previous implementation had support for tuples -- is this necessary?
         if not isinstance(seq, (str, bytes, numpy.ndarray)):
@@ -1078,7 +1078,7 @@ class MolType(Generic[TStrOrBytes]):
                 msg,
             )
 
-        # refactor: simplify
+        # refactor: simplify   # noqa: ERA001, RUF100
         ambigs = cast(
             "dict[str | None, frozenset[str] | set[str] | tuple[str, ...]]",
             self.ambiguities or {},
@@ -1101,7 +1101,7 @@ class MolType(Generic[TStrOrBytes]):
                 k=len(ambig_motif),
                 include_gap=allow_gap,
             )
-            # refactor: design
+            # refactor: design   # noqa: ERA001, RUF100
             # with_gap_motif() is not implemented on KmerAlphabet, check whether
             # allow_gap makes sense in this case
             alphabet = word_alpha.with_gap_motif() if allow_gap else word_alpha
@@ -1475,7 +1475,7 @@ class MolType(Generic[TStrOrBytes]):
         Truncates at length of shorter sequence. gaps are only allowed to match
         other gaps.
         """
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # is this method necessary?
         m = self.matching_rules
         return all(pair in m for pair in zip(first, second, strict=False))

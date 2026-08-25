@@ -116,7 +116,7 @@ class Aligned(AnnotatableMixin):
     ) -> Aligned:
         """Creates an Aligned instance from an indel map and a Sequence."""
         moltype = seq.moltype
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # this is a temporary approach during migration to new_types
         # to support the sequence alignment algorithms
         # a better solution is to create a AlignedDataView instance the
@@ -140,7 +140,7 @@ class Aligned(AnnotatableMixin):
         moltype = cast("c3_moltype.MolType[Any]", seq.alphabet.moltype)
         seqid = cast("str", seq.seqid)
         seq_arr = seq.array_value
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # see above comment in from_map_and_seq
         asd = AlignedSeqsData.from_seqs_and_gaps(
             seqs={seqid: seq_arr},
@@ -2740,7 +2740,7 @@ class Alignment(CollectionBase[Aligned]):
 
     @property
     def positions(self) -> list[list[str]]:
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # possibly rename to str_positions since we have array_positions
         from_indices = self.moltype.most_degen_alphabet().from_indices
         return [list(from_indices(pos)) for pos in self.array_positions]
@@ -3194,7 +3194,7 @@ class Alignment(CollectionBase[Aligned]):
     ) -> Self:
         from cogent3.core.genetic_code import get_code
 
-        # refactor: array
+        # refactor: array   # noqa: ERA001, RUF100
         if not self.has_terminal_stop(gc=gc, strict=strict):
             return self
 
@@ -3699,7 +3699,7 @@ class Alignment(CollectionBase[Aligned]):
         -------
         yields lists of elemenets for each position (column) in the alignment
         """
-        # refactor: array
+        # refactor: array   # noqa: ERA001, RUF100
         # this could also iter columns of indices as a numpy array - could be an optional arg
         # refactor: add motif_length argument
         pos_order = pos_order or range(len(self))
@@ -3725,7 +3725,7 @@ class Alignment(CollectionBase[Aligned]):
         # implement native
         new_f = negate_condition(f) if negate else f
 
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # use array_positions here
         return [i for i, col in enumerate(self.positions) if new_f(col)]
 
@@ -3826,7 +3826,7 @@ class Alignment(CollectionBase[Aligned]):
             warns if motif_length > 1 and alignment trimmed to produce
             motif columns
         """
-        # refactor: performance
+        # refactor: performance   # noqa: ERA001, RUF100
         # use self.variable_positions and a numba decorated
         # function for counting k-mers the latter should allow returning the
         # first allowed state for when position is not variable
@@ -4172,7 +4172,7 @@ class Alignment(CollectionBase[Aligned]):
                 yield self[pos : pos + window]
 
     def gapped_by_map(self, keep: FeatureMap, **kwargs: Any) -> Self:
-        # refactor: docstring
+        # refactor: docstring   # noqa: ERA001, RUF100
         # TODO: kath, not explicitly tested
         seqs: dict[str, NumpyIntArrayType] = {}
         for seq in self.seqs:
@@ -4417,7 +4417,7 @@ class Alignment(CollectionBase[Aligned]):
         defaults generates a standard bootstrap resampling of the alignment.
         """
         # refactor: type hint for randint, permutation
-        # refactor: array
+        # refactor: array   # noqa: ERA001, RUF100
         #  Given array_pos property, it will be efficient to generate random
         # indices and use numpy.take() using that. In the case of motif_length
         # != 1, the total number of positions is just len(self) // motif_length.
@@ -4690,7 +4690,7 @@ class Alignment(CollectionBase[Aligned]):
         from cogent3.evolve import coevolution as coevo
         from cogent3.util.union_dict import UnionDict
 
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # These graphical representations of matrices should be separate functions
         # in the drawing submodule somewhere
         stat = stat.lower()
@@ -4802,7 +4802,7 @@ class Alignment(CollectionBase[Aligned]):
         """
         from cogent3.draw.drawable import AnnotatedDrawable, Drawable
 
-        # refactor: design
+        # refactor: design   # noqa: ERA001, RUF100
         # These graphical representations of matrices should be separate functions
         # in the drawing submodule somewhere
         window = int(window or numpy.sqrt(len(self)))
@@ -5657,7 +5657,7 @@ def make_unaligned_seqs(
     If the sequences are annotated AND an annotation_db is provided, only the
     annotation_db is used.
     """
-    # refactor: design
+    # refactor: design   # noqa: ERA001, RUF100
     # rename offset to offsets as it could track potentially multiple offsets
 
     if isinstance(data, SeqsDataABC):

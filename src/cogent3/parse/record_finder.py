@@ -59,8 +59,7 @@ def DelimitedRecordFinder(
         for line in lines:
             if constructor:
                 line = constructor(line)
-            # else:
-            #    line = l
+
             # ignore blank lines
             if ignore(line):
                 continue

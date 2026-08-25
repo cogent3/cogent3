@@ -841,7 +841,6 @@ def NestedSplitter(
 
         return result
 
-    # parser.__doc__ = make_innerdoc(NestedSplitter, parser, locals())
     return parser
 
 

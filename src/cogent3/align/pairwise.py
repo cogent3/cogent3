@@ -44,10 +44,7 @@ class PointerEncoding:
         self.widths = numpy.array([x, y, s]).astype(int)
         self.limits = 2**self.widths
         self.max_states = self.limits[-1]
-        if DEBUG:
-            pass
         self.positions = numpy.array([0, x, x + y], int)
-        # a.flags.writeable = False
 
     def encode(self, x, y, s):
         parts = numpy.asarray([x, y, s], int)
@@ -149,8 +146,7 @@ def py_calc_rows(
                     d_score = ygap_scores[bin, y]
                 else:
                     d_score = neutral_score
-                # if DEBUG:
-                #    print (dx, dy), d_score, cumulative_score
+
                 if use_logs:
                     current_row[j, state] = cumulative_score + d_score
                 else:
@@ -585,8 +581,7 @@ class AlignableSeq(_Alignable):
             if 0 < index < len(self.index):
                 return [index - 1]
             raise IndexError(index)
-        # elif index == slice(None, None, None):
-        #    return self
+
         return AlignableSeq(self.leaf[index])
 
     def midlinks(self):

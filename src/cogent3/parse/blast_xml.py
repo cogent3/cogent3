@@ -90,9 +90,7 @@ def parse_hsp(hsp_tag):
     result = []
     for tag_name in HSP_XML_TAGNAMES:
         result.append(get_tag(hsp_tag, tag_name, 0))
-    # what about these?
-    #    self.identity = int(self.get_tag(record,'Hsp_identity', 0))
-    #    self.positive = int(self.get_tag(record, 'Hsp_positive', 0))
+
     return result
 
 
@@ -178,12 +176,6 @@ class BlastXMLResult(dict):
     SUBJECT_END = "S. END"
     E_VALUE = "E-VALUE"
     BIT_SCORE = "BIT_SCORE"
-
-    # FieldComparisonOperators = (
-    #    BlastResult.FieldComparisonOperators = {
-    #        HIT_DEF:(_gt, float)
-    #        }
-    # .. to be done
 
     hit_keys = {
         HIT_DEF,

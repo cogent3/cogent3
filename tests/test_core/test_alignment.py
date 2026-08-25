@@ -3150,7 +3150,7 @@ def test_aligned_getitem_featuremap_multi_spans(aligned):
     #                      1111111
     #            01234567890123456
     #             ***   **    ***
-    # raw_seq = "AAAGG--GGG-AACCCT"
+    # raw_seq = "AAAGG--GGG-AACCCT"  # noqa: ERA001, RUF100
     #            01234  567 890123
     #                         1111
 

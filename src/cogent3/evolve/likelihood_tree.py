@@ -100,7 +100,6 @@ class _LikelihoodTreeEdge:
         unambig = (self.ambig == 1.0).nonzero()[0]
         observed = self.counts[unambig].astype(int)
         expected = likelihoods[unambig] * observed.sum()
-        # chisq = ((observed-expected)**2 / expected).sum()
         G = 2 * observed.dot(numpy.log(observed / expected))
 
         if return_table:
@@ -185,7 +184,7 @@ class LikelihoodTreeEdge(_LikelihoodTreeEdge):
 
 def _indexed(values):
     # >>> _indexed(['a', 'b', 'c', 'a', 'a'])
-    # (['a', 'b', 'c'], [3, 1, 1], [0, 1, 2, 0, 0])
+    # (['a', 'b', 'c'], [3, 1, 1], [0, 1, 2, 0, 0])   # noqa: ERA001, RUF100
     index = numpy.zeros([len(values)], int)
     unique = []
     counts = []
@@ -233,7 +232,7 @@ def make_likelihood_tree_leaf(sequence, alphabet, seq_name):
 
     counts = numpy.array(counts, float)
 
-    # refactor: simplify
+    # refactor: simplify   # noqa: ERA001, RUF100
     # added for compatibility between old and new style sequences/moltype/alphabets
     # should be simplified when old style is removed
     from cogent3.core.alphabet import CharAlphabet

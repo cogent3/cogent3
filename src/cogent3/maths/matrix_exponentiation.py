@@ -1,7 +1,7 @@
 # 4 implementations of P = exp(Q*t)
 # APIs along the lines of:
 #   exponentiator = WhateverExponenentiator(Q or Q derivative(s))
-#   P = exponentiator(t)
+#   P = exponentiator(t)   # noqa: ERA001, RUF100
 #
 #           Class(Q)     instance(t)       Limitations
 # Eigen      slow           fast           not too asymm
@@ -48,12 +48,9 @@ def SemiSymmetricExponentiator(motif_probs, Q):
 
     H = numpy.sqrt(motif_probs)
     H2 = numpy.divide.outer(H, H)
-    # A = Q * H2
-    # assert numpy.allclose(A, numpy.transpose(A)), A
     (roots, R) = eig(Q * H2)
     ev = R.T / H2
     evI = (R * H2).T
-    # self.evT = numpy.transpose(self.ev)
     return EigenExponentiator(Q, roots, ev, ev.T, evI)
 
 

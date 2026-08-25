@@ -445,12 +445,8 @@ class ConsensusTests(unittest.TestCase):
         sct = ScoredTreeCollection(
             list(zip([1] * 3, self.rooted_conflicting_trees, strict=False)),
         )
-        # cts = sct.get_consensus_trees(method='rooted')
         ct = sct.get_consensus_trees(method="rooted")[0]
         assert ct.same_topology(Tree("(a,b,c,d);"))
-        # for tree in cts:
-        #    print str(tree)
-        # self.assertTrue(set(map(str, cts))==set(['('+c+');' for c in 'abcd']))
 
     def test_weighted_consensus_from_scored_trees_collection(self):
         """weighted consensus from a tree collection should be different"""

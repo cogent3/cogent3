@@ -33,7 +33,7 @@ class General(Parametric):
     """A continuous substitution model with one free parameter for each and
     every possible instantaneous substitution."""
 
-    # k = self.param_pick[i,j], 0<=k<=N+1
+    # k = self.param_pick[i,j], 0<=k<=N+1   # noqa: ERA001, RUF100
     # k==0:   not instantaneous, should be 0.0 in Q
     # k<=N:   apply Kth exchangeability parameter
     # k==N+1: no parameter, should be 1.0 in unscaled Q

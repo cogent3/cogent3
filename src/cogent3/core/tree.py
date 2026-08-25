@@ -189,19 +189,6 @@ class PhyloNode:
         """Returns Newick-format string representation of tree."""
         return self.get_newick(with_distances=True)
 
-    # TODO have methods that need to rely on identity of self and
-    # other actually do that
-    # For now, the following comparison operators are peculiar in that
-    # that by omitting eq/ne methods those default to id()
-    # whereas sorting should be based on name
-    # I think the remove etc .. operations should explicitly
-    # used id()
-    # def __eq__(self, other):
-    # return self.name == other.name
-
-    # def __ne__(self, other):
-    # return self.name != other.name
-
     def __lt__(self, other: PhyloNode) -> bool:
         return self.name < other.name
 

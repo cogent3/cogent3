@@ -55,8 +55,8 @@ def the_one_item_in(items):
 def _indexed(values):
     # This is the core of the redundancy elimination, used to group
     # identical calculations.
-    # >>> _indexed({'a':1.0, 'b':2.0, 'c':3.0, 'd':1.0, 'e':1.0})
-    # ([1.0, 2.0, 3.0], {'a':0, 'b':1, 'c':2, 'd':0, 'e':0})
+    # >>> _indexed({'a':1.0, 'b':2.0, 'c':3.0, 'd':1.0, 'e':1.0})  # noqa: ERA001, RUF100
+    # ([1.0, 2.0, 3.0], {'a':0, 'b':1, 'c':2, 'd':0, 'e':0})  # noqa: ERA001, RUF100
     uniq = []
     index = {}
     values = list(values.items())

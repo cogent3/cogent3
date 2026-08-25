@@ -502,7 +502,6 @@ class PartitionDefn(_InputDefn):
         return numpy.array([1.0 / self.size] * self.size)
 
     def make_default_setting(self):
-        # return ConstVal(self.default)
         return Var((None, self.default.copy(), None))
 
     def check_setting_is_valid(self, setting):
@@ -640,9 +639,9 @@ class SelectForDimension(_Defn):
 
 # Some simple CalcDefns
 
-# SumDefn = CalcDefn(lambda *args:sum(args), 'sum')
-# ProductDefn = CalcDefn(lambda *args:numpy.prod(args), 'product')
-# CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')
+# SumDefn = CalcDefn(lambda *args:sum(args), 'sum')  # noqa: ERA001, RUF100
+# ProductDefn = CalcDefn(lambda *args:numpy.prod(args), 'product')  # noqa: ERA001, RUF100
+# CallDefn = CalcDefn(lambda func,*args:func(*args), 'call')  # noqa: ERA001, RUF100
 
 
 class SwitchDefn(CalculationDefn):

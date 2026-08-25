@@ -1073,7 +1073,7 @@ class IndelMap(MapABC):
         # that will also be sliced. Hence, we need to shift the gap insertion
         # positions relative to this newly sliced sequence.
 
-        # refactor: simplify
+        # refactor: simplify   # noqa: ERA001, RUF100
 
         step = 1 if item.step is None else item.step
         func = _input_vals_pos_step if step > 0 else _input_vals_neg_step
@@ -1237,7 +1237,7 @@ class IndelMap(MapABC):
             True if no gaps are present in the slice
         """
         # note that this methods assumes positive indexing and a positive step
-        # (i.e. start, stop, step > 0)
+        # (i.e. start, stop, step > 0)   # noqa: ERA001, RUF100
 
         # when slicing an indel maps, we can have four easy cases:
         # 1 - invalid slice

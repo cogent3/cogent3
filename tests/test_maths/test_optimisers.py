@@ -67,7 +67,7 @@ class OptimiserTestCase(TestCase):
 
     def test_bounded(self):
         # Global minimum out of bounds, so find secondary one
-        # numpy.seterr('raise')
+
         self._test_optimisation(bounds=([0.0], [10.0]), target=2, seed=1)
 
     def test_local(self):
@@ -80,10 +80,6 @@ class OptimiserTestCase(TestCase):
             self._test_optimisation,
             max_evaluations=5,
         )
-
-    # def test_limited_warning(self):
-    #     """optimiser warning if max_evaluations exceeded"""
-    #     self._test_optimisation(max_evaluations=5, limit_action='warn')
 
     def test_get_max_eval_count(self):
         """return the evaluation count from optimisation"""

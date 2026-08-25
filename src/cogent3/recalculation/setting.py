@@ -80,10 +80,6 @@ class ConstVal(Setting):
     def __repr__(self) -> str:
         return f"ConstVal({self.value!r})"
 
-    # indep useful sometimes!
-    # def __eq__(self, other):
-    #    return type(self) is type(other) and other.value == self.value
-
     def get_default_value(self):
         return self.value
 

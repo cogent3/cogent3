@@ -2158,7 +2158,6 @@ def test_relative_position(integer_seq):
     the given index precedes or exceeds the range of the SeqView."""
 
     view = integer_seq[1:9:]
-    # view = "12345678"
     got = view.slice_record.relative_position(0)
     # precedes the view, so should return -1
     assert got == -1
@@ -2207,7 +2206,6 @@ def test_relative_position_with_remainder(integer_seq):
     """tests relative_position when the index given is excluded from the view as it falls on
     a position that is 'stepped over'"""
     view = integer_seq[1:9:2]
-    # view = "1357"
     got = view.slice_record.relative_position(2)
     # 2 is stepped over in the view, so we return the index of 3 (which is 1)
     assert got == 1
@@ -2802,7 +2800,7 @@ def test_seqview_attrs_non_modulo(rev):
     assert sr.plus_stop == 5
 
     # start = -3, stop = -9, step = -3
-    #  (     ]
+    #  (     ]  # noqa: ERA001, RUF100
     # 0123456789
     #     *  *
     sr = c3_slice_record.SliceRecord(start=-3, stop=-9, step=-3, parent_len=10)

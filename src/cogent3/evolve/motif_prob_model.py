@@ -103,9 +103,6 @@ class ComplexMotifProbModel(MotifProbModel):
         self.word_length = length = tuple_alphabet.motif_len
         size = len(tuple_alphabet)
 
-        # m2w[AC, 1] = C
-        # w2m[0, AC, A] = True
-        # w2c[ATC, AT*] = 1
         self.m2w = m2w = numpy.zeros([size, length], int)
         self.w2m = w2m = numpy.zeros([length, size, len(monomers)], int)
         contexts = monomers.get_kmer_alphabet(length - 1)

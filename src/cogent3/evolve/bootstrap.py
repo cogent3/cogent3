@@ -98,7 +98,7 @@ class ParametricBootstrapCore:
             aln_rnd.setstate(alignment_random_state)
             # TODO jumpahead was deprecated, we need to consider an alternate
             # approach here. Commenting out for now.
-            # aln_rnd.jumpahead(i*10**9)
+            # `aln_rnd.jumpahead(i*10**9)`
             simalign = null_pc.simulate_alignment(random_series=aln_rnd)
             (dummy, result) = each_model(simalign)
             return result

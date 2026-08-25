@@ -169,7 +169,6 @@ class EbiTests(TestCase):
         """linecode_maker: should return expected tuple"""
         tests = ["AA   aa.", "BB    bb.", "CC C   cc.", "DD dd."]
         expected_linecodes = ["AA", "BB", "CC C", "DD dd."]
-        # pprint(map(linecode_maker, tests))
         assert list(map(linecode_maker, tests)) == list(
             zip(expected_linecodes, tests, strict=False),
         )
@@ -177,7 +176,6 @@ class EbiTests(TestCase):
     def test_labeloff(self):
         """labeloff: should return expected lines"""
         tests = ["AA   aa.", "BB    bb.", "CC C   cc.", "DD dd.", "EE", ""]
-        # expects = [line[5:] for line in tests]
         expects = ["aa.", " bb.", "  cc.", ".", "", ""]
         assert labeloff(tests) == expects
 
@@ -384,7 +382,7 @@ class RootParsersKnownValues(TestCase):
             {"OfficalName": "AAA", "Synonyms": []},
             {"OfficalName": "", "Synonyms": []},
         ]
-        # pprint(map(de_itemparser, inputs))
+
         assert list(map(de_itemparser, inputs)) == expects
 
     def test_pr_parser(self):
@@ -494,7 +492,7 @@ class FT_Tests(TestCase):
             ("PROPEP", "?25", 48, "/FTId=PRO_021449"),
             ("VARIANT", 214, 214, "V -> I. /FTId=VAR_009122"),
         ]
-        # pprint(map(ft_basic_itemparser, inputs))
+
         assert list(map(ft_basic_itemparser, inputs)) == expects
 
     def test_try_int(self):
@@ -520,7 +518,6 @@ class FT_Tests(TestCase):
             {"Description": "E -> R (tumor)", "Id": "VAR_002343"},
         ]
 
-        # pprint(map(ft_id_parser, inputs))
         assert list(map(ft_id_parser, inputs)) == expects
 
     def test_ft_mutation_parser(self):
@@ -542,7 +539,6 @@ class FT_Tests(TestCase):
             {"MutateFrom": "missing ", "Comment": "tumor", "MutateTo": ""},
         ]
 
-        # pprint(map(ft_mutation_parser, inputs))
         assert list(map(ft_mutation_parser, inputs)) == expects
 
     def test_ft_mutation_parser_raise(self):
@@ -564,7 +560,6 @@ class FT_Tests(TestCase):
             },
         ]
 
-        # pprint(map(ft_mutagen_parser, inputs))
         assert list(map(ft_mutagen_parser, inputs)) == expects
 
     def test_ft_id_mutation_parser(self):
@@ -573,7 +568,7 @@ class FT_Tests(TestCase):
     def test_ft_parser(self):
         """ft_parser should return expected dict"""
         lines = ft_lines
-        # pprint(ft_parser(lines))
+
         assert ft_parser(lines) == ft_expect
 
 
@@ -582,7 +577,7 @@ class CC_Tests(TestCase):
 
     def test_cc_itemfinder_valid(self):
         """cc_itemfinder: yield each expected block."""
-        # pprint(list(cc_itemfinder(labeloff(cc_lines))))
+
         input_with_license = labeloff(cc_lines)
         assert len(list(cc_itemfinder(input_with_license))) == 9
 
@@ -635,7 +630,6 @@ class CC_Tests(TestCase):
 
     def test_cc_biophysicochemical_properties_parser(self):
         """cc_biophysicochemical_properties_parser: known values"""
-        # pprint(cc['BIOPHYSICOCHEMICAL PROPERTIES'])  #topic specific parser
         f = cc_biophysicochemical_properties_parser
         valid_inputs = [
             [
@@ -699,14 +693,11 @@ class CC_Tests(TestCase):
             ],
         ]
 
-        # pprint(map(f,valid_inputs))
         assert list(map(f, valid_inputs)) == expects
 
     def test_cc_parser(self):
         """cc_parser: known values and raise when strict"""
         cc = cc_parser(cc_lines)
-        # pprint(cc)
-        # print cc.keys()
         assert sorted(cc.keys()) == [
             "ALLERGEN",
             "ALTERNATIVE PRODUCTS",
@@ -725,12 +716,10 @@ class CC_Tests(TestCase):
         ]
 
         # test License (default_handler)
-        # pprint(cc['LICENSE'])
         assert cc["LICENSE"] == [
             "This SWISS-PROT entry is copyright. It is produced through a collaboration removed",
         ]
 
-        # pprint(cc['DATABASE'])  #join_split_dict
         assert cc["DATABASE"] == [
             {
                 "NAME": "CD40Lbase",
@@ -741,7 +730,6 @@ class CC_Tests(TestCase):
 
         # test strict
         cc_lines_with_unknown_topic = ["CC   -!- BLAHBLAH: xxxxx", *cc_lines]
-        # pprint(cc_parser(cc_lines_with_unknown_topic))
         assert cc_parser(cc_lines_with_unknown_topic)["BLAHBLAH"] == ["xxxxx"]
         self.assertRaises(
             FieldError,

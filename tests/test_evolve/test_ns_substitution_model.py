@@ -62,7 +62,7 @@ class MakeCachedObjects:
 
     def fit_general(self, **kwargs):
         optargs = self.opt_args.copy()
-        # optargs.update(kwargs)
+
         if "general" in self.results:
             return
         gen = General(DNA.alphabet)
@@ -73,7 +73,6 @@ class MakeCachedObjects:
 
     def fit_gen_stat(self, **kwargs):
         optargs = self.opt_args.copy()
-        # optargs.update(kwargs)
         if "gen_stat" in self.results:
             return
         gen_stat = GeneralStationary(DNA.alphabet)
