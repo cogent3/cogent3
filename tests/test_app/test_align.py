@@ -385,14 +385,6 @@ def test_progressive_align_nuc(progressive_seqs):
     assert isinstance(aln, Alignment)
     assert len(aln) == 42
     assert aln.moltype == aligner._moltype
-    # TODO the following is not robust across operating systems
-    # so commenting out for now, but needs to be checked
-    # expect = {'Human': 'GCCAGCTCATTACAGCATGAGAACAGCAGTTTATTACTCACT',
-    #           'Rhesus': 'GCCAGCTCATTACAGCATGAGAA---CAGTTTGTTACTCACT',
-    #           'Bandicoot': 'NACTCATTAATGCTTGAAACCAG---CAGTTTATTGTCCAAC',
-    #           'FlyingFox': 'GCCAGCTCTTTACAGCATGAGAA---CAGTTTATTATACACT'}
-    # got = aln.to_dict()
-    # assert got == expect
 
 
 def test_progressive_fails():

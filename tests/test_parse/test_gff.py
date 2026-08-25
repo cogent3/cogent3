@@ -32,7 +32,6 @@ headers = [
     "",
 ]
 
-#    '<seqname>\t<source>\t<feature>\t<start>\t<end>\t<score>\t<strand>\t<frame>\t[attribute]\n'
 
 data_lines = [
     (

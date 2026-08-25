@@ -723,7 +723,6 @@ def ft_parser(lines):
         keyname, start, end, description = ft_basic_itemparser(item)
 
         # group secondary structures (as a list) into
-        # result['SecondaryStructure']
         if keyname in secondary_structure_keynames:
             result.setdefault("SecondaryStructure", []).append((keyname, start, end))
             continue

@@ -476,7 +476,7 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
     # - parameter_order: a list of parameter names corresponding to the
     #   arguments of:
     #
-    # - calc_exchangeability_matrix(*params)
+    # - calc_exchangeability_matrix(*params)   # noqa: ERA001, RUF100
     #   convert len(self.parameter_order) params to a matrix
 
     """A substitution model for which the rate matrix (P) is derived from an
@@ -563,7 +563,6 @@ class _ContinuousSubstitutionModel(_SubstitutionModel):
 
         # CACHED SHORTCUTS
         self._exponentiator = None
-        # self._ident = numpy.identity(len(self.alphabet), float)
 
     def check_params_exist(self) -> None:
         """Raise an error if the parameters specified to be partitioned or

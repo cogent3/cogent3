@@ -40,3 +40,6 @@ jobs:
           author_email: ${{ github.actor }}@users.noreply.github.com
           message: "STY: pre-commit linting with ruff"
           add: "."
+      # the tree is clean under ruff.toml so should only fail on anything new
+      - name: Check code using ruff
+        run: ruff check .

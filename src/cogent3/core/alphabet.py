@@ -453,7 +453,7 @@ class CharAlphabet(
 
     def __init__(
         self,
-        chars: PySeq[TStrOrBytes] | TStrOrBytes,  # noqa: ARG002
+        chars: PySeq[TStrOrBytes] | TStrOrBytes,
         gap: TStrOrBytes | None = None,
         missing: TStrOrBytes | None = None,
     ) -> None:
@@ -1557,7 +1557,7 @@ class SenseCodonAlphabet(
 
     def __init__(
         self,
-        words: tuple[str, ...],  # noqa: ARG002
+        words: tuple[str, ...],
         monomers: CharAlphabet[str],
         gap: str | None = None,
     ) -> None:

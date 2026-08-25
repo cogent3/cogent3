@@ -895,7 +895,7 @@ def _compatible_schema(
     for table in db.execute(
         "SELECT name FROM sqlite_master WHERE type='table'",
     ).fetchall():
-        table = table["name"]  # noqa: PLW2901
+        table = table["name"]
         # Skip auxiliary tables
         if table in _SCHEMA_TABLES:
             continue
@@ -978,7 +978,7 @@ class SqliteAnnotationDbMixin:
             init_vals.pop(param)
         init_vals.pop("self", None)
 
-        obj._serialisable = init_vals  # noqa: SLF001
+        obj._serialisable = init_vals
         return obj
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # pragma: no cover
@@ -1031,7 +1031,7 @@ class SqliteAnnotationDbMixin:
             self.__dict__.update(data.__dict__)
         else:
             new = self.__class__(source=state.pop("source", None))
-            new._db.deserialize(state["data"])  # type: ignore[union-attr]  # noqa: SLF001
+            new._db.deserialize(state["data"])  # type: ignore[union-attr]
             self.__dict__.update(new.__dict__)
 
         return self
@@ -1425,7 +1425,7 @@ class SqliteAnnotationDbMixin:
         name: str,
         biotype: str | None = None,
         allow_partial: bool = False,
-        **kwargs: Any,  # noqa: ARG002
+        **kwargs: Any,
     ) -> Iterator[FeatureDataType]:
         # we return the parent_id because `get_feature_parent()` requires it
         # Translate conditions and columns for normalized schema
@@ -1440,7 +1440,7 @@ class SqliteAnnotationDbMixin:
             allow_partial=allow_partial,
         )
         for result in self._execute_sql(sql, values=vals):
-            result = cast(  # noqa: PLW2901
+            result = cast(
                 "FeatureDataType", dict(zip(result.keys(), result, strict=False))
             )
             # Translate IDs back to strings
@@ -1607,7 +1607,7 @@ class SqliteAnnotationDbMixin:
     def _old_get_feature_parent(
         self,
         name: str,
-        **kwargs: Any,  # noqa: ARG002
+        **kwargs: Any,
     ) -> Iterator[FeatureDataType]:  # pragma: no cover
         """yields parents of name"""
         for table_name in self.table_names:
@@ -2801,7 +2801,7 @@ def convert_annotation_to_annotation_db(data: dict[str, Any]) -> AnnotationDbABC
     seqid = data.pop("name", data.pop("seqid", None))
     anns = data.pop("data")
     for ann in anns:
-        ann = ann.pop("annotation_construction")  # noqa: PLW2901
+        ann = ann.pop("annotation_construction")
         m = deserialise_map_spans(ann.pop("map"))
         spans = m.get_coordinates()
         strand = minus if any(s.reverse for s in m.iter_non_lost_spans()) else plus

@@ -299,7 +299,7 @@ class Calculator:
         # a value no longer lies within bounds. The following logic
         # catches those cases.
         x = numpy.array(x)
-        # NOTE: numpy.allclose([], []) == True
+        # NOTE that `numpy.allclose([], []) == True`
         if numpy.allclose(x[low > x], low[low > x]):
             x[low > x] = low[low > x]
         if numpy.allclose(x[high < x], high[high < x]):
@@ -602,7 +602,6 @@ class Calculator:
     def _get_current_cell_interval(self, opt_par, dropoff, xtol=None):
         # (min, opt, max) tuples for each parameter where f(min) ==
         # f(max) == f(opt)-dropoff.  Uses None when a bound is hit.
-        # assert self.optimised, "Call optimise() first"
         origY = self.testfunction()
         (lower, upper) = opt_par.get_optimiser_bounds()
         opt_value = self._get_current_cell_value(opt_par)

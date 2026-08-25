@@ -155,8 +155,7 @@ def _recursive_defns(edge, subst, leaf, edge_defn_constructor, bin_args):
     args.extend(child_lengths)
     args.extend(bin_args)
     edge_defn = edge_defn_constructor(*args)
-    # fwd = FwdDefn(edge_defn)
-    # scores.append(fwd)
+
     return (edge_defn, scores)
 
 
@@ -191,7 +190,7 @@ def make_forward_tree_defn(
     bin_data = bin_data.across_dimension("bin", bin_names)
     edge_args.extend(bin_data)
 
-    (top, scores) = _recursive_defns(
+    (top, _) = _recursive_defns(
         tree,
         subst,
         leaf,
@@ -199,5 +198,5 @@ def make_forward_tree_defn(
         edge_args,
     )
     defn = FwdDefn(top)
-    # defn = SumDefn(*scores)
+
     return AnnotateFloatDefn(defn, top)

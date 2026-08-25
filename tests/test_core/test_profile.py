@@ -64,7 +64,7 @@ def test_getitem():
     # slicing should return correct class
     data = array([[2, 4], [3, 5], [4, 8]])
     marr = MotifCountsArray(array(data), "AB")
-    # print(marr[[1, 2], :])
+
     assert marr[0].array.tolist() == [2, 4]
     assert marr[0, "B"] == 4
     assert marr[0, :].array.tolist() == [2, 4]
@@ -333,13 +333,13 @@ def test_pairwise_jsm():
 
 def test_pairwise_():
     # returns None when single row
-    # ndim=1
+    # ndim=1  # noqa: ERA001, RUF100
     data = [0.25, 0.25, 0.25, 0.25]
     freqs = MotifFreqsArray(array(data), "ACGT")
     got = freqs.pairwise_jsm()
     assert got is None
 
-    # ndim=2
+    # ndim=2  # noqa: ERA001, RUF100
     data = array([[0.25, 0.25, 0.25, 0.25]])
     freqs = MotifFreqsArray(data, "ACGT")
     got = freqs.pairwise_jsm()

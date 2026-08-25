@@ -594,7 +594,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
     def set_sequences(self, seqs, locus=None) -> None:
         leaves = {}
 
-        # refactor: simplify
+        # refactor: simplify    # noqa: ERA001, RUF100
         # can be simplified once we drop support for old sequence objects
         if not isinstance(seqs, dict):
             seqs = getattr(seqs, "seqs", seqs)

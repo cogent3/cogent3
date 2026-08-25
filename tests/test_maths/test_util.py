@@ -1,8 +1,5 @@
 """Provides tests for array.py"""
 
-# SUPPORT2425
-# from __future__ import with_statement
-
 from unittest import TestCase
 from warnings import filterwarnings
 

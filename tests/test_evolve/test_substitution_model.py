@@ -43,7 +43,6 @@ class NucleotideModelTestMethods(TestCase):
         isIndel = model.get_predefined_predicate("indel")
         assert isIndel("A", "-")
         assert isIndel("-", "G")
-        # assert not self.submodel.isIndel('-', '-')
         assert not isIndel("a", "t")
 
     def test_PredicateChecks(self):
@@ -107,7 +106,6 @@ class MultiLetterMotifSubstModelTests(TestCase):
         assert not isIndel("AA", "--")
         assert not isIndel("--", "CT")
 
-        # assert not self.submodel.isIndel('--', '--')
         assert not isIndel("AT", "AA")
 
         assert isIndel("AA", "A-")
@@ -115,7 +113,6 @@ class MultiLetterMotifSubstModelTests(TestCase):
         assert isIndel("TA", "-A")
 
         # isIndel can now assume it won't get any non-instantaneous pairs
-        # assert self.submodel.isIndel('-a', 'a-') == 0
 
     def test_to_rich_dict(self):
         """returns complete dict of attributes"""

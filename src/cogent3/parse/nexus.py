@@ -461,5 +461,5 @@ def iter_nexus_align_records(
 @deprecated_callable(
     version="2026.9", reason="function rename", new="iter_nexus_align_records"
 )
-def MinimalNexusAlignParser(*args, **kwargs):  # noqa: ANN002, ANN003, ANN201, N802 # pragma: no cover
+def MinimalNexusAlignParser(*args, **kwargs):  # noqa: ANN002, ANN003, ANN201 # pragma: no cover
     return iter_nexus_align_records(*args, **kwargs)

@@ -420,7 +420,7 @@ def test_pickle_unpickle_apps(data, dser):
     pkld = io_app.to_primitive() + io_app.pickle_it()
     upkld = io_app.unpickle_it() + io_app.from_primitive()
     # need to add custom deserialiser for cogent3 objects
-    # upkld = upkld if dser is None else upkld + dser
+    # upkld = upkld if dser is None else upkld + dser   # noqa: ERA001, RUF100
     assert upkld(pkld(data)) == data
 
 

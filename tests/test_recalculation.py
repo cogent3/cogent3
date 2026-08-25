@@ -24,7 +24,7 @@ class RecalculationTest(TestCase):
         assert f.get_value_array() == [3.0, 4.5]
 
         # Now with scopes.  We will set up the calculation
-        # result = (Ax+Bx) + (Ay+By) + (Az+Bz)
+        # result equals (Ax+Bx) + (Ay+By) + (Az+Bz)
 
         # A and B will remain distinct parameters, but x,y and z are merely scopes - ie:
         # it may be the case that Ax = Ay = Az, and that may simplify the calculation, but
@@ -43,7 +43,7 @@ class RecalculationTest(TestCase):
         )
 
         # or equivalently:
-        # top = CalcDefn(add, *mid.acrossDimension('category', ['x', 'y', 'z']))
+        # top can equal CalcDefn(add, *mid.acrossDimension('category', ['x', 'y', 'z']))
 
         pc = top.make_likelihood_function()
         f = pc.make_calculator()

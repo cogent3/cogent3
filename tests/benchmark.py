@@ -19,16 +19,13 @@ def subtree(size):
 
 
 def brca_test(subMod, names, tree, length, par_rules, **kw):
-    # names = ALIGNMENT.names[:taxa]
-    # assert len(names) == taxa
     tree = TREE.get_sub_tree(names)  # .balanced()
     aln = ALIGNMENT.take_seqs(names).omit_gap_pos()[:length]
     assert len(aln) == length, (len(aln), length)
-    # the_tree_analysis = LikelihoodFunction(treeobj = tree, submodelobj = subMod, alignobj = aln)
     par_controller = subMod.make_likelihood_function(tree, **kw)
     for par_rule in par_rules:
         par_controller.set_param_rule(**par_rule)
-    # lf = par_controller.make_calculator(aln)
+
     return (par_controller, aln)
 
 
@@ -66,7 +63,6 @@ def quiet(f, *args, **kw):
         sys.stdout = temp
         result = f(*args, **kw)
     finally:
-        # pass
         sys.stdout = _stdout
     return result
 
@@ -131,13 +127,6 @@ def silly_predicate(a, b):
     return a.count("A") > a.count("T") or b.count("A") > b.count("T")
 
 
-# def asym_predicate((a,b)):
-#    print a, b, 'a' in a
-#    return 'a' in a
-# mA = Codon()
-# mA.setPredicates({'asym': asym_predicate})
-
-
 def exponentiator_switch(switch):
     import cogent3.evolve.substitution_calculation
 
@@ -152,7 +141,6 @@ else:
 parallel.inefficiency_forgiven = True
 
 if parallel.get_rank() > 0:
-    # benchmarks(test)
     quiet(benchmarks, test)
 else:
     with contextlib.suppress(KeyboardInterrupt):

@@ -73,7 +73,7 @@ def get_moltype_index_array(moltype, invalid=-9):
     canonical_chars = list(moltype)
     # maximum ordinal for an allowed character, this defines the length of
     # the required numpy array
-    # refactor: simplify
+    # refactor: simplify   # noqa: ERA001, RUF100
     # added for compatibility with both new and old moltypes - should be removed
     # when old moltype is removed
     from cogent3.core.moltype import MolType as c3_moltype
@@ -897,7 +897,7 @@ class DistanceMatrix(DictArray):
         If only two sequences are present, a simple tree is returned
         and hooks are not used.
         """
-        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)  # noqa: SLF001
+        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)
         dists = self.drop_invalid()
         if dists.shape[0] == 2:
             # NJ not needed for 2 seqs

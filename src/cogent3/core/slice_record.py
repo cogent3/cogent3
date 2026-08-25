@@ -62,7 +62,7 @@ class SliceRecordABC(ABC):
     @abstractmethod
     def copy(self) -> Self: ...
 
-    # refactor: design
+    # refactor: design   # noqa: ERA001, RUF100
     # can we remove the need for this method on the ABC and inheriting
     @property
     @abstractmethod
@@ -471,7 +471,7 @@ class SliceRecordABC(ABC):
         step: int,
         **kwargs: Any,
     ) -> Self:
-        # refactor: simplify
+        # refactor: simplify   # noqa: ERA001, RUF100
         # are there other places in slice_record where we can use plus_start/stop/step
         if slice_start >= len(self):
             start = self.plus_start

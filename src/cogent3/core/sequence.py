@@ -498,7 +498,7 @@ class Sequence(AnnotatableMixin):
         self,
         k: int = 1,
         use_hook: str | None = None,
-        **kwargs,  # noqa: ANN003
+        **kwargs,
     ) -> NumpyIntArrayType:
         """return array of counts of all possible kmers of length k
 
@@ -663,7 +663,7 @@ class Sequence(AnnotatableMixin):
         -----
         gap and missing characters are counted as degenerate.
         """
-        # design: refactor
+        # design: refactor   # noqa: ERA001, RUF100
         # should gap and missing characters be counted as degenerate?
         return self.moltype.count_degenerate(bytes(self))
 
@@ -853,7 +853,7 @@ class Sequence(AnnotatableMixin):
 
         Returns 0 if one sequence is empty.
         """
-        # refactor: simplify
+        # refactor: simplify   # noqa: ERA001, RUF100
         # refactor: array - make use of self._seq.array_value
         if not self or not other:
             return 0.0

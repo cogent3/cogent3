@@ -3150,7 +3150,7 @@ def test_aligned_getitem_featuremap_multi_spans(aligned):
     #                      1111111
     #            01234567890123456
     #             ***   **    ***
-    # raw_seq = "AAAGG--GGG-AACCCT"
+    # raw_seq = "AAAGG--GGG-AACCCT"  # noqa: ERA001, RUF100
     #            01234  567 890123
     #                         1111
 
@@ -6198,7 +6198,7 @@ def test_duplicated_seqs_duplicates_error(mk_cls):
     data = {f"s{i + 5}": s for i, s in enumerate(seqs)}
     seqcoll2 = mk_cls(data, moltype="dna")
     # we need to access private data to force the error
-    seqcoll1._seqs_data = seqcoll2._seqs_data  # noqa: SLF001
+    seqcoll1._seqs_data = seqcoll2._seqs_data
     with pytest.raises(RuntimeError):
         seqcoll1.duplicated_seqs()
 
@@ -6562,7 +6562,7 @@ def test_coll_uses_storage_get_hash(three_seq_two_hash, mock_storage):
     # replace the storage with our mock to check the collection
     # method is using the storage get_hash method
     # we have to use the private attribute here
-    coll._seqs_data = mock_storage  # noqa: SLF001
+    coll._seqs_data = mock_storage
     got = coll.duplicated_seqs()
     assert len(got) == 1
     # expected value under mock differs from original, so we know
@@ -6642,7 +6642,7 @@ class _StorageParserStub:
     def __init__(self, storage) -> None:
         self._storage = storage
 
-    def loader(self, *, path, **kwargs):  # noqa: ARG002
+    def loader(self, *, path, **kwargs):
         return self._storage
 
 

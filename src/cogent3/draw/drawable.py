@@ -991,7 +991,7 @@ def stack_shapes(
         for i, annott in enumerate(shapes):
             annott.shift(y=new_bottom - annott.bottom)
             if i > 0:
-                annott._showlegend = False  # noqa: SLF001
+                annott._showlegend = False
             annotes.append(annott)
         top = cast("Shape", annott).top
 

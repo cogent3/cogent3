@@ -109,8 +109,6 @@ class DataStoreABC(ABC):  # pragma: no cover
 
     def __contains__(self, identifier) -> bool:
         """whether relative identifier has been stored"""
-        # following breaks some tests, what is the expected behaviour?
-        # return any(m.unique_id.endswith(identifier) for m in self)
         return any(m.unique_id == identifier for m in self)
 
     @abstractmethod
