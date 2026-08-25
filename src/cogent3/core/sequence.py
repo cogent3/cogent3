@@ -498,7 +498,7 @@ class Sequence(AnnotatableMixin):
         self,
         k: int = 1,
         use_hook: str | None = None,
-        **kwargs,  # noqa: ANN003
+        **kwargs,
     ) -> NumpyIntArrayType:
         """return array of counts of all possible kmers of length k
 

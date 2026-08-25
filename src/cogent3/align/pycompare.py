@@ -295,7 +295,7 @@ class SeqKmers:
             if kmer in kmers:
                 kmers[kmer].add_location(name, i)
             else:
-                kmer = Kmer(kmer, name, i)  # noqa: PLW2901
+                kmer = Kmer(kmer, name, i)
                 kmers[kmer] = kmer
 
         self.kmers = kmers

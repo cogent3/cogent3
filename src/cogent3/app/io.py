@@ -323,7 +323,7 @@ class load_aligned(LoaderApp, cite=cite_cogent3):
         """
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+        self._parser = cogent3._plugin.get_seq_format_parser_plugin(
             format_name=format_name.lower(),
         )
 
@@ -358,7 +358,7 @@ class load_unaligned(LoaderApp, cite=cite_cogent3):
         """
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = cogent3._plugin.get_seq_format_parser_plugin(  # noqa: SLF001
+        self._parser = cogent3._plugin.get_seq_format_parser_plugin(
             format_name=format_name.lower(),
         )
 
@@ -614,7 +614,7 @@ class write_seqs(WriterApp, cite=cite_cogent3):
             msg = f"invalid type {type(data_store)!r} for data_store"
             raise TypeError(msg)
         self.data_store = data_store
-        self._formatter = cogent3._plugin.get_seq_format_writer_plugin(  # noqa: SLF001
+        self._formatter = cogent3._plugin.get_seq_format_writer_plugin(
             format_name=format_name.lower(),
         )
         self._id_from_source = id_from_source

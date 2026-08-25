@@ -1394,11 +1394,11 @@ class PhyloNode:
             node_path.remove(lca)
         return node_path
 
-    def get_param_value(self, param: str, edge: str) -> Any:  # noqa: ANN401
+    def get_param_value(self, param: str, edge: str) -> Any:
         """returns the parameter value for named edge"""
         return self.get_node_matching_name(edge).params[param]
 
-    def set_param_value(self, param: str, edge: str, value: Any) -> None:  # noqa: ANN401
+    def set_param_value(self, param: str, edge: str, value: Any) -> None:
         """set's the value for param at named edge"""
         self.get_node_matching_name(edge).params[param] = value
 

@@ -25,7 +25,7 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-    "working"
+    "working",
 ]
 
 # Same as Black.
@@ -58,9 +58,33 @@ ignore = [
     "FBT001",
     "FBT002",
     "PT011",
-    "S311", # Allow use of random
+    "S311",    # Allow use of random
     "PLR2004", # Magic number usage where appropriate
-    "PLC0415" # Allow delayed imports
+    "PLC0415", # Allow delayed imports
+    # naming, the maths and legacy API use non-PEP8 names
+    "N802", # legacy camelCase methods in the public API
+    "N803", # maths notation for arguments, e.g. Q, P
+    "N806", # maths notation for locals, e.g. Q, P
+    "E741", # l, I and O are meaningful in maths code
+    # consistency with rules already ignored above
+    "PLR0917", # positional-argument count, as for PLR0913
+    "FBT003",  # positional booleans allowed, as for FBT001/FBT002
+    "EXE001",  # shebangs need not be executable, as for EXE002
+    # TODO bookkeeping is not enforced
+    "TD002",
+    "TD003",
+    "TD004",
+    "FIX002",
+    # signatures are often fixed by an API or plugin contract
+    "ARG001",
+    "ARG002",
+    "SLF001",  # private access within the package is intentional
+    "PLW2901", # rebinding a loop variable is used deliberately
+    "RUF059",  # unused unpacked variable
+    "PT027",   # tests still migrating off unittest assertions
+    # ruff preview rules that Codacy reports but we do not want
+    # these cannot be triggered locally unless preview = true
+    "CPY001", # no copyright header per file
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -72,41 +96,616 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [lint.per-file-ignores]
 "tests/**/*.py" = [
-    "S101", # asserts allowed in tests...
+    "S101",   # asserts allowed in tests...
     "INP001", # __init__.py files are not required...
     "ANN",
     "N802",
     "N803",
-    "S608" # sql injection unlikely
-]
-"src/cogent3/core/annotation_db.py" = [
-    "S608" # table/column names are internal constants, values use parameterized queries
+    "S608",   # sql injection unlikely
 ]
 "noxfile.py" = [
-    "S101", # asserts allowed in tests...
+    "S101",   # asserts allowed in tests...
     "INP001", # __init__.py files are not required...
     "ANN",
     "N802",
-    "N803"
+    "N803",
 ]
-"src/cogent3/core/tree.py" = [
-    "SLF001" # Allow private member access from within PhyloNode 
+
+# grandfathered baseline, generated 2026-08-25
+# Pre-existing violations, suppressed per file so that `ruff check .` is clean
+# and can be enforced in CI. Anything new, in a new file or in a file that is
+# already clean, fails the check. This list is a backlog: delete an entry, or a
+# code within an entry, as each module is cleaned up.
+# S608 on annotation_db.py is deliberate, table and column names are internal
+# constants and values use parameterized queries.
+"doc/examples/demo-mpi-parallel.py" = [
+    "ANN",
+    "EM101",
+    "INP001",
+    "RUF046",
+    "T201",
+    "TRY003",
 ]
-"src/cogent3/draw/dendrogram.py" = [
-    "SLF001" # Allow private member access from within PhyloNode 
+"doc/examples/demo-multiprocess-parallel.py" = [
+    "ANN",
+    "INP001",
+    "RUF046",
+    "T201",
 ]
-"src/cogent3/util/io.py" = [
-    "ANN401" # Allow use of Any
+"src/cogent3/__init__.py" = ["ANN", "B007"]
+"src/cogent3/_plugin.py" = ["ANN"]
+"src/cogent3/align/__init__.py" = ["F401"]
+"src/cogent3/align/align.py" = ["ANN"]
+"src/cogent3/align/dp_calculation.py" = [
+    "A001",
+    "A002",
+    "ANN",
+    "ARG004",
+    "S101",
 ]
-"src/cogent3/util/misc.py" = [
-    "ANN401" # Allow use of Any
+"src/cogent3/align/indel_model.py" = ["ANN", "S101"]
+"src/cogent3/align/indel_positions.py" = ["ANN", "S101"]
+"src/cogent3/align/pairwise.py" = [
+    "A001",
+    "ANN",
+    "C901",
+    "E402",
+    "FIX003",
+    "PLR0912",
+    "PLR0915",
+    "PLW0603",
+    "PT018",
+    "S101",
+    "TD001",
 ]
-"src/cogent3/parse/cogent3_json.py" = [
-    "ANN401" # Allow use of Any
+"src/cogent3/align/pairwise_pogs_numba.py" = [
+    "A001",
+    "ANN",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "S101",
+    "SIM102",
 ]
+"src/cogent3/align/pairwise_seqs_numba.py" = [
+    "A001",
+    "ANN",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "S101",
+    "SIM102",
+]
+"src/cogent3/align/progressive.py" = ["ANN", "N812", "S101", "TRY203"]
+"src/cogent3/align/pycompare.py" = ["ANN", "B007", "S101"]
+"src/cogent3/align/traceback.py" = ["ANN"]
+"src/cogent3/app/__init__.py" = ["ANN", "PGH004"]
+"src/cogent3/app/align.py" = ["ANN", "PLC0206", "RUF002", "S101"]
+"src/cogent3/app/data_store.py" = ["ANN", "PGH004", "S101", "SIM113"]
+"src/cogent3/app/dist.py" = ["ANN", "C901", "S101"]
+"src/cogent3/app/evo.py" = ["ANN", "C901", "E721", "S101", "UP007"]
 "src/cogent3/app/io.py" = [
-    "ANN401" # Allow use of Any for generic serialisation apps
+    "ANN",
+    "B904",
+    "BLE001",
+    "E402",
+    "S101",
+    "S301",
+    "TRY004",
 ]
+"src/cogent3/app/result.py" = [
+    "A001",
+    "ANN",
+    "E721",
+    "RUF005",
+    "S101",
+    "S307",
+    "TRY004",
+]
+"src/cogent3/app/sample.py" = [
+    "ANN",
+    "B023",
+    "E721",
+    "NPY002",
+    "PT018",
+    "S101",
+    "UP007",
+]
+"src/cogent3/app/sqlite_data_store.py" = ["ANN", "E402", "S101", "S608"]
+"src/cogent3/app/translate.py" = ["ANN", "C901", "S101", "UP007"]
+"src/cogent3/app/tree.py" = ["ANN", "F811", "S101"]
+"src/cogent3/app/typing.py" = ["ANN", "PGH003", "PLR0911", "PLW0603", "UP007"]
+"src/cogent3/cluster/UPGMA.py" = ["ANN", "N999"]
+"src/cogent3/core/alignment.py" = [
+    "ANN",
+    "C901",
+    "PGH004",
+    "PLR0912",
+    "PLR0915",
+    "PLR1704",
+    "PLW1641",
+    "S101",
+    "UP031",
+]
+"src/cogent3/core/alphabet.py" = ["ANN", "ARG004", "PYI034", "S101"]
+"src/cogent3/core/annotation.py" = ["A002", "ANN", "S101"]
+"src/cogent3/core/annotation_db.py" = [
+    "ANN",
+    "B007",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "PLW1641",
+    "S101",
+    "S608",
+    "SIM105",
+    "SIM108",
+    "TC001",
+    "TC003",
+]
+"src/cogent3/core/genetic_code.py" = ["ANN", "S101"]
+"src/cogent3/core/info.py" = ["ANN", "E722", "PLW1641", "RUF012"]
+"src/cogent3/core/location.py" = [
+    "A002",
+    "ANN",
+    "ARG003",
+    "C901",
+    "F811",
+    "PLR0911",
+    "PLR0912",
+    "PLR0915",
+    "PLW1641",
+    "S101",
+]
+"src/cogent3/core/moltype.py" = ["ANN", "S101"]
+"src/cogent3/core/profile.py" = [
+    "ANN",
+    "B904",
+    "E721",
+    "NPY002",
+    "PGH004",
+    "S101",
+    "TC003",
+]
+"src/cogent3/core/seq_storage.py" = ["ANN", "PLW1641", "S101"]
+"src/cogent3/core/sequence.py" = ["ANN", "C901", "S101", "TRY004"]
+"src/cogent3/core/seqview.py" = ["ANN", "S101"]
+"src/cogent3/core/slice_record.py" = ["ANN", "PLW1641", "S101"]
+"src/cogent3/core/table.py" = [
+    "A003",
+    "ANN",
+    "B007",
+    "B018",
+    "B904",
+    "B905",
+    "BLE001",
+    "C901",
+    "E721",
+    "NPY002",
+    "PLR0911",
+    "PLR0912",
+    "PLR0915",
+    "PT018",
+    "RUF005",
+    "S101",
+    "S301",
+    "S307",
+    "SIM101",
+    "TD005",
+]
+"src/cogent3/core/tree.py" = ["ANN", "C901", "FIX001", "TD001"]
+"src/cogent3/data/energy_params.py" = ["ANN"]
+"src/cogent3/draw/dendrogram.py" = [
+    "ANN",
+    "C901",
+    "F821",
+    "PLR0912",
+    "PLR0915",
+    "SIM108",
+]
+"src/cogent3/draw/dotplot.py" = ["ANN", "EM102", "S101", "TRY003"]
+"src/cogent3/draw/drawable.py" = ["ANN", "NPY002", "PGH004", "RUF012"]
+"src/cogent3/draw/letter.py" = ["ANN", "C901", "PLR0912"]
+"src/cogent3/draw/logo.py" = ["ANN", "SIM105"]
+"src/cogent3/evolve/best_likelihood.py" = ["ANN", "PERF401", "S101"]
+"src/cogent3/evolve/bootstrap.py" = ["ANN"]
+"src/cogent3/evolve/coevolution.py" = ["S101"]
+"src/cogent3/evolve/discrete_markov.py" = ["ANN", "S101"]
+"src/cogent3/evolve/distance.py" = ["ANN", "PERF401", "PLC0206", "S101"]
+"src/cogent3/evolve/fast_distance.py" = [
+    "ANN",
+    "C901",
+    "N813",
+    "PYI024",
+    "S101",
+]
+"src/cogent3/evolve/likelihood_calculation.py" = ["ANN", "S101"]
+"src/cogent3/evolve/likelihood_function.py" = [
+    "A001",
+    "A002",
+    "ANN",
+    "B023",
+    "B904",
+    "BLE001",
+    "C901",
+    "E721",
+    "PERF401",
+    "PLR0912",
+    "PLR0915",
+    "RUF005",
+    "S101",
+    "SIM105",
+    "UP031",
+]
+"src/cogent3/evolve/likelihood_tree.py" = ["ANN", "S101"]
+"src/cogent3/evolve/likelihood_tree_numba.py" = ["ANN"]
+"src/cogent3/evolve/models.py" = ["ANN", "RUF002", "S101"]
+"src/cogent3/evolve/motif_prob_model.py" = ["ANN", "S101"]
+"src/cogent3/evolve/ns_substitution_model.py" = ["ANN", "S101"]
+"src/cogent3/evolve/pairwise_distance_numba.py" = ["ANN"]
+"src/cogent3/evolve/parameter_controller.py" = [
+    "A002",
+    "ANN",
+    "C901",
+    "E721",
+    "FIX003",
+    "N814",
+    "PLR0912",
+    "PTH123",
+    "S101",
+    "S301",
+    "SIM115",
+    "TD001",
+]
+"src/cogent3/evolve/predicate.py" = ["ANN", "PLW1641", "S101", "UP031"]
+"src/cogent3/evolve/simulate.py" = ["A001", "ANN", "S101"]
+"src/cogent3/evolve/solved_models.py" = ["ANN", "S101"]
+"src/cogent3/evolve/solved_models_numba.py" = ["ANN"]
+"src/cogent3/evolve/substitution_calculation.py" = ["ANN"]
+"src/cogent3/evolve/substitution_model.py" = [
+    "A001",
+    "ANN",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "PT018",
+    "S101",
+]
+"src/cogent3/format/bedgraph.py" = ["ANN", "EM102", "PLC0206", "S101", "TRY003"]
+"src/cogent3/format/gde.py" = ["ANN"]
+"src/cogent3/format/nexus.py" = ["ANN", "EM101", "TRY003", "UP031"]
+"src/cogent3/format/paml.py" = ["ANN", "UP031"]
+"src/cogent3/format/phylip.py" = ["ANN", "UP031"]
+"src/cogent3/format/sequence.py" = ["A001", "A002", "ANN", "PTH108"]
+"src/cogent3/format/table.py" = [
+    "A001",
+    "ANN",
+    "C901",
+    "PLR0912",
+    "S101",
+    "UP031",
+]
+"src/cogent3/format/util.py" = ["ANN"]
+"src/cogent3/maths/distance_transform.py" = [
+    "A004",
+    "ANN",
+    "C901",
+    "PLR0912",
+    "UP007",
+]
+"src/cogent3/maths/geometry.py" = ["A004", "ANN"]
+"src/cogent3/maths/markov.py" = ["ANN", "S101"]
+"src/cogent3/maths/matrix_exponential_integration.py" = ["ANN"]
+"src/cogent3/maths/matrix_exponentiation.py" = ["ANN", "B007"]
+"src/cogent3/maths/matrix_logarithm.py" = ["ANN", "S101"]
+"src/cogent3/maths/measure.py" = ["ANN", "RUF002", "S101"]
+"src/cogent3/maths/optimisers.py" = [
+    "ANN",
+    "C901",
+    "F821",
+    "N818",
+    "PLR0912",
+    "TRY301",
+]
+"src/cogent3/maths/period.py" = ["ANN", "S101"]
+"src/cogent3/maths/period_numba.py" = ["ANN"]
+"src/cogent3/maths/scipy_optimisers.py" = ["ANN", "S101"]
+"src/cogent3/maths/scipy_optimize.py" = [
+    "A001",
+    "ANN",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "PT018",
+    "S101",
+    "SIM108",
+]
+"src/cogent3/maths/simannealingoptimiser.py" = ["ANN", "UP031"]
+"src/cogent3/maths/solve.py" = [
+    "ANN",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "S101",
+    "TRY300",
+    "UP031",
+]
+"src/cogent3/maths/stats/contingency.py" = [
+    "ANN",
+    "B904",
+    "E721",
+    "NPY002",
+    "S101",
+]
+"src/cogent3/maths/stats/information_criteria.py" = ["ANN", "S101"]
+"src/cogent3/maths/stats/jackknife.py" = ["ANN", "PERF401", "PERF402"]
+"src/cogent3/maths/stats/kendall.py" = ["ANN"]
+"src/cogent3/maths/stats/ks.py" = ["A004", "ANN"]
+"src/cogent3/maths/stats/number.py" = ["ANN", "B904", "S101"]
+"src/cogent3/maths/stats/period.py" = ["ANN", "E721", "S101"]
+"src/cogent3/maths/stats/test.py" = ["ANN", "EM101", "NPY002", "S101"]
+"src/cogent3/maths/util.py" = ["A004", "PGH004", "S101"]
+"src/cogent3/parse/blast.py" = ["ANN", "B007"]
+"src/cogent3/parse/blast_xml.py" = ["A002", "ANN", "PERF401", "RUF012", "S318"]
+"src/cogent3/parse/cisbp.py" = ["ANN", "PTH123", "SIM115"]
+"src/cogent3/parse/clustal.py" = ["ANN", "B904", "E722"]
+"src/cogent3/parse/cogent3_json.py" = ["ANN", "S101", "TRY301"]
+"src/cogent3/parse/dialign.py" = ["ANN"]
+"src/cogent3/parse/ebi.py" = [
+    "A001",
+    "ANN",
+    "B904",
+    "C901",
+    "E722",
+    "EXE003",
+    "EXE005",
+    "TRY203",
+]
+"src/cogent3/parse/fasta.py" = [
+    "ANN",
+    "B904",
+    "S101",
+    "SLOT000",
+    "UP007",
+    "UP045",
+]
+"src/cogent3/parse/gbseq.py" = ["ANN", "C901", "PLR0912", "S318"]
+"src/cogent3/parse/gcg.py" = ["ANN", "C901"]
+"src/cogent3/parse/genbank.py" = [
+    "ANN",
+    "ARG005",
+    "B007",
+    "B904",
+    "BLE001",
+    "C901",
+    "RUF005",
+]
+"src/cogent3/parse/gff.py" = ["ANN", "B024", "C901", "PLR1704", "S101", "TC001"]
+"src/cogent3/parse/greengenes.py" = ["ANN"]
+"src/cogent3/parse/jaspar.py" = ["ANN", "PTH123"]
+"src/cogent3/parse/locuslink.py" = ["ANN", "RUF012"]
+"src/cogent3/parse/ncbi_taxonomy.py" = ["ANN", "B904", "PLW1641", "RUF012"]
+"src/cogent3/parse/newick.py" = [
+    "B904",
+    "C901",
+    "PLR0912",
+    "PLR0915",
+    "S101",
+    "S105",
+]
+"src/cogent3/parse/nexus.py" = ["C901", "PLR0912"]
+"src/cogent3/parse/paml.py" = ["ANN"]
+"src/cogent3/parse/paml_matrix.py" = ["ANN", "S101"]
+"src/cogent3/parse/phylip.py" = ["ANN"]
+"src/cogent3/parse/psl.py" = ["ANN", "E721", "PTH123", "S101", "SIM115"]
+"src/cogent3/parse/rdb.py" = [
+    "A001",
+    "ANN",
+    "B904",
+    "BLE001",
+    "PTH123",
+    "S112",
+    "SIM115",
+]
+"src/cogent3/parse/record.py" = [
+    "ANN",
+    "B904",
+    "C901",
+    "E722",
+    "PLR0912",
+    "RUF012",
+    "S101",
+]
+"src/cogent3/parse/record_finder.py" = ["ANN"]
+"src/cogent3/parse/sequence.py" = ["ANN", "B904"]
+"src/cogent3/parse/table.py" = ["ANN", "C901", "SIM113"]
+"src/cogent3/parse/tinyseq.py" = ["ANN", "S318"]
+"src/cogent3/parse/tree.py" = [
+    "ANN",
+    "C901",
+    "E722",
+    "PLR0912",
+    "PLR0915",
+    "S105",
+    "S110",
+    "SIM102",
+]
+"src/cogent3/parse/unigene.py" = ["ANN", "PTH123", "RUF012", "SIM113", "SIM115"]
+"src/cogent3/phylo/consensus.py" = ["C901", "PLR0912", "PLR0915"]
+"src/cogent3/phylo/least_squares.py" = ["A002", "ANN"]
+"src/cogent3/phylo/maximum_likelihood.py" = ["ANN", "ARG005", "PLW0108"]
+"src/cogent3/phylo/nj.py" = ["ANN", "C901", "PLR0915", "S101", "SLOT000"]
+"src/cogent3/phylo/tree_collection.py" = ["ANN", "PTH123", "S101", "SIM115"]
+"src/cogent3/phylo/tree_distance.py" = ["ANN"]
+"src/cogent3/phylo/tree_space.py" = ["ANN", "B023", "C901", "S101"]
+"src/cogent3/phylo/util.py" = ["ANN"]
+"src/cogent3/recalculation/__init__.py" = ["EXE003"]
+"src/cogent3/recalculation/calculation.py" = [
+    "ANN",
+    "B007",
+    "B904",
+    "C901",
+    "N818",
+    "PERF401",
+    "PLR0912",
+    "PLW1641",
+    "S101",
+    "TRY004",
+    "UP031",
+]
+"src/cogent3/recalculation/definition.py" = ["ANN", "E721", "S101", "TRY004"]
+"src/cogent3/recalculation/scope.py" = [
+    "A001",
+    "ANN",
+    "B007",
+    "B904",
+    "C901",
+    "PERF401",
+    "PERF403",
+    "PLC0206",
+    "PLR0912",
+    "S101",
+    "TRY004",
+    "UP031",
+]
+"src/cogent3/recalculation/setting.py" = ["ANN", "S101"]
+"src/cogent3/util/checkpointing.py" = [
+    "ANN",
+    "PTH110",
+    "PTH123",
+    "S101",
+    "S301",
+]
+"src/cogent3/util/deserialise.py" = ["S101"]
+"src/cogent3/util/dict_array.py" = [
+    "ANN",
+    "FIX001",
+    "PERF401",
+    "PLC0206",
+    "PLW1641",
+    "PYI034",
+    "S101",
+    "TD001",
+]
+"src/cogent3/util/io.py" = ["ANN", "EM102", "PTH107", "S101", "S310", "TRY003"]
+"src/cogent3/util/misc.py" = [
+    "ANN",
+    "B904",
+    "BLE001",
+    "C901",
+    "E721",
+    "E722",
+    "S101",
+    "TRY300",
+    "TRY301",
+]
+"src/cogent3/util/parallel.py" = [
+    "A001",
+    "E402",
+    "N812",
+    "PLW1508",
+    "PTH206",
+    "S101",
+]
+"src/cogent3/util/progress_display.py" = [
+    "ANN",
+    "E402",
+    "N812",
+    "S101",
+    "TC002",
+    "UP031",
+]
+"src/cogent3/util/union_dict.py" = ["ANN", "B904", "S101"]
+"tests/__init__.py" = ["S102"]
+"tests/benchmark.py" = ["B007", "S307"]
+"tests/benchmark_aligning.py" = ["PT028"]
+"tests/test_align/test_align.py" = ["PT019"]
+"tests/test_app/test_align.py" = ["T201"]
+"tests/test_app/test_data_store.py" = ["A001"]
+"tests/test_app/test_dist.py" = ["PLR0915", "PT019", "RUF002"]
+"tests/test_app/test_evo.py" = ["ARG005", "PTH118", "PTH120"]
+"tests/test_app/test_init.py" = ["B018"]
+"tests/test_app/test_io.py" = ["E721", "PTH123"]
+"tests/test_app/test_plugins.py" = ["B008", "PT031", "RUF043"]
+"tests/test_app/test_sample.py" = ["E721"]
+"tests/test_app/test_sqlite_data_store.py" = ["A001", "F811"]
+"tests/test_app/test_tree.py" = ["PT012"]
+"tests/test_app/test_typing.py" = ["EM101", "PLC0132"]
+"tests/test_cluster/test_UPGMA.py" = ["F811", "N999"]
+"tests/test_core/test_alignment.py" = [
+    "ARG005",
+    "PTH123",
+    "RUF040",
+    "RUF100",
+    "S105",
+    "S301",
+    "TRY301",
+]
+"tests/test_core/test_aln_annotation.py" = ["ARG005", "PTH118", "RUF015"]
+"tests/test_core/test_alphabet.py" = ["E721", "NPY002", "S301"]
+"tests/test_core/test_annotation_db.py" = ["PT030", "S301"]
+"tests/test_core/test_moltype.py" = ["PT030"]
+"tests/test_core/test_profile.py" = ["NPY002"]
+"tests/test_core/test_seq_annotation.py" = ["RUF015"]
+"tests/test_core/test_sequence.py" = ["E721", "PT012", "PTH123", "S105"]
+"tests/test_core/test_table.py" = [
+    "B018",
+    "C901",
+    "PLW0129",
+    "PTH118",
+    "PTH120",
+    "PTH123",
+]
+"tests/test_core/test_tree.py" = ["PLR0915", "RUF060"]
+"tests/test_draw/test_dotplot.py" = ["B018"]
+"tests/test_draw/test_draw_integration.py" = ["PT012", "PT018"]
+"tests/test_draw/test_new_draw_integration.py" = ["PT018"]
+"tests/test_evolve/test_best_likelihood.py" = ["A001"]
+"tests/test_evolve/test_distance.py" = ["PLC0206"]
+"tests/test_evolve/test_likelihood_function.py" = [
+    "B017",
+    "F811",
+    "N813",
+    "PT009",
+    "PTH109",
+    "PTH118",
+    "PTH123",
+    "SIM105",
+]
+"tests/test_evolve/test_motifchange.py" = ["B017"]
+"tests/test_evolve/test_newq.py" = ["N813", "PT009", "RUF012"]
+"tests/test_evolve/test_ns_substitution_model.py" = ["RUF012"]
+"tests/test_evolve/test_scale_rules.py" = ["F811"]
+"tests/test_evolve/test_substitution_model.py" = ["PTH109", "PTH118", "RUF012"]
+"tests/test_format/test_bedgraph.py" = ["FLY002"]
+"tests/test_maths/test_geometry.py" = ["A004", "NPY002"]
+"tests/test_maths/test_matrix_exponential_integration.py" = ["PT009"]
+"tests/test_maths/test_measure.py" = ["NPY002"]
+"tests/test_maths/test_optimisers.py" = ["B017", "PTH107", "PTH110"]
+"tests/test_maths/test_period.py" = ["NPY002"]
+"tests/test_maths/test_stats/test_contingency.py" = ["PT012"]
+"tests/test_maths/test_stats/test_number.py" = ["PT012"]
+"tests/test_maths/test_stats/test_test.py" = ["F821"]
+"tests/test_parse/test_blast_xml.py" = ["S318"]
+"tests/test_parse/test_ebi.py" = ["F601", "PT030"]
+"tests/test_parse/test_fasta.py" = ["PTH118", "PTH120"]
+"tests/test_parse/test_fastq.py" = ["B905"]
+"tests/test_parse/test_gbseq.py" = ["S318"]
+"tests/test_parse/test_genbank.py" = ["PLC0206", "PTH123"]
+"tests/test_parse/test_gff.py" = ["PTH118"]
+"tests/test_parse/test_ncbi_taxonomy.py" = ["PLR0124", "PT009"]
+"tests/test_parse/test_psl.py" = ["PTH123", "SIM115"]
+"tests/test_parse/test_record.py" = ["RUF012"]
+"tests/test_parse/test_sequence.py" = ["PTH123"]
+"tests/test_parse/test_tinyseq.py" = ["S318"]
+"tests/test_parse/test_tree.py" = ["PTH123"]
+"tests/test_phylo.py" = ["B017", "E721", "PT009", "PTH118", "PTH120"]
+"tests/test_recalculation.py" = ["RUF040"]
+"tests/test_top_level_imports.py" = ["PT006", "S603"]
+"tests/test_util/test_deserialise.py" = ["PTH123"]
+"tests/test_util/test_dictarray.py" = ["PTH118", "PTH123", "RUF040"]
+"tests/test_util/test_misc.py" = ["PGH004", "S307", "SLOT000"]
+"tests/test_util/test_transform.py" = ["PLR0915"]
 
 [format]
 # Like Black, use double quotes for strings.

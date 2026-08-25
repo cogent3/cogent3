@@ -31,7 +31,7 @@ __license__ = "BSD-3"
 set_parallel_backend("loky")
 
 
-def __getattr__(name: str) -> typing.Any:  # noqa: ANN401
+def __getattr__(name: str) -> typing.Any:
     if (attr := globals().get(name)) is not None:
         return attr
 
@@ -124,7 +124,7 @@ def make_seq(
     moltype: "MolTypeLiteral | None" = None,
     annotation_offset: int = 0,
     annotation_db: "AnnotationDbABC | None" = None,
-    **kwargs: typing.Any,  # noqa: ANN401
+    **kwargs: typing.Any,
 ):  # refactor: type hinting, need to capture optional args and the return type
     """
     Parameters
@@ -168,7 +168,7 @@ def _load_files_to_unaligned_seqs(
     parser_kw: dict | None = None,
     info: dict | None = None,
     show_progress: "bool | Progress | dict[str, typing.Any]" = False,  # type: ignore[type-arg]
-    **kwargs: typing.Any,  # noqa: ANN401
+    **kwargs: typing.Any,
 ) -> "SequenceCollection":
     """loads multiple files and returns as a sequence collection"""
     from scinexus.progress import get_progress
@@ -236,7 +236,7 @@ def load_seq(
     parser_kw: dict | None = None,
     info: dict | None = None,
     annotation_offset: int = 0,
-    **kwargs: typing.Any,  # noqa: ANN401
+    **kwargs: typing.Any,
 ) -> "Sequence":
     """
     loads unaligned sequences from file
@@ -369,7 +369,7 @@ def load_unaligned_seqs(
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kwargs: typing.Any,  # noqa: ANN401
+    **kwargs: typing.Any,
 ) -> "SequenceCollection":
     """
     loads unaligned sequences from file
@@ -468,7 +468,7 @@ def load_aligned_seqs(
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
     info: dict | None = None,
-    **kwargs: typing.Any,  # noqa: ANN401
+    **kwargs: typing.Any,
 ) -> "Alignment":
     """
     loads aligned sequences from file

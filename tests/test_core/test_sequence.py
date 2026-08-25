@@ -194,7 +194,7 @@ def test_sequence_to_moltype_seqclass(moltype):
     assert got.moltype.name == moltype
     # check the instance matches the assigned class, which is on
     # the attribute mt._make_seq
-    assert isinstance(got, got.moltype._make_seq)  # noqa: SLF001
+    assert isinstance(got, got.moltype._make_seq)
     assert str(got) == raw
 
 
@@ -2878,7 +2878,7 @@ def test_seqview_parent_offset_seqsdata_parent():
     from cogent3 import make_unaligned_seqs
 
     sc = make_unaligned_seqs({"s1": "ACGT"}, moltype="dna")
-    sv = sc.get_seq("s1")._seq  # noqa: SLF001
+    sv = sc.get_seq("s1")._seq
     assert sv.parent_offset == 0
 
 

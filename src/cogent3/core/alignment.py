@@ -450,7 +450,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return self._name_map
 
     @name_map.setter
-    def name_map(self, value: dict[str, str] | None) -> None:  # noqa: ARG002
+    def name_map(self, value: dict[str, str] | None) -> None:
         """name_map can only be set at initialisation"""
         msg = "name_map cannot be set after initialisation"
         raise TypeError(msg)
@@ -1005,7 +1005,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             new_name = renamer(name)
             # we retain the parent_name when it differs from the name,
             # this can happen after multiple renames on the same collection
-            parent_name = parent_name if name != parent_name else name  # noqa: PLW2901
+            parent_name = parent_name if name != parent_name else name
             new_name_map[new_name] = parent_name
 
         if len(new_name_map) != len(self._name_map):
@@ -2415,7 +2415,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         self,
         k: int = 1,
         use_hook: str | None = None,
-        **kwargs,  # noqa: ANN003
+        **kwargs,
     ) -> NumpyIntArrayType:
         """return kmer counts for each sequence
 
@@ -2756,7 +2756,7 @@ class Alignment(CollectionBase[Aligned]):
         new = super().renamed_seqs(renamer)
 
         if self._array_seqs is not None:
-            new._array_seqs = self._array_seqs  # noqa: SLF001
+            new._array_seqs = self._array_seqs
 
         return new
 
@@ -5524,7 +5524,7 @@ def prep_for_seqs_data(
     offsets: dict[str, int] = {}  # for the (Aligned)SeqsDataABC
     rvd: set[str] = set()
     for name, seq in data.items():
-        name = seq_namer(seq=seq, name=name)  # noqa: PLW2901
+        name = seq_namer(seq=seq, name=name)
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
         if seq_data.offset:
             offsets[seq_data.parent_name or name] = seq_data.offset

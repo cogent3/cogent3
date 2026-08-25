@@ -1,0 +1,11 @@
+---
+# Prose and generated files are excluded from code quality analysis. Every
+# issue Codacy reports outside the .py sources comes from these paths, and they
+# are documents or lock files rather than code.
+exclude_paths:
+  - 'README.md'
+  - 'CODE_OF_CONDUCT.md'
+  - 'CONTRIBUTING.md'
+  - 'changelog.md'
+  - 'changelog.d/**'
+  - 'uv.lock'

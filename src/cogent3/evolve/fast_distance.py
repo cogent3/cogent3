@@ -897,7 +897,7 @@ class DistanceMatrix(DictArray):
         If only two sequences are present, a simple tree is returned
         and hooks are not used.
         """
-        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)  # noqa: SLF001
+        qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)
         dists = self.drop_invalid()
         if dists.shape[0] == 2:
             # NJ not needed for 2 seqs
