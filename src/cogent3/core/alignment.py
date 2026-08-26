@@ -82,6 +82,10 @@ GeneticCodeTypes = Union["GeneticCode | str | int"]
 NumpyIntArrayType = npt.NDArray[numpy.integer]
 NumpyFloatArrayType = npt.NDArray[numpy.floating]
 
+# number of sequences listed by the text representation of a collection. The
+# num_seqs repr policy setting is not used as its default suits html display.
+_REPR_NUM_SEQS = 3
+
 
 class Aligned(AnnotatableMixin):
     """A single sequence in an alignment.
@@ -384,6 +388,82 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
     @abstractmethod
     def __repr__(self) -> str: ...
+
+    def _get_repr_settings(self) -> dict[str, Any]:
+        settings = self._repr_policy.copy()
+        settings.update(
+            get_setting_from_environ(
+                "COGENT3_ALIGNMENT_REPR_POLICY",
+                {"num_seqs": int, "num_pos": int, "wrap": int, "ref_name": str},
+            )
+        )
+        return settings
+
+    def _repr_seqs_str(self) -> str:
+        """comma delimited name[seq] elements for the text representation"""
+        num_pos = self._get_repr_settings()["num_pos"]
+        elements: list[str] = []
+        for name in self.names[:_REPR_NUM_SEQS]:
+            seq = str(self.seqs[name])
+            seq = f"{seq[:num_pos]}..." if len(seq) > num_pos else seq
+            elements.append(f"{name}[{seq}]")
+
+        if len(self.names) > _REPR_NUM_SEQS:
+            elements.append("...")
+
+        return ", ".join(elements)
+
+    def set_repr_policy(
+        self,
+        num_seqs: int | None = None,
+        num_pos: int | None = None,
+        ref_name: str | None = None,
+        wrap: int | None = None,
+    ) -> None:
+        """specify policy for repr(self)
+
+        Parameters
+        ----------
+        num_seqs
+            number of sequences to include in the html display.
+        num_pos
+            length of sequences to include in represented display.
+        ref_name
+            name of sequence to be placed first, or "longest" (default).
+            If latter, indicates longest sequence will be chosen.
+        wrap
+            number of printed bases per row
+
+        Notes
+        -----
+        The text representation uses num_pos only, always listing at most
+        3 sequences. The policy is left unchanged if any argument is invalid.
+        """
+        updates: dict[str, Any] = {}
+        if num_seqs is not None:
+            c3_sequence.validate_positive_int("num_seqs", num_seqs)
+            updates["num_seqs"] = num_seqs
+
+        if num_pos is not None:
+            c3_sequence.validate_positive_int("num_pos", num_pos)
+            updates["num_pos"] = num_pos
+
+        if ref_name is not None:
+            if not isinstance(ref_name, str):
+                msg = "ref_name is not a string"
+                raise TypeError(msg)
+
+            if ref_name != "longest" and ref_name not in self.names:
+                msg = f"no sequence name matching {ref_name}"
+                raise ValueError(msg)
+
+            updates["ref_name"] = ref_name
+
+        if wrap is not None:
+            c3_sequence.validate_positive_int("wrap", wrap)
+            updates["wrap"] = wrap
+
+        self._repr_policy.update(updates)
 
     def __getstate__(self) -> dict[str, Any]:
         return self._get_init_kwargs()
@@ -1649,110 +1729,28 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         sv = self._seqs_data.get_view(seqid)
         if self._is_reversed:
             sv = sv[::-1]
-        return self.moltype.make_seq(
+        seq = self.moltype.make_seq(
             seq=sv,
             name=name,
             annotation_db=self._annotation_db,
         )
+        seq.set_repr_policy(
+            num_pos=self._repr_policy["num_pos"],
+            wrap=self._repr_policy["wrap"],
+        )
+        return seq
 
     def __repr__(self) -> str:
-        seqs: list[str] = []
-        limit = 10
-        delimiter = ""
-
-        repr_seq_names = [
-            min(
-                self.names,
-                key=lambda name: self._seqs_data.get_seq_length(self.name_map[name]),
-            )
-        ]
-        if len(self.names) > 1:
-            # In case of a tie, min and max return first.
-            # reversed ensures if all seqs are of same length, different seqs are returned
-            repr_seq_names.append(
-                max(
-                    reversed(self.names),
-                    key=lambda name: self._seqs_data.get_seq_length(
-                        self.name_map[name]
-                    ),
-                ),
-            )
-
-        for name in repr_seq_names:
-            elts = list(str(self.seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts[-1] = "..."
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-
-        if len(self.names) > 2:
-            seqs.insert(1, "...")
-
-        seqs_str = ", ".join(seqs)
-
+        seqs_str = self._repr_seqs_str()
         return f"{len(self.names)}x {self.moltype.label} seqcollection: ({seqs_str})"
 
     def _repr_html_(self) -> str:
-        settings = self._repr_policy.copy()
-        env_vals = get_setting_from_environ(
-            "COGENT3_ALIGNMENT_REPR_POLICY",
-            {"num_seqs": int, "num_pos": int, "wrap": int},
-        )
-        settings.update(env_vals)
+        settings = self._get_repr_settings()
         return self.to_html(
             name_order=self.names[: settings["num_seqs"]],
             limit=settings["num_pos"],
             wrap=settings["wrap"],
         )
-
-    def set_repr_policy(
-        self,
-        num_seqs: int | None = None,
-        num_pos: int | None = None,
-        ref_name: int | None = None,
-        wrap: int | None = None,
-    ) -> None:
-        """specify policy for repr(self)
-
-        Parameters
-        ----------
-        num_seqs
-            number of sequences to include in represented display.
-        num_pos
-            length of sequences to include in represented display.
-        ref_name
-            name of sequence to be placed first, or "longest" (default).
-            If latter, indicates longest sequence will be chosen.
-        wrap
-            number of printed bases per row
-        """
-        if num_seqs:
-            if not isinstance(num_seqs, int):
-                msg = "num_seqs is not an integer"
-                raise TypeError(msg)
-            self._repr_policy["num_seqs"] = num_seqs
-
-        if num_pos:
-            if not isinstance(num_pos, int):
-                msg = "num_pos is not an integer"
-                raise TypeError(msg)
-            self._repr_policy["num_pos"] = num_pos
-
-        if ref_name:
-            if not isinstance(ref_name, str):
-                msg = "ref_name is not a string"
-                raise TypeError(msg)
-
-            if ref_name != "longest" and ref_name not in self.names:
-                msg = f"no sequence name matching {ref_name}"
-                raise ValueError(msg)
-
-            self._repr_policy["ref_name"] = ref_name
-
-        if wrap:
-            if not isinstance(wrap, int):
-                msg = "wrap is not an integer"
-                raise TypeError(msg)
-            self._repr_policy["wrap"] = wrap
 
     @property
     def modified(self) -> bool:
@@ -2659,28 +2657,11 @@ class Alignment(CollectionBase[Aligned]):
         raise NotImplementedError(msg)
 
     def __repr__(self) -> str:
-        seqs: list[str] = []
-        limit = 10
-        delimiter = ""
-        for count, name in enumerate(self.names):
-            if count == 3:
-                seqs.append("...")
-                break
-            elts = list(str(self.seqs[name])[: limit + 1])
-            if len(elts) > limit:
-                elts[-1] = "..."
-            seqs.append(f"{name}[{delimiter.join(elts)}]")
-        seqs_str = ", ".join(seqs)
-
+        seqs_str = self._repr_seqs_str()
         return f"{len(self.names)} x {len(self)} {self.moltype.label} alignment: {seqs_str}"
 
     def _repr_html_(self) -> str:
-        settings = self._repr_policy.copy()
-        env_vals = get_setting_from_environ(
-            "COGENT3_ALIGNMENT_REPR_POLICY",
-            {"num_seqs": int, "num_pos": int, "wrap": int, "ref_name": str},
-        )
-        settings.update(env_vals)
+        settings = self._get_repr_settings()
         return self.to_html(
             name_order=self.names[: settings["num_seqs"]],
             ref_name=settings["ref_name"],
