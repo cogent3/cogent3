@@ -5,7 +5,7 @@ build-backend = "uv_build"
 [project]
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
-version = "2026.7.30a0"
+version = "2026.8.26"
 
 authors = [{ name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" }]
 keywords = [
@@ -75,7 +75,7 @@ extra = [
 test = [
     "cogent3-h5seqs>=0.8.0",
     "piqtree>=0.8.0; python_version > '3.11'",
-    "ruff==0.16.3",
+    "ruff==0.16.4",
     "kaleido",
     "pandas",
     "plotly",

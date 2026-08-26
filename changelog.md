@@ -1,4 +1,29 @@
 
+<a id='changelog-2026.8.26'></a>
+# Changes in release "2026.8.26"
+
+Minor enhancement update.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added `Sequence.set_repr_policy()`, controlling `num_pos` and `wrap` for both
+  the text and HTML representations.
+- `set_repr_policy()` is now available on `Alignment`, and the text
+  representations of `SequenceCollection` and `Alignment` honour `num_pos`
+  rather than a hardcoded limit.
+- A collection's `repr` policy now propagates to its member sequences.
+
+## Documentation
+
+- Changed from Sphinx and restructured text to Quartodoc and their dialect
+  of markdown. While I personally love rst, it's clear Markdown has won the
+  lightweight markup battle and, more critically, is the lingua franca of
+  AI agents.
+
 <a id='changelog-2026.7.30a0'></a>
 # Changes in release "2026.7.30a0"
 
