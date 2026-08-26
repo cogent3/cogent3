@@ -1012,6 +1012,23 @@ def test_sequence_collection_set_repr_policy_valid_input(seqs):
     }
 
 
+def test_sequence_collection_repr_policy_reaches_member_seq(seqs):
+    seqs.set_repr_policy(num_pos=5, wrap=7)
+    got = seqs.seqs[seqs.names[0]]
+    assert got._repr_policy == {"num_pos": 5, "wrap": 7}
+
+
+def test_sequence_collection_repr_policy_reaches_iterated_seqs(seqs):
+    seqs.set_repr_policy(num_pos=5, wrap=7)
+    got = {seq._repr_policy["num_pos"] for seq in seqs.seqs}
+    assert got == {5}
+
+
+def test_sequence_collection_repr_policy_default_reaches_member_seq(seqs):
+    got = seqs.seqs[seqs.names[0]]
+    assert got._repr_policy == {"num_pos": 60, "wrap": 60}
+
+
 @pytest.mark.parametrize(
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],

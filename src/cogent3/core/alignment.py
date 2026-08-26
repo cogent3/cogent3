@@ -1726,11 +1726,16 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         sv = self._seqs_data.get_view(seqid)
         if self._is_reversed:
             sv = sv[::-1]
-        return self.moltype.make_seq(
+        seq = self.moltype.make_seq(
             seq=sv,
             name=name,
             annotation_db=self._annotation_db,
         )
+        seq.set_repr_policy(
+            num_pos=self._repr_policy["num_pos"],
+            wrap=self._repr_policy["wrap"],
+        )
+        return seq
 
     def __repr__(self) -> str:
         seqs_str = self._repr_seqs_str()
