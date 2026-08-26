@@ -859,42 +859,63 @@ def test_sequence_collection_iter_seqs_renamed(ragged_padded_dict):
     assert seqs == ["AAAAAA", "AAA---", "AAAA--"]
 
 
-def test_sequence_collection_repr():
-    data = {
-        "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
-        "ENSMUSG00000039616": "GCCCTTCAAATTT",
-    }
+@pytest.mark.parametrize(
+    ("data", "expect"),
+    [
+        (
+            {
+                "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
+                "ENSMUSG00000039616": "GCCCTTCAAATTT",
+            },
+            "2x dna seqcollection: (ENSMUSG00000056468[GCCAGGGGGAAAAGGGAGAA], ENSMUSG00000039616[GCCCTTCAAATTT])",
+        ),
+        (
+            {
+                "ENSMUSG00000039616": "GCCCTTCAAATTT",
+                "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
+            },
+            "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAATTT], ENSMUSG00000056468[GCCAGGGGGAAAAGGGAGAA])",
+        ),
+        ({"a": "TCGAT"}, "1x dna seqcollection: (a[TCGAT])"),
+        ({"a": "TCGAT" * 2}, "1x dna seqcollection: (a[TCGATTCGAT])"),
+        ({"a": "", "b": ""}, "2x dna seqcollection: (a[], b[])"),
+        (
+            {"a": "AA", "b": "CC", "c": "GG", "d": "TT"},
+            "4x dna seqcollection: (a[AA], b[CC], c[GG], ...)",
+        ),
+    ],
+)
+def test_sequence_collection_repr(data, expect):
     seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
+    assert repr(seqs) == expect
+
+
+def test_sequence_collection_repr_truncates_at_num_pos():
+    seqs = c3_alignment.make_unaligned_seqs(
+        {"a": "ACGT" * 30, "b": "TTTT" * 30},
+        moltype="dna",
+    )
     assert (
-        repr(seqs)
-        == "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...])"
+        repr(seqs) == f"2x dna seqcollection: (a[{'ACGT' * 15}...], b[{'T' * 60}...])"
     )
 
-    data = {
-        "ENSMUSG00000039616": "GCCCTTCAAATTT",
-        "ENSMUSG00000056468": "GCCAGGGGGAAAAGGGAGAA",
-    }
-    seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert (
-        repr(seqs)
-        == "2x dna seqcollection: (ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...])"
+
+def test_sequence_collection_repr_uses_policy():
+    seqs = c3_alignment.make_unaligned_seqs(
+        {"a": "ACGTACGT", "b": "TTTTTTTT"},
+        moltype="dna",
     )
+    seqs.set_repr_policy(num_pos=4)
+    assert repr(seqs) == "2x dna seqcollection: (a[ACGT...], b[TTTT...])"
 
-    data = {
-        "a": "TCGAT",
-    }
-    seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1x dna seqcollection: (a[TCGAT])"
 
-    data = {
-        "a": "TCGAT" * 2,
-    }
-    seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1x dna seqcollection: (a[TCGATTCGAT])"
-
-    data = {"a": "", "b": ""}
-    seqs = c3_alignment.make_unaligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "2x dna seqcollection: (a[], b[])"
+def test_sequence_collection_repr_uses_environ(monkeypatch):
+    monkeypatch.setenv("COGENT3_ALIGNMENT_REPR_POLICY", "num_pos=4")
+    seqs = c3_alignment.make_unaligned_seqs(
+        {"a": "ACGTACGT", "b": "TTTTTTTT"},
+        moltype="dna",
+    )
+    assert repr(seqs) == "2x dna seqcollection: (a[ACGT...], b[TTTT...])"
 
 
 def test_sequence_collection_set_wrap_affects_repr_html():
@@ -3988,52 +4009,63 @@ def test_alignment_to_html_bytes_moltype():
     assert isinstance(got, str)
 
 
-def test_alignment_repr():
-    data = {
-        "ENSMUSG00000056468": "GCCAGGGGGAAAA",
-        "ENSMUSG00000039616": "GCCCTTCAAATTT",
-    }
-    seqs = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    assert (
-        repr(seqs)
-        == "2 x 13 dna alignment: ENSMUSG00000056468[GCCAGGGGGA...], ENSMUSG00000039616[GCCCTTCAAA...]"
+@pytest.mark.parametrize(
+    ("data", "moltype", "expect"),
+    [
+        (
+            {
+                "ENSMUSG00000056468": "GCCAGGGGGAAAA",
+                "ENSMUSG00000039616": "GCCCTTCAAATTT",
+            },
+            "dna",
+            "2 x 13 dna alignment: ENSMUSG00000056468[GCCAGGGGGAAAA], ENSMUSG00000039616[GCCCTTCAAATTT]",
+        ),
+        (
+            {
+                "ENSMUSG00000039616": "GCCCTTCAAATTT",
+                "ENSMUSG00000056468": "GCCAGGGGGAAAA",
+            },
+            "dna",
+            "2 x 13 dna alignment: ENSMUSG00000039616[GCCCTTCAAATTT], ENSMUSG00000056468[GCCAGGGGGAAAA]",
+        ),
+        ({"a": "TCGAT"}, "dna", "1 x 5 dna alignment: a[TCGAT]"),
+        ({"a": "TCGAT" * 2}, "dna", "1 x 10 dna alignment: a[TCGATTCGAT]"),
+        (
+            {c.lower(): c * 11 for c in "ABCDE"},
+            "text",
+            "5 x 11 text alignment: a[AAAAAAAAAAA], b[BBBBBBBBBBB], c[CCCCCCCCCCC], ...",
+        ),
+    ],
+)
+def test_alignment_repr(data, moltype, expect):
+    seqs = c3_alignment.make_aligned_seqs(data, moltype=moltype)
+    assert repr(seqs) == expect
+
+
+def test_alignment_repr_truncates_at_num_pos():
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": "ACGT" * 30, "b": "TTTT" * 30},
+        moltype="dna",
     )
+    assert repr(aln) == f"2 x 120 dna alignment: a[{'ACGT' * 15}...], b[{'T' * 60}...]"
 
-    data = {
-        "ENSMUSG00000039616": "GCCCTTCAAATTT",
-        "ENSMUSG00000056468": "GCCAGGGGGAAAA",
-    }
-    seqs = c3_alignment.make_aligned_seqs(data, moltype="dna")
 
-    assert (
-        repr(seqs)
-        == "2 x 13 dna alignment: ENSMUSG00000039616[GCCCTTCAAA...], ENSMUSG00000056468[GCCAGGGGGA...]"
+def test_alignment_repr_uses_policy():
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": "ACGTACGT", "b": "TTTTTTTT"},
+        moltype="dna",
     )
+    aln.set_repr_policy(num_pos=4)
+    assert repr(aln) == "2 x 8 dna alignment: a[ACGT...], b[TTTT...]"
 
-    data = {
-        "a": "TCGAT",
-    }
-    seqs = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1 x 5 dna alignment: a[TCGAT]"
 
-    data = {
-        "a": "TCGAT" * 2,
-    }
-    seqs = c3_alignment.make_aligned_seqs(data, moltype="dna")
-    assert repr(seqs) == "1 x 10 dna alignment: a[TCGATTCGAT]"
-
-    data = {
-        "a": "A" * 11,
-        "b": "B" * 11,
-        "c": "C" * 11,
-        "d": "D" * 11,
-        "e": "E" * 11,
-    }
-    seqs = c3_alignment.make_aligned_seqs(data, moltype="text")
-    assert (
-        repr(seqs)
-        == "5 x 11 text alignment: a[AAAAAAAAAA...], b[BBBBBBBBBB...], c[CCCCCCCCCC...], ..."
+def test_alignment_repr_uses_environ(monkeypatch):
+    monkeypatch.setenv("COGENT3_ALIGNMENT_REPR_POLICY", "num_pos=4")
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": "ACGTACGT", "b": "TTTTTTTT"},
+        moltype="dna",
     )
+    assert repr(aln) == "2 x 8 dna alignment: a[ACGT...], b[TTTT...]"
 
 
 @pytest.mark.parametrize(
