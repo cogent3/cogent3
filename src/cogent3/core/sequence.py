@@ -183,6 +183,17 @@ def count_kmers(
 #  sequence object is being serialised.
 
 
+def validate_positive_int(name: str, value: object) -> None:
+    """raises if value is not an integer > 0"""
+    if isinstance(value, bool) or not isinstance(value, int):
+        msg = f"{name} is not an integer"
+        raise TypeError(msg)
+
+    if value < 1:
+        msg = f"{name} must be > 0, got {value}"
+        raise ValueError(msg)
+
+
 @total_ordering
 class Sequence(AnnotatableMixin):
     """Holds the standard Sequence object. Immutable.
@@ -243,7 +254,7 @@ class Sequence(AnnotatableMixin):
         )
 
         self.info = InfoClass(**(info or {}))
-        self._repr_policy = {"num_pos": 60}
+        self._repr_policy: dict[str, int] = {"num_pos": 60, "wrap": 60}
         self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
             annotation_db
         )
@@ -958,14 +969,41 @@ class Sequence(AnnotatableMixin):
             info=self.info,
         )
 
-    def _repr_html_(self) -> str:
+    def _get_repr_settings(self) -> dict[str, int]:
         settings = self._repr_policy.copy()
-        env_vals = get_setting_from_environ(
-            "COGENT3_ALIGNMENT_REPR_POLICY",
-            {"num_pos": int},
+        settings.update(
+            get_setting_from_environ(
+                "COGENT3_ALIGNMENT_REPR_POLICY",
+                {"num_pos": int, "wrap": int},
+            )
         )
-        settings.update(env_vals)
-        return self.to_html(limit=settings["num_pos"])
+        return settings
+
+    def set_repr_policy(
+        self,
+        num_pos: int | None = None,
+        wrap: int | None = None,
+    ) -> None:
+        """specify policy for repr(self)
+
+        Parameters
+        ----------
+        num_pos
+            number of positions to include in represented display.
+        wrap
+            number of printed bases per row
+        """
+        if num_pos is not None:
+            validate_positive_int("num_pos", num_pos)
+            self._repr_policy["num_pos"] = num_pos
+
+        if wrap is not None:
+            validate_positive_int("wrap", wrap)
+            self._repr_policy["wrap"] = wrap
+
+    def _repr_html_(self) -> str:
+        settings = self._get_repr_settings()
+        return self.to_html(limit=settings["num_pos"], wrap=settings["wrap"])
 
     def to_html(
         self,
@@ -1423,13 +1461,15 @@ class Sequence(AnnotatableMixin):
             alphabet=moltype.most_degen_alphabet(),
         )
         db = self.annotation_db if self.has_annotation_db() else None
-        return moltype.make_seq(
+        new = moltype.make_seq(
             seq=sv,
             name=self.name,
             check_seq=False,
             info=self.info,
             annotation_db=db,
         )
+        new._repr_policy.update(self._repr_policy)
+        return new
 
     def copy_annotations(self, seq_db: AnnotationDbABC) -> None:
         """copy annotations into attached annotation db
@@ -1615,7 +1655,12 @@ class Sequence(AnnotatableMixin):
     def __repr__(self) -> str:
         myclass = f"{self.__class__.__name__}"
         myclass = myclass.rsplit(".", maxsplit=1)[-1]
-        seq = f"{str(self)[:7]}... {len(self):,}" if len(self) > 10 else str(self)
+        num_pos = self._get_repr_settings()["num_pos"]
+        seq = (
+            f"{str(self)[:num_pos]}... {len(self):,}"
+            if len(self) > num_pos
+            else str(self)
+        )
         return f"{myclass}({seq})"
 
     def __getitem__(
@@ -2112,11 +2157,13 @@ class NucleicAcidSequenceBase(Sequence):
         Always tries to return same type as item: if item looks like a dict,
         will return list of keys.
         """
-        return self.__class__(
+        new = self.__class__(
             moltype=self.moltype,
             seq=self.moltype.complement(bytes(self)),
             info=self.info,
         )
+        new._repr_policy.update(self._repr_policy)
+        return new
 
     def reverse_complement(self) -> Self:
         """Converts a nucleic acid sequence to its reverse complement.
@@ -2126,13 +2173,15 @@ class NucleicAcidSequenceBase(Sequence):
     def rc(self) -> Self:
         """Converts a nucleic acid sequence to its reverse complement."""
         db = self.annotation_db if self.has_annotation_db() else None
-        return self.__class__(
+        new = self.__class__(
             moltype=self.moltype,
             seq=self._seq[::-1],
             name=self.name,
             info=self.info,
             annotation_db=db,
         )
+        new._repr_policy.update(self._repr_policy)
+        return new
 
     def has_terminal_stop(
         self,

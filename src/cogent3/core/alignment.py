@@ -1708,7 +1708,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         self,
         num_seqs: int | None = None,
         num_pos: int | None = None,
-        ref_name: int | None = None,
+        ref_name: str | None = None,
         wrap: int | None = None,
     ) -> None:
         """specify policy for repr(self)
@@ -1725,19 +1725,15 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         wrap
             number of printed bases per row
         """
-        if num_seqs:
-            if not isinstance(num_seqs, int):
-                msg = "num_seqs is not an integer"
-                raise TypeError(msg)
+        if num_seqs is not None:
+            c3_sequence.validate_positive_int("num_seqs", num_seqs)
             self._repr_policy["num_seqs"] = num_seqs
 
-        if num_pos:
-            if not isinstance(num_pos, int):
-                msg = "num_pos is not an integer"
-                raise TypeError(msg)
+        if num_pos is not None:
+            c3_sequence.validate_positive_int("num_pos", num_pos)
             self._repr_policy["num_pos"] = num_pos
 
-        if ref_name:
+        if ref_name is not None:
             if not isinstance(ref_name, str):
                 msg = "ref_name is not a string"
                 raise TypeError(msg)
@@ -1748,10 +1744,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
 
             self._repr_policy["ref_name"] = ref_name
 
-        if wrap:
-            if not isinstance(wrap, int):
-                msg = "wrap is not an integer"
-                raise TypeError(msg)
+        if wrap is not None:
+            c3_sequence.validate_positive_int("wrap", wrap)
             self._repr_policy["wrap"] = wrap
 
     @property

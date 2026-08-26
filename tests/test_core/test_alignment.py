@@ -956,25 +956,28 @@ def test_sequence_collection_set_repr_policy_no_input(seqs):
     }
 
 
-def test_sequence_collection_set_repr_policy_invalid_input(seqs):
+@pytest.mark.parametrize(
+    ("kwargs", "err"),
+    [
+        ({"num_seqs": "foo"}, TypeError),
+        ({"num_pos": 4.2}, TypeError),
+        ({"ref_name": "blah"}, ValueError),
+        ({"wrap": 3.1}, TypeError),
+        ({"num_seqs": 0}, ValueError),
+        ({"num_pos": 0}, ValueError),
+        ({"wrap": -1}, ValueError),
+    ],
+)
+def test_sequence_collection_set_repr_policy_invalid_input(seqs, kwargs, err):
     """repr_policy should remain unchanged"""
-    invalid_args = (
-        {"num_seqs": "foo", "err": TypeError},
-        {"num_pos": 4.2, "err": TypeError},
-        {"ref_name": "blah", "err": ValueError},
-        {"wrap": 3.1, "err": TypeError},
-    )
-
-    for arg in invalid_args:
-        err = arg.pop("err")
-        with pytest.raises(err):
-            seqs.set_repr_policy(**arg)
-        assert seqs._repr_policy == {
-            "num_seqs": 10,
-            "num_pos": 60,
-            "ref_name": "longest",
-            "wrap": 60,
-        }
+    with pytest.raises(err):
+        seqs.set_repr_policy(**kwargs)
+    assert seqs._repr_policy == {
+        "num_seqs": 10,
+        "num_pos": 60,
+        "ref_name": "longest",
+        "wrap": 60,
+    }
 
 
 def test_sequence_collection_set_repr_policy_valid_input(seqs):

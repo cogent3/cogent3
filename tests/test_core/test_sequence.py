@@ -977,6 +977,86 @@ def test_repr_html():
     os.environ.pop(env_name, None)
 
 
+@pytest.fixture
+def long_seq():
+    return c3_moltype.DNA.make_seq(seq="ACGT" * 250, name="s1")
+
+
+def test_set_repr_policy_num_pos(long_seq):
+    long_seq.set_repr_policy(num_pos=20)
+    assert long_seq._repr_policy["num_pos"] == 20
+
+
+def test_set_repr_policy_wrap(long_seq):
+    long_seq.set_repr_policy(wrap=30)
+    assert long_seq._repr_policy["wrap"] == 30
+
+
+def test_set_repr_policy_no_args_unchanged(long_seq):
+    expect = dict(long_seq._repr_policy)
+    long_seq.set_repr_policy()
+    assert long_seq._repr_policy == expect
+
+
+@pytest.mark.parametrize("kwargs", [{"num_pos": "20"}, {"wrap": "30"}, {"wrap": 3.0}])
+def test_set_repr_policy_invalid_type(long_seq, kwargs):
+    with pytest.raises(TypeError):
+        long_seq.set_repr_policy(**kwargs)
+
+
+@pytest.mark.parametrize("kwargs", [{"num_pos": 0}, {"num_pos": -1}, {"wrap": -1}])
+def test_set_repr_policy_invalid_value(long_seq, kwargs):
+    with pytest.raises(ValueError):
+        long_seq.set_repr_policy(**kwargs)
+
+
+def test_repr_html_uses_wrap(long_seq):
+    long_seq.set_repr_policy(num_pos=12, wrap=4)
+    rows = [l for l in long_seq._repr_html_().splitlines() if 'class="label"' in l]
+    assert len(rows) == 3
+
+
+def test_repr_html_env_wrap(long_seq, monkeypatch):
+    monkeypatch.setenv("COGENT3_ALIGNMENT_REPR_POLICY", "num_pos=12,wrap=6")
+    rows = [l for l in long_seq._repr_html_().splitlines() if 'class="label"' in l]
+    assert len(rows) == 2
+
+
+def test_repr_short_seq_not_truncated():
+    seq = c3_moltype.DNA.make_seq(seq="AACCTGGAACCTTGGAACC", name="s1")
+    assert repr(seq) == "DnaSequence(AACCTGGAACCTTGGAACC)"
+
+
+def test_repr_long_seq_truncated_at_num_pos(long_seq):
+    assert repr(long_seq) == f"DnaSequence({'ACGT' * 15}... 1,000)"
+
+
+def test_repr_uses_set_repr_policy(long_seq):
+    long_seq.set_repr_policy(num_pos=8)
+    assert repr(long_seq) == "DnaSequence(ACGTACGT... 1,000)"
+
+
+def test_repr_uses_environ(long_seq, monkeypatch):
+    monkeypatch.setenv("COGENT3_ALIGNMENT_REPR_POLICY", "num_pos=8")
+    assert repr(long_seq) == "DnaSequence(ACGTACGT... 1,000)"
+
+
+@pytest.mark.parametrize(
+    "func",
+    [
+        lambda s: s[2:],
+        lambda s: s.rc(),
+        lambda s: s.complement(),
+        lambda s: s.to_moltype("rna"),
+    ],
+)
+def test_repr_policy_propagates(long_seq, func):
+    long_seq.set_repr_policy(num_pos=5, wrap=7)
+    got = func(long_seq)
+    assert got._repr_policy["num_pos"] == 5
+    assert got._repr_policy["wrap"] == 7
+
+
 def _check_mix_add(s1, s2):
     s1s2 = s1 + s2
     s2s1 = s2 + s1
