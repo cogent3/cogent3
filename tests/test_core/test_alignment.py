@@ -987,6 +987,10 @@ def test_sequence_collection_set_repr_policy_no_input(seqs):
         ({"num_seqs": 0}, ValueError),
         ({"num_pos": 0}, ValueError),
         ({"wrap": -1}, ValueError),
+        ({"num_seqs": 5, "num_pos": 0}, ValueError),
+        ({"num_pos": 5, "wrap": 0}, ValueError),
+        ({"num_seqs": 5, "ref_name": "blah"}, ValueError),
+        ({"num_seqs": 5, "num_pos": 40, "wrap": "foo"}, TypeError),
     ],
 )
 def test_sequence_collection_set_repr_policy_invalid_input(seqs, kwargs, err):

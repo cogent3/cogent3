@@ -992,14 +992,21 @@ class Sequence(AnnotatableMixin):
             number of positions to include in represented display.
         wrap
             number of printed bases per row
+
+        Notes
+        -----
+        The policy is left unchanged if any argument is invalid.
         """
+        updates: dict[str, int] = {}
         if num_pos is not None:
             validate_positive_int("num_pos", num_pos)
-            self._repr_policy["num_pos"] = num_pos
+            updates["num_pos"] = num_pos
 
         if wrap is not None:
             validate_positive_int("wrap", wrap)
-            self._repr_policy["wrap"] = wrap
+            updates["wrap"] = wrap
+
+        self._repr_policy.update(updates)
 
     def _repr_html_(self) -> str:
         settings = self._get_repr_settings()

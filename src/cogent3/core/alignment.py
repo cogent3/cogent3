@@ -437,15 +437,16 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         Notes
         -----
         The text representation uses num_pos only, always listing at most
-        3 sequences.
+        3 sequences. The policy is left unchanged if any argument is invalid.
         """
+        updates: dict[str, Any] = {}
         if num_seqs is not None:
             c3_sequence.validate_positive_int("num_seqs", num_seqs)
-            self._repr_policy["num_seqs"] = num_seqs
+            updates["num_seqs"] = num_seqs
 
         if num_pos is not None:
             c3_sequence.validate_positive_int("num_pos", num_pos)
-            self._repr_policy["num_pos"] = num_pos
+            updates["num_pos"] = num_pos
 
         if ref_name is not None:
             if not isinstance(ref_name, str):
@@ -456,11 +457,13 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
                 msg = f"no sequence name matching {ref_name}"
                 raise ValueError(msg)
 
-            self._repr_policy["ref_name"] = ref_name
+            updates["ref_name"] = ref_name
 
         if wrap is not None:
             c3_sequence.validate_positive_int("wrap", wrap)
-            self._repr_policy["wrap"] = wrap
+            updates["wrap"] = wrap
+
+        self._repr_policy.update(updates)
 
     def __getstate__(self) -> dict[str, Any]:
         return self._get_init_kwargs()

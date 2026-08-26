@@ -998,16 +998,36 @@ def test_set_repr_policy_no_args_unchanged(long_seq):
     assert long_seq._repr_policy == expect
 
 
-@pytest.mark.parametrize("kwargs", [{"num_pos": "20"}, {"wrap": "30"}, {"wrap": 3.0}])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"num_pos": "20"},
+        {"wrap": "30"},
+        {"wrap": 3.0},
+        {"num_pos": 20, "wrap": "30"},
+    ],
+)
 def test_set_repr_policy_invalid_type(long_seq, kwargs):
+    expect = dict(long_seq._repr_policy)
     with pytest.raises(TypeError):
         long_seq.set_repr_policy(**kwargs)
+    assert long_seq._repr_policy == expect
 
 
-@pytest.mark.parametrize("kwargs", [{"num_pos": 0}, {"num_pos": -1}, {"wrap": -1}])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"num_pos": 0},
+        {"num_pos": -1},
+        {"wrap": -1},
+        {"num_pos": 20, "wrap": 0},
+    ],
+)
 def test_set_repr_policy_invalid_value(long_seq, kwargs):
+    expect = dict(long_seq._repr_policy)
     with pytest.raises(ValueError):
         long_seq.set_repr_policy(**kwargs)
+    assert long_seq._repr_policy == expect
 
 
 def test_repr_html_uses_wrap(long_seq):
