@@ -2876,7 +2876,7 @@ class Alignment(CollectionBase[Aligned]):
                 length_names[l].append(cast("str", n))
 
             longest = max(length_names)
-            ref = sorted(length_names[longest])[0]
+            ref = min(length_names[longest])
 
         else:
             if ref_name not in selected.names:

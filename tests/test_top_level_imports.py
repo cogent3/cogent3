@@ -67,9 +67,11 @@ def test_warnings_env_var_applied():
         [
             sys.executable,
             "-c",
-            "import cogent3\n"
-            "import warnings\n"
-            "warnings.warn('triggered', UserWarning)\n",
+            (
+                "import cogent3\n"
+                "import warnings\n"
+                "warnings.warn('triggered', UserWarning)\n"
+            ),
         ],
         check=False,
         capture_output=True,
@@ -101,10 +103,12 @@ def test_profile_import_then_make_seq():
         [
             sys.executable,
             "-c",
-            "import cogent3.core.profile\n"
-            "from cogent3.core.moltype import DNA\n"
-            "seq = DNA.make_seq(seq='ACGT', name='t')\n"
-            "assert str(seq) == 'ACGT'\n",
+            (
+                "import cogent3.core.profile\n"
+                "from cogent3.core.moltype import DNA\n"
+                "seq = DNA.make_seq(seq='ACGT', name='t')\n"
+                "assert str(seq) == 'ACGT'\n"
+            ),
         ],
         check=False,
         capture_output=True,
