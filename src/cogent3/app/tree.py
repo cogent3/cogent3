@@ -141,7 +141,7 @@ class quick_tree(ComposableApp, cite=cite_cogent3):
 
 
 @singledispatch
-def interpret_tree_arg(tree) -> None | PhyloNode:
+def interpret_tree_arg(tree) -> PhyloNode | None:
     msg = f"invalid tree type {type(tree)}"
     raise TypeError(msg)
 

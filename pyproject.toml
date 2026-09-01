@@ -75,7 +75,7 @@ extra = [
 test = [
     "cogent3-h5seqs>=0.8.0",
     "piqtree>=0.8.0; python_version > '3.11'",
-    "ruff==0.16.3",
+    "ruff==0.16.4",
     "kaleido",
     "pandas",
     "plotly",

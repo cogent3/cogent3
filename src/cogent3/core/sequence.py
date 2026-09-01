@@ -1106,8 +1106,10 @@ class Sequence(AnnotatableMixin):
             ".c3seq tr:not(.num_row) td span {margin: 0 2px;}",
             ".c3seq tr:nth-child(even) {background: #f7f7f7;}",
             ".c3seq .num_row {background-color:rgba(161, 195, 209, 0.5) !important; border-top: solid 1px black; }",
-            f".c3seq .label {{ font-size: {font_size}pt ; text-align: right !important; "
-            "color: black !important; padding: 0 4px; }}",
+            (
+                f".c3seq .label {{ font-size: {font_size}pt ; text-align: right !important; "
+                "color: black !important; padding: 0 4px; }}"
+            ),
             "\n".join([f".c3seq {style}" for style in css]),
             "</style>",
             '<div class="c3seq">',

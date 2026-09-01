@@ -418,8 +418,10 @@ code_mapping = (
     (
         "FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
         4,
-        "Mold Mitochondrial; Protozoan Mitochondrial; Coelenterate "
-        "Mitochondrial; Mycoplasma; Spiroplasma",
+        (
+            "Mold Mitochondrial; Protozoan Mitochondrial; Coelenterate "
+            "Mitochondrial; Mycoplasma; Spiroplasma"
+        ),
         "--MM---------------M------------MMMM---------------M------------",
     ),
     (
