@@ -14,7 +14,6 @@ from scinexus.data_store import (
 from scinexus.io import open_data_store
 
 from cogent3.app import io as io_app
-from cogent3.app.data_store import convert_directory_datastore
 from cogent3.core.table import Table
 
 
@@ -135,15 +134,6 @@ def full_dstore(write_dir, nc_objects, completed_objects, log_data):
 
     dstore.write_log(unique_id="scitrack.log", data=log_data)
     return dstore
-
-
-def test_convert_directory_datastore(Sample_oldDirectoryDataStore, write_dir):
-    new_dstore = convert_directory_datastore(
-        Sample_oldDirectoryDataStore,
-        write_dir,
-        ".fasta",
-    )
-    assert len(new_dstore) == 6
 
 
 def test_summary_not_completed_func(nc_objects):

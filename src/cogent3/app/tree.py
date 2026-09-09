@@ -10,7 +10,6 @@ from cogent3.core.tree import PhyloNode
 from cogent3.phylo.nj import gnj
 
 from ._citations import cite_cogent3
-from .data_store import get_data_source
 from .typing import PairwiseDistanceType, SerialisableType, TreeType
 
 NoneType = type(None)

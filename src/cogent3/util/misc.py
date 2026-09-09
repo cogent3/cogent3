@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import inspect
 import os
 import re
 import typing
@@ -12,12 +11,10 @@ from collections.abc import Mapping
 from collections.abc import Sequence as PySeq
 from random import choice
 from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar, overload
-from urllib.parse import urlparse
 from warnings import warn
 
 import numpy
 from numpy import array, finfo, float64, floating, integer, ndarray, zeros
-from scinexus.warning import deprecated_callable
 from typing_extensions import TypeIs
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -188,18 +185,6 @@ def is_char(obj):
 
 def is_char_or_noniterable(x):
     return is_char(x) or not is_iterable(x)
-
-
-@deprecated_callable(
-    version="2026.9",
-    reason="Use scinexus.io_util.is_url",
-    new="scinexus.io_util.is_url",
-    is_discontinued=True,
-)
-def is_url(text: str) -> bool:  # pragma: no cover
-    _urls = re.compile("^(http[s]*|file)")
-    r = urlparse(text)
-    return _urls.search(r.scheme) is not None
 
 
 def recursive_flatten(
@@ -969,87 +954,6 @@ def get_merged_by_value_coords(spans_value, digits=None):
     return data
 
 
-@deprecated_callable(
-    version="2026.9",
-    reason="Use scinexus.misc.get_object_provenance",
-    new="scinexus.misc.get_object_provenance",
-    is_discontinued=True,
-)
-def get_object_provenance(obj: object) -> str:  # pragma: no cover
-    """returns string of complete object provenance"""
-    # algorithm inspired by Greg Baacon's answer to
-    # https://stackoverflow.com/questions/2020014/get-fully-qualified-class
-    # -name-of-an-object-in-python
-    if isinstance(obj, type) or inspect.isfunction(obj):
-        mod = obj.__module__
-        name = obj.__name__
-    else:
-        mod = obj.__class__.__module__
-        name = obj.__class__.__name__
-
-    return name if mod is None or mod == "builtins" else f"{mod}.{name}"
-
-
-@deprecated_callable(
-    version="2026.9",
-    reason="Use scinexus.misc.extend_docstring_from",
-    new="scinexus.misc.extend_docstring_from",
-    is_discontinued=True,
-)
-def extend_docstring_from(  # pragma: no cover
-    source: object, pre: bool = False
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    def docstring_inheriting_decorator(dest: Callable[P, R]) -> Callable[P, R]:
-        parts = [source.__doc__ or "", dest.__doc__ or ""]
-        # trim leading/trailing blank lines from parts
-        for i, part in enumerate(parts):
-            part = part.split("\n")
-            if not part[0].strip():
-                part.pop(0)
-            if part and not part[-1].strip():
-                part.pop(-1)
-
-            parts[i] = "\n".join(part)
-
-        if pre:
-            parts.reverse()
-        dest.__doc__ = "\n".join(parts)
-        return dest
-
-    return docstring_inheriting_decorator
-
-
-_doc_block = re.compile(
-    r"^\s*(Parameters|Notes|Raises)",
-    flags=re.IGNORECASE | re.MULTILINE,
-)
-
-
-@deprecated_callable(
-    version="2026.4",
-    reason="Use scinexus.misc.docstring_to_summary_rest",
-    new="scinexus.misc.docstring_to_summary_rest",
-    is_discontinued=True,
-)
-def docstring_to_summary_rest(text: str) -> tuple[str, str]:  # pragma: no cover
-    """separates the summary at the start of a docstring from the rest
-
-    Notes
-    -----
-    Assumes numpydoc style.
-    """
-    if not text:
-        return "", ""
-
-    pos = _doc_block.search(text)
-    if pos is None:
-        return text, ""
-
-    summary = text[: pos.start()].rstrip()
-    text = text[pos.start() :]
-    return summary, text.lstrip("\n").rstrip(" ")
-
-
 def ascontiguousarray(
     source_array: numpy.ndarray,
     dtype: numpy.dtype | None = None,
@@ -1101,25 +1005,6 @@ def get_setting_from_environ(
             )
 
     return result
-
-
-@deprecated_callable(
-    version="2026.9",
-    reason="Use scinexus.misc.in_jupyter",
-    new="scinexus.misc.in_jupyter",
-    is_discontinued=True,
-)
-def in_jupyter() -> bool:  # pragma: no cover
-    """whether code is being executed within a jupyter notebook"""
-    val = True
-    try:
-        # primitive approach, just check whether the following function
-        # is in the namespace
-        get_ipython  # noqa: B018
-    except NameError:
-        val = False
-
-    return val
 
 
 def get_true_spans(arr: ndarray, absolute_pos: bool = True) -> ndarray:
