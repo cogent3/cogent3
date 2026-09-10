@@ -19,8 +19,9 @@ from .record_finder import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
+    from scinexus.io_util import PathType
+
     from cogent3.core.annotation_db import GenbankAnnotationDb
-    from cogent3.util.io import PathType
 
 maketrans = str.maketrans
 strip = str.strip

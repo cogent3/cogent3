@@ -65,6 +65,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Callable, Iterable, Iterator
     from collections.abc import Sequence as PySeq
 
+    from scinexus.io_util import PathType
+
     from cogent3.core.genetic_code import GeneticCode
     from cogent3.core.seqview import (
         AlignedDataViewABC,
@@ -75,7 +77,6 @@ if TYPE_CHECKING:  # pragma: no cover
     from cogent3.draw.drawable import AnnotatedDrawable, Drawable, Shape
     from cogent3.evolve.fast_distance import DistanceMatrix
     from cogent3.maths.stats.contingency import TestResult
-    from cogent3.util.io import PathType
 
 MolTypes = c3_moltype.MolTypeLiteral | c3_moltype.MolType[Any]
 GeneticCodeTypes = Union["GeneticCode | str | int"]

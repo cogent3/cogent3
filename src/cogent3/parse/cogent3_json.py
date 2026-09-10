@@ -9,7 +9,7 @@ from scinexus.io_util import open_
 from scinexus.misc import get_object_provenance
 
 if TYPE_CHECKING:  # pragma: no cover
-    from cogent3.util.io import PathType
+    from scinexus.io_util import PathType
 
 
 def load_from_json(filename: "PathType", classes: Iterable[type]) -> Any:
