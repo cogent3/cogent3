@@ -158,9 +158,13 @@ aln.write("sample", format_name="fasta")
 ```
 
 ```{python}
-from cogent3.util.io import remove_files
+#| include: false
 
-remove_files(["sample", "sample.fasta"], error_on_missing=False)
+from pathlib import Path
+
+for name in ["sample", "sample.fasta"]:
+    path = Path(name)
+    path.unlink(missing_ok=True)
 ```
 
 ## Alignments

@@ -13,11 +13,6 @@ We consider two different scenarios:
 
 We first make some sample data. A periodic signal and some noise.
 
-..
-    We set a seed for the random number generator so that we can get
-    consistent generation of the same series. This makes the document
-    robust for doctesting.
-
 ```{python}
 #| echo: false
 import numpy
