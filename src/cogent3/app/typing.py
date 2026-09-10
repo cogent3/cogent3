@@ -17,9 +17,8 @@ from typing import (
     runtime_checkable,
 )
 
+from scinexus.data_store import DataMemberABC
 from scinexus.typing import register_type_namespace as _register_type_namespace
-
-from cogent3.app.data_store import DataMemberABC
 
 if TYPE_CHECKING:  # pragma: no cover
     from cogent3.app.result import (

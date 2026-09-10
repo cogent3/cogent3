@@ -51,7 +51,7 @@ def alignment():
     return make_aligned_seqs(data, moltype="dna")
 
 
-@pytest.mark.parametrize("pos", itertools.combinations(range(5), 2))
+@pytest.mark.parametrize("pos", tuple(itertools.combinations(range(5), 2)))
 def test_joint_entropies(alignment, pos):
     data = alignment.array_seqs[:, pos]
     valid = data[(data < 4).all(axis=1), :]

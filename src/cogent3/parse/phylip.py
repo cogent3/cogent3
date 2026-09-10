@@ -8,8 +8,6 @@ the line structure when ``interleaved`` is not given.
 
 import typing
 
-from scinexus.warning import deprecated_callable
-
 import cogent3
 from cogent3.parse.fasta import OptConverterType, OutTypes, minimal_converter
 from cogent3.parse.record import RecordError
@@ -182,14 +180,3 @@ def get_align_for_phylip(
     """
     tuples = list(iter_phylip_records(data, id_map, strict_mode=strict_mode))
     return cogent3.make_aligned_seqs(tuples, moltype="text")
-
-
-@deprecated_callable(
-    version="2026.9",
-    reason="function rename",
-    new="iter_phylip_records",
-)
-def MinimalPhylipParser(
-    *args: typing.Any, **kwargs: typing.Any
-) -> typing.Iterator[tuple[str, OutTypes]]:  # pragma: no cover
-    return iter_phylip_records(*args, **kwargs)

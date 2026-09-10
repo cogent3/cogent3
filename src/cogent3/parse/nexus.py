@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict, cast
 
 from scinexus.io_util import iter_splitlines
-from scinexus.warning import deprecated_callable
 
 from cogent3.parse.record import RecordError
 
@@ -456,10 +455,3 @@ def iter_nexus_align_records(
         converter = minimal_converter()
     for n, s in seqs.items():
         yield n, converter("".join(s).encode("utf8"))
-
-
-@deprecated_callable(
-    version="2026.9", reason="function rename", new="iter_nexus_align_records"
-)
-def MinimalNexusAlignParser(*args, **kwargs):  # noqa: ANN002, ANN003, ANN201 # pragma: no cover
-    return iter_nexus_align_records(*args, **kwargs)
