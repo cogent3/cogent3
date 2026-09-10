@@ -480,7 +480,7 @@ wheels = [
 
 [[package]]
 name = "cogent3"
-version = "2026.8.26"
+version = "2026.9.10"
 source = { editable = "." }
 dependencies = [
     { name = "charset-normalizer" },
