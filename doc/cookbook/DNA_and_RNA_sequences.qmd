@@ -78,10 +78,11 @@ my_seq.write("my_seq.fasta")
 ```
 
 ```{python}
-#| echo: false
-from cogent3.util.io import remove_files
+#| include: false
+from pathlib import Path
 
-remove_files(["my_seq.fasta"], error_on_missing=False)
+path = Path("my_seq.fasta")
+path.unlink(missing_ok=True)
 ```
 
 ### Creating a named sequence

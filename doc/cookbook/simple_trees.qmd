@@ -406,14 +406,14 @@ subtree = tr.get_sub_tree(["c", "e", "g"], as_rooted=True)
 print(subtree.ascii_art(show_internal=False))
 ```
 
-..
-    We do some file clean up
-
 ```{python}
-#| echo: false
-from cogent3.util.io import remove_files
+#| include: false
 
-remove_files(["data/temp.tree", "data/temp.pdf"], error_on_missing=False)
+from pathlib import Path
+
+for name in ["data/temp.tree", "data/temp.pdf"]:
+    path = Path(name)
+    path.unlink(missing_ok=True)
 ```
 
 ## Tree manipulation methods
