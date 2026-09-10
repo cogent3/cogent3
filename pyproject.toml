@@ -5,7 +5,7 @@ build-backend = "uv_build"
 [project]
 name = "cogent3"
 description = """COmparative GENomics Toolkit 3: genomic sequence analysis within notebooks or on compute systems with 1000s of CPUs."""
-version = "2026.8.26"
+version = "2026.9.10"
 
 authors = [{ name = "Gavin Huttley", email = "Gavin.Huttley@anu.edu.au" }]
 keywords = [

@@ -1,4 +1,17 @@
 
+<a id='changelog-2026.9.10'></a>
+# Changes in release "2026.9.10"
+
+A maintenance release.
+
+## Contributors
+
+- @GavinHuttley
+
+## Deprecations
+
+- All code marked for removal by 2026.9 has now been deleted.
+
 <a id='changelog-2026.8.26'></a>
 # Changes in release "2026.8.26"
 
