@@ -50,14 +50,6 @@ listing:
     sort: false
     sort-ui: false
     filter-ui: false
-  - id: utilities
-    contents:
-      - parallel.qmd
-    type: table
-    fields: [title]
-    sort: false
-    sort-ui: false
-    filter-ui: false
 ---
 
 ## Data manipulation
