@@ -76,7 +76,7 @@ We illustrate the phylogeny reconstruction by least-squares using the F81 substi
 
 ```{python}
 from cogent3.phylo.least_squares import WLS
-from cogent3.util.deserialise import deserialise_object
+from scinexus.deserialise import deserialise_object
 
 dists = deserialise_object("data/dists_for_phylo.json")
 ls = WLS(dists)

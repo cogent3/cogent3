@@ -465,7 +465,7 @@ print(f"lo={human_lo:.2f} ; mle={human_mle:.2f} ; hi={human_hi:.2f}")
 
 ### Saving results
 
-The best approach is to use the json string from the `to_json()` method. The saved data can be later reloaded using `cogent3.util.deserialise.deserialise_object()`. The `json` data contains the alignment, tree topology, substitution model, parameter values, etc..
+The best approach is to use the json string from the `to_json()` method. The saved data can be later reloaded using `scinexus.deserialise.deserialise_object()`. The `json` data contains the alignment, tree topology, substitution model, parameter values, etc..
 
 To illustrate this, I create a very simple likelihood function. The `json` variable below is just a string that can be saved to disk.
 
@@ -485,7 +485,7 @@ json[:60]  # just truncating the displayed string
 We deserialise the object from the string.
 
 ```{python}
-from cogent3.util.deserialise import deserialise_object
+from scinexus.deserialise import deserialise_object
 
 newlf = deserialise_object(json)
 newlf
