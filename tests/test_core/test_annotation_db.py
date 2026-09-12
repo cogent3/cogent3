@@ -365,7 +365,7 @@ def test_load_annotations_multi(DATA_DIR):
 def compressed_flat_file(DATA_DIR, tmp_path, request):
     src = DATA_DIR / request.param
     out_path = tmp_path / f"{request.param}.gz"
-    with cogent3.open_(out_path, mode="w") as out:
+    with cogent3.open_(out_path, mode="wb") as out:
         out.write(src.read_bytes())
     return out_path
 
