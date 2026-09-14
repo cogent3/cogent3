@@ -100,7 +100,7 @@ doc = [
     "quartodoc",
     # quartodoc 0.11.1 requires only griffe>=0.33, but griffe 2 dropped the
     # allow_section_blank_line argument it passes to parse_numpy
-    "griffe<2",
+    "griffe<3",
     "iplotx>=1.7.1",
 ]
 dev = [
