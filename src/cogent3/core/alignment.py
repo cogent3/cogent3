@@ -88,6 +88,62 @@ NumpyFloatArrayType = npt.NDArray[numpy.floating]
 _REPR_NUM_SEQS = 3
 
 
+def _allowed_motif_states(
+    moltype: c3_moltype.MolType[Any],
+    include_ambiguity: bool,
+    allow_gap: bool,
+) -> npt.NDArray[numpy.bool_]:
+    """Look up whether each encoded monomer can occur in a counted motif."""
+    alpha = moltype.most_degen_alphabet()
+    allowed = numpy.ones(len(alpha), dtype=bool)
+    if not allow_gap:
+        # Missing states can also be gaps (including '?' for text moltype).
+        for gap in moltype.gaps:
+            allowed[alpha.index(gap)] = False
+    if not include_ambiguity and moltype.degen_alphabet is not None:
+        allowed[cast("int", alpha.gap_index) + 1 :] = False
+    return allowed
+
+
+def _count_motifs_in_array(
+    data: NumpyIntArrayType,
+    motif_length: int,
+    alpha: c3_alphabet.CharAlphabet[Any],
+    allowed: npt.NDArray[numpy.bool_],
+) -> CategoryCounter[str | bytes]:
+    """Count non-overlapping motifs without enumerating the k-mer alphabet."""
+    if not len(data):
+        return CategoryCounter()
+
+    if motif_length == 1:
+        counts = numpy.bincount(data, minlength=len(alpha))
+        indices = numpy.flatnonzero((counts > 0) & allowed)
+        return CategoryCounter({alpha[i]: int(counts[i]) for i in indices})
+
+    length = len(data) // motif_length * motif_length
+    motifs = data[:length].reshape(-1, motif_length)
+    # Filter whole blocks, not individual characters: removing a gap first
+    # would change the phase of every subsequent motif.
+    if not allowed.all():
+        motifs = motifs[allowed[motifs].all(axis=1)]
+    if not len(motifs):
+        return CategoryCounter()
+
+    # A fixed-width record is an exact key for a row, including embedded zero
+    # bytes. This avoids both per-column sorting and alphabet_size ** k bins.
+    motifs = numpy.ascontiguousarray(motifs)
+    record_type = numpy.dtype((numpy.void, motifs.dtype.itemsize * motif_length))
+    records = motifs.view(record_type).ravel()
+    _, indices, counts = numpy.unique(records, return_index=True, return_counts=True)
+    joiner = type(alpha[0])()
+    return CategoryCounter(
+        {
+            joiner.join([alpha[i] for i in motifs[index]]): int(count)
+            for index, count in zip(indices, counts, strict=True)
+        }
+    )
+
+
 class Aligned(AnnotatableMixin):
     """A single sequence in an alignment.
 
@@ -2468,7 +2524,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         allow_gap: bool = False,
         exclude_unobserved: bool = False,
         warn: bool = False,
-    ) -> MotifCountsArray | None:  # refactor: using array
+    ) -> MotifCountsArray | None:
         """counts of motifs per sequence
 
         Parameters
@@ -2491,13 +2547,16 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         """
         cat_counts: list[CategoryCounter[str | bytes]] = []
         motifs_set: set[str | bytes] = set()
+        alpha = self.moltype.most_degen_alphabet()
+        allowed = _allowed_motif_states(self.moltype, include_ambiguity, allow_gap)
         for seq in self.seqs:
-            c = seq.counts(
-                motif_length=motif_length,
-                include_ambiguity=include_ambiguity,
-                allow_gap=allow_gap,
-                warn=warn,
-            )
+            data = numpy.array(seq)
+            if warn and len(data) and motif_length != 1 and len(data) % motif_length:
+                warnings.warn(
+                    f"{seq.name} length not divisible by {motif_length}, truncating",
+                    stacklevel=2,
+                )
+            c = _count_motifs_in_array(data, motif_length, alpha, allowed)
             motifs_set.update(c.keys())
             cat_counts.append(c)
 
@@ -3589,12 +3648,13 @@ class Alignment(CollectionBase[Aligned]):
 
         counts: list[CategoryCounter[str | bytes]] = []
         motifs: set[str | bytes] = set()
+        alpha = self.moltype.most_degen_alphabet()
+        allowed = _allowed_motif_states(self.moltype, include_ambiguity, allow_gap)
         for name in self.names:
-            seq = self.get_gapped_seq(name)
-            c = seq.counts(
-                motif_length=motif_length,
-                include_ambiguity=include_ambiguity,
-                allow_gap=allow_gap,
+            # Access each transformed sequence separately to avoid materialising
+            # and caching the full alignment just to compute per-sequence counts.
+            c = _count_motifs_in_array(
+                numpy.array(self.get_gapped_seq(name)), motif_length, alpha, allowed
             )
             motifs.update(c.keys())
             counts.append(c)
