@@ -2,15 +2,21 @@ version = 1
 revision = 3
 requires-python = ">=3.11, <3.15"
 resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'win32'",
+    "python_full_version >= '3.14' and platform_machine == 'AMD64' and sys_platform == 'win32'",
+    "python_full_version >= '3.14' and platform_machine != 'AMD64' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'win32'",
+    "(python_full_version >= '3.14' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.14' and platform_machine == 'x86_64' and sys_platform == 'linux')",
+    "(python_full_version >= '3.14' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.14' and platform_machine != 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.14' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version == '3.13.*' and platform_machine == 'AMD64' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and platform_machine != 'AMD64' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "(python_full_version == '3.13.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.13.*' and platform_machine == 'x86_64' and sys_platform == 'linux')",
+    "(python_full_version == '3.13.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.13.*' and platform_machine != 'x86_64' and sys_platform == 'linux') or (python_full_version == '3.13.*' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version == '3.12.*' and platform_machine == 'AMD64' and sys_platform == 'win32'",
+    "python_full_version == '3.12.*' and platform_machine != 'AMD64' and sys_platform == 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "(python_full_version == '3.12.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.12.*' and platform_machine == 'x86_64' and sys_platform == 'linux')",
+    "(python_full_version == '3.12.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.12.*' and platform_machine != 'x86_64' and sys_platform == 'linux') or (python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
     "python_full_version < '3.12' and sys_platform == 'win32'",
     "python_full_version < '3.12' and sys_platform == 'emscripten'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
@@ -527,7 +533,7 @@ dev = [
     { name = "nbformat" },
     { name = "nox" },
     { name = "pandas" },
-    { name = "piqtree", marker = "python_full_version >= '3.12'" },
+    { name = "piqtree", marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32')" },
     { name = "plotly" },
     { name = "psutil" },
     { name = "pytest" },
@@ -550,7 +556,7 @@ doc = [
     { name = "nbclient" },
     { name = "nbconvert" },
     { name = "nbformat" },
-    { name = "piqtree", marker = "python_full_version >= '3.12'" },
+    { name = "piqtree", marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32')" },
     { name = "quartodoc" },
 ]
 test = [
@@ -558,7 +564,7 @@ test = [
     { name = "kaleido" },
     { name = "nox" },
     { name = "pandas" },
-    { name = "piqtree", marker = "python_full_version >= '3.12'" },
+    { name = "piqtree", marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32')" },
     { name = "plotly" },
     { name = "psutil" },
     { name = "pytest" },
@@ -615,7 +621,7 @@ dev = [
     { name = "nbformat" },
     { name = "nox" },
     { name = "pandas" },
-    { name = "piqtree", marker = "python_full_version >= '3.12'", specifier = ">=0.8.0" },
+    { name = "piqtree", marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32')", specifier = ">=0.8.0" },
     { name = "plotly" },
     { name = "psutil" },
     { name = "pytest" },
@@ -638,7 +644,7 @@ doc = [
     { name = "nbclient" },
     { name = "nbconvert", specifier = ">5.4" },
     { name = "nbformat" },
-    { name = "piqtree", marker = "python_full_version >= '3.12'", specifier = ">=0.8.0" },
+    { name = "piqtree", marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32')", specifier = ">=0.8.0" },
     { name = "quartodoc" },
 ]
 test = [
@@ -646,7 +652,7 @@ test = [
     { name = "kaleido" },
     { name = "nox" },
     { name = "pandas" },
-    { name = "piqtree", marker = "python_full_version >= '3.12'", specifier = ">=0.8.0" },
+    { name = "piqtree", marker = "(python_full_version >= '3.12' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32')", specifier = ">=0.8.0" },
     { name = "plotly" },
     { name = "psutil" },
     { name = "pytest" },
@@ -1462,7 +1468,7 @@ dependencies = [
     { name = "overrides", marker = "python_full_version < '3.12'" },
     { name = "packaging" },
     { name = "prometheus-client" },
-    { name = "pywinpty", marker = "os_name == 'nt'" },
+    { name = "pywinpty", marker = "(python_full_version < '3.12' and os_name == 'nt' and sys_platform == 'darwin') or (python_full_version < '3.12' and os_name == 'nt' and sys_platform == 'linux') or (os_name == 'nt' and platform_machine != 'arm64' and sys_platform == 'darwin') or (os_name == 'nt' and platform_machine != 'x86_64' and sys_platform == 'linux') or (os_name == 'nt' and sys_platform != 'darwin' and sys_platform != 'linux')" },
     { name = "pyzmq" },
     { name = "send2trash" },
     { name = "terminado" },
@@ -1480,7 +1486,7 @@ name = "jupyter-server-terminals"
 version = "0.5.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pywinpty", marker = "os_name == 'nt'" },
+    { name = "pywinpty", marker = "(python_full_version < '3.12' and os_name == 'nt' and sys_platform == 'darwin') or (python_full_version < '3.12' and os_name == 'nt' and sys_platform == 'linux') or (os_name == 'nt' and platform_machine != 'arm64' and sys_platform == 'darwin') or (os_name == 'nt' and platform_machine != 'x86_64' and sys_platform == 'linux') or (os_name == 'nt' and sys_platform != 'darwin' and sys_platform != 'linux')" },
     { name = "terminado" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f4/a7/bcd0a9b0cbba88986fe944aaaf91bfda603e5a50bda8ed15123f381a3b2f/jupyter_server_terminals-0.5.4.tar.gz", hash = "sha256:bbda128ed41d0be9020349f9f1f2a4ab9952a73ed5f5ac9f1419794761fb87f5", size = 31770, upload-time = "2026-01-14T16:53:20.213Z" }
@@ -3398,15 +3404,21 @@ name = "scipy"
 version = "1.18.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'win32'",
+    "python_full_version >= '3.14' and platform_machine == 'AMD64' and sys_platform == 'win32'",
+    "python_full_version >= '3.14' and platform_machine != 'AMD64' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version == '3.13.*' and sys_platform == 'win32'",
+    "(python_full_version >= '3.14' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.14' and platform_machine == 'x86_64' and sys_platform == 'linux')",
+    "(python_full_version >= '3.14' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version >= '3.14' and platform_machine != 'x86_64' and sys_platform == 'linux') or (python_full_version >= '3.14' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version == '3.13.*' and platform_machine == 'AMD64' and sys_platform == 'win32'",
+    "python_full_version == '3.13.*' and platform_machine != 'AMD64' and sys_platform == 'win32'",
     "python_full_version == '3.13.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.13.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
-    "python_full_version == '3.12.*' and sys_platform == 'win32'",
+    "(python_full_version == '3.13.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.13.*' and platform_machine == 'x86_64' and sys_platform == 'linux')",
+    "(python_full_version == '3.13.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.13.*' and platform_machine != 'x86_64' and sys_platform == 'linux') or (python_full_version == '3.13.*' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
+    "python_full_version == '3.12.*' and platform_machine == 'AMD64' and sys_platform == 'win32'",
+    "python_full_version == '3.12.*' and platform_machine != 'AMD64' and sys_platform == 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'emscripten'",
-    "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+    "(python_full_version == '3.12.*' and platform_machine == 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.12.*' and platform_machine == 'x86_64' and sys_platform == 'linux')",
+    "(python_full_version == '3.12.*' and platform_machine != 'arm64' and sys_platform == 'darwin') or (python_full_version == '3.12.*' and platform_machine != 'x86_64' and sys_platform == 'linux') or (python_full_version == '3.12.*' and sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
 ]
 dependencies = [
     { name = "numpy" },
@@ -3624,7 +3636,7 @@ version = "0.18.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ptyprocess", marker = "os_name != 'nt'" },
-    { name = "pywinpty", marker = "os_name == 'nt'" },
+    { name = "pywinpty", marker = "(python_full_version < '3.12' and os_name == 'nt' and sys_platform == 'darwin') or (python_full_version < '3.12' and os_name == 'nt' and sys_platform == 'linux') or (os_name == 'nt' and platform_machine != 'arm64' and sys_platform == 'darwin') or (os_name == 'nt' and platform_machine != 'x86_64' and sys_platform == 'linux') or (os_name == 'nt' and sys_platform != 'darwin' and sys_platform != 'linux')" },
     { name = "tornado" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/8a/11/965c6fd8e5cc254f1fe142d547387da17a8ebfd75a3455f637c663fb38a0/terminado-0.18.1.tar.gz", hash = "sha256:de09f2c4b85de4765f7714688fff57d3e75bad1f909b589fde880460c753fd2e", size = 32701, upload-time = "2024-03-12T14:34:39.026Z" }
