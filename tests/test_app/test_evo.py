@@ -883,6 +883,7 @@ class TestBootstrap(TestCase):
             out_dstore = open_data_store(dirname / "delme.sqlitedb", mode="w")
             writer = io.write_db(out_dstore)
             _ = io.load_db() + evo_app.bootstrap(hyp, num_reps=2) + writer
+            out_dstore.close()
 
 
 def test_bstrap_parallel():

@@ -605,7 +605,7 @@ requires-dist = [
     { name = "pillow", marker = "extra == 'extra'" },
     { name = "plotly", marker = "extra == 'extra'" },
     { name = "psutil", marker = "extra == 'extra'" },
-    { name = "scinexus", extras = ["loky"], specifier = ">=2026.5.16" },
+    { name = "scinexus", extras = ["loky"], specifier = ">=2026.10.2" },
     { name = "scipy" },
     { name = "stevedore" },
     { name = "tqdm" },
@@ -3314,7 +3314,7 @@ wheels = [
 
 [[package]]
 name = "scinexus"
-version = "2026.5.18"
+version = "2026.10.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "charset-normalizer" },
@@ -3323,9 +3323,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typeguard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/7d/2220af7ff7064700b80a74dbe039fbda5070e01184d2f3fb661fe4d7bc9f/scinexus-2026.5.18.tar.gz", hash = "sha256:5b46c1f562f11218f558d863e1dc570e8b194385422473a5927cb45ad6ea63ca", size = 242595, upload-time = "2026-05-18T06:52:57.903Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ac/de/67b3b022d7a8cade6948ac08f5697c9787197eb8263204bd9cf5493193a6/scinexus-2026.10.2.tar.gz", hash = "sha256:47498a76534c24cb7b842fe9fededc4062ed0c8d85abd5f7c50df48afea002a5", size = 523174, upload-time = "2026-10-02T02:41:55.889Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/73/22/cefd16fd71db6076325662cee43d43c2d2bf8bf311dbbe3bfb0ba4379393/scinexus-2026.5.18-py3-none-any.whl", hash = "sha256:d73fb8bc56223262e80da91a6a88a2ef652f30133d91ce7f1b90ee27c02b8ecf", size = 54838, upload-time = "2026-05-18T06:52:56.136Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/86/0868b34b865441517b8319f253297ef2acbec7eecb99058b7f1457100b16/scinexus-2026.10.2-py3-none-any.whl", hash = "sha256:95be155e571bd7d36eba17e94bc747714ccb1b837a04634a7b0cbaf040b6eb6b", size = 78840, upload-time = "2026-10-02T02:41:54.386Z" },
 ]
 
 [package.optional-dependencies]

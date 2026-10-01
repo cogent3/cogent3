@@ -1,3 +1,4 @@
+from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -91,16 +92,18 @@ def test_open_existing(dstore_on_disk):
 
 
 def test_open_to_append(dstore_on_disk):
-    DataStoreSqlite(dstore_on_disk, mode=APPEND)
+    with closing(DataStoreSqlite(dstore_on_disk, mode=APPEND)) as _:
+        pass
 
 
 def test_open_to_write(dstore_on_disk):
-    DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)
+    with closing(DataStoreSqlite(dstore_on_disk, mode=OVERWRITE)) as _:
+        pass
 
 
 def test_db_creation():
-    db = DataStoreSqlite(":memory:", mode=OVERWRITE)
-    db = db.db
+    store = DataStoreSqlite(":memory:", mode=OVERWRITE)
+    db = store.db
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
     assert len(result) == 4
     created_names = {r["name"] for r in result}
@@ -200,7 +203,7 @@ def test_limit_datastore(full_dstore_sqlite):
 
 def test_validate(full_dstore_sqlite):
     r = full_dstore_sqlite.validate()
-    assert r.shape == (4, 2)
+    assert r.shape == (5, 2)
 
 
 def test_set_record_type(full_dstore_sqlite):
@@ -268,6 +271,7 @@ def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
     out_path = tmp_dir / name
     got1 = _make_and_run_proc(out_path, suffix, ro_dir_dstore[:num])
     assert len(got1.logs) == 1
+    got1.close()
 
     # creating a separate instance should result in a
     # new log file
@@ -276,6 +280,7 @@ def test_append_makes_logs(tmp_dir, ro_dir_dstore, name, suffix):
     # should be a row for each log
     summary = got2.summary_logs
     assert summary.shape[0] == 2
+    got2.close()
 
 
 def test_summary_not_completed(nc_objects):
