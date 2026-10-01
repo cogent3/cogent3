@@ -77,7 +77,7 @@ test = [
     # piqtree publishes wheels only for linux x86_64, macOS arm64 and windows
     # AMD64, so restrict it to those or resolution fails elsewhere
     "piqtree>=0.8.0; python_version > '3.11' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
-    "ruff==0.16.5",
+    "ruff==0.16.7",
     "kaleido",
     "pandas",
     "plotly",
