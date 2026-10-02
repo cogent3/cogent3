@@ -11,7 +11,6 @@ import pytest
 from numpy.testing import assert_allclose
 from scinexus.composable import (
     NotCompleted,
-    NotCompletedType,
     propagate_source,
     source_proxy,
 )
@@ -475,6 +474,8 @@ def test_write_db_load_db(fasta_dir, tmp_dir):
         assert orig == read
 
     assert data_store.record_type == get_object_provenance(orig)
+    orig_dstore.close()
+    data_store.close()
 
 
 def test_load_db_prefer_source_attr(tmp_dir):
@@ -497,6 +498,7 @@ def test_load_db_prefer_source_attr(tmp_dir):
     loader = io_app.load_db()
     got = loader(data_store[0])  # pylint: disable=not-callable
     assert "source" not in got.info
+    data_store.close()
 
 
 def test_write_read_db_not_completed(tmp_dir):
@@ -511,6 +513,7 @@ def test_write_read_db_not_completed(tmp_dir):
     reader = io_app.load_db()
     got = reader(data_store.not_completed[0])
     assert got.to_rich_dict() == nc.to_rich_dict()
+    data_store.close()
 
 
 def test_write_read_db_summary_not_completed(tmp_dir):
@@ -522,6 +525,7 @@ def test_write_read_db_summary_not_completed(tmp_dir):
     writer = get_app("write_db", data_store=data_store)
     writer.main(nc, identifier="blah")
     assert isinstance(writer.data_store.summary_not_completed, Table)
+    data_store.close()
 
 
 def test_write_db_parallel(tmp_dir, fasta_dir):
@@ -542,6 +546,8 @@ def test_write_db_parallel(tmp_dir, fasta_dir):
     got = [str(pathlib.Path(m.data_store.source) / m.unique_id) for m in result]
     assert got != []
     assert got == expect
+    dstore.close()
+    out_dstore.close()
 
 
 def test_define_data_store(fasta_dir):
@@ -611,13 +617,15 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
         name = pathlib.Path(get_data_source(source)).name
         return name.split(".")[0]
 
-    writer = get_app(writer, data_store=dstore(tmp_dir), id_from_source=uniqid)
+    out_dstore = dstore(tmp_dir)
+    writer = get_app(writer, data_store=out_dstore, id_from_source=uniqid)
     m = writer(data)
     # directory data stores have a suffix, so we create expected name using that
     suffix = getattr(writer.data_store, "suffix", "")
     suffix = f".{suffix}" if suffix else suffix
     expect = f"blah{suffix}"
     assert m.unique_id == expect
+    out_dstore.close()
 
 
 src_attr = "source"
@@ -633,13 +641,15 @@ src_attr = "source"
     ],
 )
 def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
-    writer = get_app(writer, data_store=dstore(tmp_dir))
+    out_dstore = dstore(tmp_dir)
+    writer = get_app(writer, data_store=out_dstore)
     # no unique id possible, so m will be NotCompleted error
     value = {} if attr == "info" else None
     setattr(data, attr, value)
-    m = writer(data)
-    assert isinstance(m, NotCompleted)
-    assert m.type is NotCompletedType.ERROR
+    with pytest.raises(ValueError, match="cannot name a record"):
+        _ = writer(data)
+
+    out_dstore.close()
 
 
 @pytest.mark.parametrize(

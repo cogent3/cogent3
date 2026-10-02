@@ -31,7 +31,7 @@ dependencies = [
     "numba>=0.61.0; python_version=='3.13'",
     "numba>=0.63.0rc1; python_version=='3.14'",
     "scipy",
-    "scinexus[loky]>=2026.5.16",
+    "scinexus[loky]>=2026.10.2",
     "stevedore",
     "tqdm",
     "typeguard>=4.0,<5",
@@ -74,7 +74,9 @@ extra = [
 [dependency-groups]
 test = [
     "cogent3-h5seqs>=0.8.0",
-    "piqtree>=0.8.0; python_version > '3.11'",
+    # piqtree publishes wheels only for linux x86_64, macOS arm64 and windows
+    # AMD64, so restrict it to those or resolution fails elsewhere
+    "piqtree>=0.8.0; python_version > '3.11' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
     "ruff==0.16.7",
     "kaleido",
     "pandas",
@@ -96,7 +98,9 @@ doc = [
     "nbclient",
     "nbconvert>5.4",
     "nbformat",
-    "piqtree>=0.8.0; python_version > '3.11'",
+    # gated as in the test group: dev includes doc, so an ungated requirement
+    # here stops uv building the project environment at all
+    "piqtree>=0.8.0; python_version > '3.11' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
     "quartodoc",
     # quartodoc 0.11.1 requires only griffe>=0.33, but griffe 2 dropped the
     # allow_section_blank_line argument it passes to parse_numpy
@@ -144,11 +148,9 @@ filterwarnings = [
 
 [tool.uv]
 reinstall-package = ["cogent3"]
-
-[tool.uv.pip]
 exclude-newer = "7 days"
 
-[tool.uv.pip.exclude-newer-package]
+[tool.uv.exclude-newer-package]
 # but we allow other cogent3 packages to be more recent
 scinexus = false
 cogent3-h5seqs = false

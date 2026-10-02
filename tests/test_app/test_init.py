@@ -17,6 +17,7 @@ except ImportError:
 
 def _get_all_composables(tmp_dir_name):
     tmp_dir_name = Path(tmp_dir_name)
+    tmp_dir_name.mkdir(parents=True, exist_ok=True)
     test_model1 = get_app("model", "HKY85")
     test_model2 = get_app("model", "GN")
     test_hyp = get_app("hypothesis", test_model1, test_model2)
