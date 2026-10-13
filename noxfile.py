@@ -17,7 +17,7 @@ def fmt(session: nox.Session) -> None:
     session.run("ruff", "format", ".", external=True)
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_backend="uv")
 def test_slow(session):
     session.install("-e", ".", "--group", "test")
     session.chdir("tests")
@@ -28,10 +28,10 @@ def test_slow(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_backend="uv")
 def test(session):
     session.install("-e", ".", "--group", "test")
-    session.run("pip", "list")
+    session.run("uv", "pip", "list", external=True)
     # doctest modules within cogent3/app
     session.chdir("src/cogent3/app")
     session.run(
@@ -55,7 +55,7 @@ def test(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_backend="uv")
 def test_module_docs(session):
     """doctest examples in a module"""
     session.install("-e", ".", "--group", "test")
@@ -71,7 +71,7 @@ def test_module_docs(session):
     )
 
 
-@nox.session(python=[f"3.{v}" for v in _py_versions])
+@nox.session(python=[f"3.{v}" for v in _py_versions], venv_backend="uv")
 def testdocs(session):
     """render the docs, which executes every code cell"""
     py = pathlib.Path(session.bin_paths[0]) / "python"
