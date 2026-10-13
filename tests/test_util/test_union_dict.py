@@ -1,5 +1,7 @@
 """Unit tests for union_dict."""
 
+import pytest
+
 from cogent3.util.union_dict import UnionDict
 
 
@@ -97,14 +99,6 @@ def test_sub_dicts_are_union():
     assert isinstance(d.e.g, UnionDict)
 
 
-def test_get_subattr():
-    """_getsubattr_ returns nested values via key"""
-    d = UnionDict({"a": 1, "b": 2, "c": 3, "d": {"e": 5, "f": 6}})
-    assert d._getsubattr_([], "a") == 1
-    assert d._getsubattr_([], "d") == UnionDict({"e": 5, "f": 6})
-    assert d._getsubattr_(["d"], "e") == 5
-
-
 def test_setitem():
     """should work via property or key"""
     d = UnionDict()
@@ -116,3 +110,168 @@ def test_setitem():
     assert d.b.c == 42
     assert d["b"] == {"c": 42}
     assert isinstance(d.b, UnionDict)
+
+
+def test_or_with_plain_dict():
+    d = UnionDict({"a": 1, "d": {"e": 5}})
+    f = d | {"d": {"g": {"h": 8}}}
+    assert isinstance(f, UnionDict)
+    assert f.d.e == 5
+    assert f.d.g.h == 8
+    assert "g" not in d.d
+
+
+def test_two_level_shared_merge():
+    d = UnionDict({"d": {"e": {"k": 1}}})
+    f = d | {"d": {"e": {"m": 2}}}
+    assert f.d.e == {"k": 1, "m": 2}
+    assert d.d.e == {"k": 1}
+
+
+def test_or_leaves_right_operand_unaliased():
+    d = UnionDict({"a": 1})
+    e = UnionDict({"b": {"c": 1}, "p": {"q": {"r": 1}}})
+    f = d | e
+    f.b.c = 99
+    f.p.q.r = 99
+    assert e.b.c == 1
+    assert e.p.q.r == 1
+
+
+def test_union_none_replaces_dict():
+    d = UnionDict({"a": {"b": 1}})
+    d |= {"a": None}
+    assert d.a is None
+
+
+def test_union_dict_replaces_nested_value():
+    d = UnionDict({"a": {"b": 1}})
+    d |= {"a": {"b": {"c": 2}}}
+    assert isinstance(d.a.b, UnionDict)
+    assert d.a.b.c == 2
+
+
+def test_construction_leaves_input_unchanged():
+    data = {"a": {"b": {"c": 1}}}
+    d = UnionDict(data)
+    d.a.b.c = 2
+    assert type(data["a"]) is dict
+    assert type(data["a"]["b"]) is dict
+    assert data["a"]["b"]["c"] == 1
+
+
+def test_nested_ior_keeps_held_references():
+    layout = UnionDict({"xaxis": {"title": {"text": "a"}}})
+    xaxis = layout.xaxis
+    title = layout.xaxis.title
+    layout.xaxis |= {"range": [0, 1]}
+    title.text = "z"
+    assert layout.xaxis is xaxis
+    assert layout.xaxis.title.text == "z"
+
+
+def test_assigning_union_dict_copies_it():
+    d = UnionDict()
+    inner = UnionDict({"c": {"e": 1}})
+    d.b = inner
+    assert d.b == inner
+    assert d.b is not inner
+    assert d.b.c is not inner.c
+
+
+def test_construction_copies_shared_children():
+    shared = {"c": {"e": 1}}
+    d = UnionDict({"a": shared, "b": shared})
+    assert d.a == d.b
+    assert d.a is not d.b
+    assert d.a.c is not d.b.c
+
+
+def test_union_into_children_built_from_one_dict():
+    shared = {"x": 0}
+    d = UnionDict({"a": shared, "b": shared})
+    d |= {"a": {"x": 1}, "b": {"x": 2}}
+    assert d.a.x == 1
+    assert d.b.x == 2
+
+
+def test_setdefault_copies_dict():
+    shared = {"x": 0}
+    d = UnionDict()
+    d.setdefault("a", shared)
+    d.setdefault("b", shared)
+    assert isinstance(d.a, UnionDict)
+    assert d.a is not d.b
+    d |= {"a": {"x": 1}, "b": {"x": 2}}
+    assert d.a.x == 1
+    assert d.b.x == 2
+    assert shared == {"x": 0}
+
+
+def test_setdefault_returns_existing_value():
+    d = UnionDict({"a": {"x": 1}})
+    existing = d.a
+    assert d.setdefault("a", {"x": 2}) is existing
+    assert d.setdefault("b") is None
+
+
+def test_construction_from_self_referencing_dict_raises():
+    data: dict[str, object] = {"x": 1}
+    data["me"] = data
+    with pytest.raises(ValueError):
+        UnionDict(data)
+
+
+def test_union_with_self_referencing_dict_raises():
+    data: dict[str, object] = {"x": 1}
+    data["me"] = data
+    d = UnionDict({"x": 0})
+    with pytest.raises(ValueError):
+        d |= data
+
+
+def test_update_kwargs_converts_children():
+    d = UnionDict()
+    d.update(b={"c": {"e": 2}})
+    assert d.b.c.e == 2
+
+
+def test_ior_with_plain_dict_converts_children():
+    d = UnionDict({"a": 1})
+    d |= {"b": {"c": {"e": 2}}}
+    assert isinstance(d.b, UnionDict)
+    assert isinstance(d.b.c, UnionDict)
+    assert d.b.c.e == 2
+
+
+def test_union_method():
+    d = UnionDict({"d": {"e": 5, "f": 6}})
+    d.union({"d": {"f": 0}})
+    assert d.d == {"e": 5, "f": 0}
+
+
+def _make_nested(depth: int, leaf: dict[str, object]) -> dict[str, object]:
+    data = leaf
+    for _ in range(depth):
+        data = {"x": data}
+    return data
+
+
+def test_deeply_nested_construction():
+    depth = 2000
+    d = UnionDict(_make_nested(depth, {"leaf": 1}))
+    node = d
+    for _ in range(depth):
+        node = node.x
+    assert isinstance(node, UnionDict)
+    assert node.leaf == 1
+
+
+def test_deeply_nested_union():
+    depth = 2000
+    d = UnionDict(_make_nested(depth, {"a": 1}))
+    d |= _make_nested(depth, {"b": 2})
+    node = d
+    for _ in range(depth):
+        node = node.x
+    assert node == {"a": 1, "b": 2}

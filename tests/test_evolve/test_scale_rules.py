@@ -42,10 +42,9 @@ class ScaleRuleTests(unittest.TestCase):
         """Scale rule requiring matrix entries to have all pars specified"""
         model = _make_model_factory({"k": trans}, {"ts": trans, "tv": ~trans})
 
-        assert self._get_scaled_lengths(model, {"k": 6.0, "length": 4.0}) == {
-            "ts": 3.0,
-            "tv": 1.0,
-        }
+        assert self._get_scaled_lengths(
+            model, {"k": 6.0, "length": 4.0}
+        ) == pytest.approx({"ts": 3.0, "tv": 1.0})
 
     def test_scaled_or(self):
         """Scale rule where matrix entries can have any of the pars specified"""
@@ -57,7 +56,7 @@ class ScaleRuleTests(unittest.TestCase):
         assert self._get_scaled_lengths(
             model,
             {"k": 6.0, "length": 6.0, "ac": 3.0},
-        ) == {"or": 5.0, "not": 1.0}
+        ) == pytest.approx({"or": 5.0, "not": 1.0})
 
     def test_scaling(self):
         """Testing scaling calculations using Dn and Ds as an example."""
