@@ -97,14 +97,6 @@ def test_sub_dicts_are_union():
     assert isinstance(d.e.g, UnionDict)
 
 
-def test_get_subattr():
-    """_getsubattr_ returns nested values via key"""
-    d = UnionDict({"a": 1, "b": 2, "c": 3, "d": {"e": 5, "f": 6}})
-    assert d._getsubattr_([], "a") == 1
-    assert d._getsubattr_([], "d") == UnionDict({"e": 5, "f": 6})
-    assert d._getsubattr_(["d"], "e") == 5
-
-
 def test_setitem():
     """should work via property or key"""
     d = UnionDict()
@@ -164,6 +156,46 @@ def test_construction_leaves_input_unchanged():
     assert type(data["a"]) is dict
     assert type(data["a"]["b"]) is dict
     assert data["a"]["b"]["c"] == 1
+
+
+def test_nested_ior_keeps_held_references():
+    layout = UnionDict({"xaxis": {"title": {"text": "a"}}})
+    xaxis = layout.xaxis
+    title = layout.xaxis.title
+    layout.xaxis |= {"range": [0, 1]}
+    title.text = "z"
+    assert layout.xaxis is xaxis
+    assert layout.xaxis.title.text == "z"
+
+
+def test_assigning_union_dict_stores_it():
+    d = UnionDict()
+    inner = UnionDict({"c": 1})
+    d.b = inner
+    assert d.b is inner
+
+
+def test_construction_preserves_shared_children():
+    shared = {"c": 1}
+    d = UnionDict({"a": shared, "b": shared})
+    assert d.a is d.b
+
+
+def test_construction_from_self_referencing_dict():
+    data: dict[str, object] = {"x": 1}
+    data["me"] = data
+    d = UnionDict(data)
+    assert d.me is d
+    assert d.me.x == 1
+
+
+def test_union_with_self_referencing_dicts():
+    data: dict[str, object] = {"x": 1}
+    data["me"] = data
+    d = UnionDict(data)
+    d |= data
+    assert d.x == 1
+    assert d.me.me.x == 1
 
 
 def test_update_kwargs_converts_children():

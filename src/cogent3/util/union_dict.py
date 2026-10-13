@@ -1,31 +1,44 @@
 """UnionDict extension of dict."""
 
+from typing import Any, Self
+
+
+def _convert_children(root: "UnionDict", source: Any) -> None:
+    # keyed by id so a dict shared or referenced from within itself is copied once
+    copies: dict[int, UnionDict] = {id(source): root}
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        for key, value in node.items():
+            if not isinstance(value, dict):
+                continue
+            child = copies.get(id(value))
+            if child is None:
+                child = UnionDict()
+                dict.update(child, value)
+                copies[id(value)] = child
+                stack.append(child)
+            dict.__setitem__(node, key, child)
+
 
 class UnionDict(dict):
     """dictionary class that can be updated as a union with another dict
     entries are also accessible directly as attributes on the object"""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
 
         Parameters
         ----------
-        data : dict or None
+        data : dict
+            nested dicts are copied, never shared with data
         """
         assert not (args and kwargs)
         if args:
             assert len(args) == 1
             kwargs = args[0]
         super().__init__(kwargs)
-
-        # force all children to to UnionDicts
-        for key in self:
-            value = self._getsubattr_([], key)
-            if not isinstance(value, dict):
-                continue
-
-            if not isinstance(value, UnionDict):
-                self.update({key: UnionDict(value)})
+        _convert_children(self, kwargs)
 
     def __getattr__(self, item):
         if item in self:
@@ -37,74 +50,46 @@ class UnionDict(dict):
             msg = f"'{item}' not a key or attribute"
             raise AttributeError(msg)
 
-    def __setattr__(self, key, value) -> None:
-        if isinstance(value, dict):
+    def __setattr__(self, key: str, value: Any) -> None:
+        self[key] = value
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        if isinstance(value, dict) and not isinstance(value, UnionDict):
             value = UnionDict(value)
+        super().__setitem__(key, value)
 
-        self.update({key: value})
-
-    def __setitem__(self, key, value) -> None:
-        if isinstance(value, dict):
-            value = UnionDict(value)
-
-        self.update({key: value})
-
-    def __or__(self, other):
+    def __or__(self, other: Any) -> Self:
         result = self.__class__(self)
         result.union(other)
         return result
 
-    def __ior__(self, other):
+    def __ior__(self, other: Any) -> Self:
         self.union(other)
         return self
 
-    def union(self, other) -> None:
-        """returns the union of self with other
+    def union(self, other: Any) -> None:
+        """merge other into self in place
 
         keys unique to other are introduced, keys in self shared with other
-        are updated with the value from other"""
+        are updated with the value from other, except where both values are
+        dicts, which are merged in the same way"""
+        other_copy = UnionDict(other)
+        merged = {(id(self), id(other_copy))}
+        stack: list[tuple[dict[Any, Any], dict[Any, Any]]] = [(self, other_copy)]
+        while stack:
+            target, source = stack.pop()
+            for key, value in source.items():
+                current = target.get(key)
+                if not (isinstance(value, dict) and isinstance(current, dict)):
+                    dict.__setitem__(target, key, value)
+                elif (id(current), id(value)) not in merged:
+                    merged.add((id(current), id(value)))
+                    stack.append((current, value))
 
-        if not isinstance(other, UnionDict):
-            other = UnionDict(other)
-
-        for a in list(other):
-            if self.get(a) is None or not (
-                isinstance(other.get(a), dict) and isinstance(self.get(a), dict)
-            ):
-                self.update({a: other.get(a)})
-                continue
-
-            path = [a]
-            while len(path) > 0:
-                name = path.pop()
-                cs = self._getsubattr_(path, name)
-                cd = other._getsubattr_(path, name)
-                path.append(name)
-
-                for attr in list(cd):
-                    if isinstance(cd.get(attr), dict) and isinstance(
-                        cs.get(attr),
-                        dict,
-                    ):
-                        # go into dict
-                        path.append(attr)
-                    else:
-                        cs.update({attr: cd.get(attr)})
-                path.pop()
-
-    def _getsubattr_(self, path, name):
-        """returns nested values"""
-        d = self
-        for node in path:
-            d = d.get(node)
-        return d.get(name)
-
-    def update(self, *args, **kwargs) -> None:
+    def update(self, *args: Any, **kwargs: Any) -> None:
         """Converts to UnionDict."""
         assert not (args and kwargs)
         if args:
             assert len(args) == 1
-            kwargs = UnionDict(args[0])
-        if not isinstance(kwargs, UnionDict):
-            kwargs = UnionDict(kwargs)
-        super().update(kwargs)
+            kwargs = args[0]
+        super().update(UnionDict(kwargs))
