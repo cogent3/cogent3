@@ -24,7 +24,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11", "3.14"]
+        python-version: ["3.11", "3.14", "3.15"]
 
     steps:
       - uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7.0.1
@@ -43,17 +43,12 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      - name: "Installs for ${{ matrix.python-version }}"
-        run: |
-          uv venv venv -p python${{ matrix.python-version }}
-          uv tool install -p venv nox
-
       - name: "Run nox for ${{ matrix.python-version }}"
         shell: bash
         run: |
           dn=$(pwd)
           cov="--cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}.lcov --cov-report term --cov-append --cov cogent3 --cov-config=${dn}/.coveragerc"
-          nox  -db uv --force-python python -s test -- $cov
+          uv run --locked -p python${{ matrix.python-version }} --only-group test nox -db uv --force-python python -s test -- $cov
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
@@ -95,10 +90,7 @@ jobs:
           cache-dependency-glob: "pyproject.toml"
 
       - name: "Run Type Checking for ${{ matrix.python-version }}"
-        run: |
-          uv venv venv -p python${{ matrix.python-version }}
-          uv pip install -p venv -e . --group typing
-          venv/bin/mypy src/cogent3/core/alignment.py src/cogent3/core/alphabet.py src/cogent3/core/annotation.py src/cogent3/core/genetic_code.py src/cogent3/core/location.py src/cogent3/core/moltype.py src/cogent3/core/seq_storage.py src/cogent3/core/sequence.py src/cogent3/core/seqview.py src/cogent3/core/slice_record.py src/cogent3/core/tree.py
+        run: uv run --locked -p python${{ matrix.python-version }} --only-group test nox -db uv --force-python python -s type_check
 
 
   finish:

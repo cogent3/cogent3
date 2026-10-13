@@ -146,7 +146,7 @@ def count_kmers(
             continue
 
         if idx < 0:
-            idx = (seq[i : i + k] * coeffs).sum()
+            idx = int((seq[i : i + k] * coeffs).sum())
             kfreqs[idx] += 1
             continue
 

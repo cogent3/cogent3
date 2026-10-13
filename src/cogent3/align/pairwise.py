@@ -823,8 +823,7 @@ class PairEmissionProbs:
                     else:
                         cells.append((state, (i, j)))
         probs = self.dp(TM, dp_options, cells=cells, backward=backward)
-        probs = numpy.array(probs)
-        probs.shape = (len(p_rows), N - 1, len(T) - 1)
+        probs = numpy.array(probs).reshape(len(p_rows), N - 1, len(T) - 1)
         return numpy.array([probs[p_rows.index(i)] for i in last_row])
 
     def dp(self, TM, dp_options, cells=None, backward=False):

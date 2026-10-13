@@ -1225,7 +1225,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             result[name] = ambig
             array = numpy.array(self.seqs[name])
             for i in numpy.where(array > cast("int", alpha.gap_index))[0]:
-                ambig[i] = alpha[array[i]]
+                ambig[int(i)] = alpha[array[i]]
         return result
 
     def counts(
@@ -3946,8 +3946,7 @@ class Alignment(CollectionBase[Aligned]):
             gap_cols = gap_array.sum(axis=0) > 0
             gap_array = gap_array[:, gap_cols]
 
-        result = gap_array.sum(axis=1)
-        result = darr.wrap(result)
+        result = darr.wrap(gap_array.sum(axis=1))
         if drawable:
             drawable = drawable.lower()
             trace_name = pathlib.Path(self.source).name if self.source else None

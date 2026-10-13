@@ -22,14 +22,14 @@ license-files = ["LICENSE"]
 dependencies = [
     "charset_normalizer",
     "citeable",
-    # prevent release candidate of numpy 2.4
-    # until numba modified to handle removal
-    # of numpy.trapz
-    "numpy<2.5",
+    # numba lags numpy releases, so cap numpy at the newest
+    # minor version that numba supports
+    "numpy<2.6",
     "numba>=0.57.0; python_version=='3.11'",
     "numba>=0.59.0; python_version=='3.12'",
     "numba>=0.61.0; python_version=='3.13'",
     "numba>=0.63.0rc1; python_version=='3.14'",
+    "numba>=0.68.0; python_version=='3.15'",
     "scipy",
     "scinexus[loky]>=2026.10.2",
     "stevedore",
@@ -38,7 +38,7 @@ dependencies = [
     "typing_extensions",
 ]
 # remember to update version in requires-python and classifiers
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.11,<3.16"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
@@ -49,6 +49,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 [project.urls]
@@ -73,10 +74,12 @@ extra = [
 
 [dependency-groups]
 test = [
-    "cogent3-h5seqs>=0.8.0",
+    # h5py, which cogent3-h5seqs needs, has no python 3.15 wheels yet
+    "cogent3-h5seqs>=0.8.0; python_version <= '3.14'",
     # piqtree publishes wheels only for linux x86_64, macOS arm64 and windows
-    # AMD64, so restrict it to those or resolution fails elsewhere
-    "piqtree>=0.8.0; python_version > '3.11' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
+    # AMD64, and only for python 3.12 to 3.14, so restrict it to those or
+    # resolution fails elsewhere
+    "piqtree>=0.8.0; python_version > '3.11' and python_version <= '3.14' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
     "ruff==0.16.9",
     "kaleido",
     "pandas",
@@ -85,13 +88,13 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
-    "nox",
+    "nox>=2026.8.10",
 ]
 typing = ["mypy==2.3.1"]
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs>=0.8.0",
+    "cogent3-h5seqs>=0.8.0; python_version <= '3.14'",
     "ipykernel",
     "jupyter_client",
     "jupytext",
@@ -100,7 +103,7 @@ doc = [
     "nbformat",
     # gated as in the test group: dev includes doc, so an ungated requirement
     # here stops uv building the project environment at all
-    "piqtree>=0.8.0; python_version > '3.11' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
+    "piqtree>=0.8.0; python_version > '3.11' and python_version <= '3.14' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
     "quartodoc",
     # quartodoc 0.11.1 requires only griffe>=0.33, but griffe 2 dropped the
     # allow_section_blank_line argument it passes to parse_numpy
@@ -108,7 +111,6 @@ doc = [
     "iplotx>=1.7.1",
 ]
 dev = [
-    "nox",
     "scriv",
     "types-tqdm",
     { include-group = "doc" },
