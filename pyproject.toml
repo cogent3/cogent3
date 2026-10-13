@@ -22,10 +22,9 @@ license-files = ["LICENSE"]
 dependencies = [
     "charset_normalizer",
     "citeable",
-    # prevent release candidate of numpy 2.4
-    # until numba modified to handle removal
-    # of numpy.trapz
-    "numpy<2.5",
+    # numba lags numpy releases, so cap numpy at the newest
+    # minor version that numba supports
+    "numpy<2.6",
     "numba>=0.57.0; python_version=='3.11'",
     "numba>=0.59.0; python_version=='3.12'",
     "numba>=0.61.0; python_version=='3.13'",
