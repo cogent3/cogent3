@@ -10,6 +10,20 @@ if sys.version_info >= (3, 12):
 
 _py_versions = range(11, 16)
 
+_typed_modules = [
+    "src/cogent3/core/alignment.py",
+    "src/cogent3/core/alphabet.py",
+    "src/cogent3/core/annotation.py",
+    "src/cogent3/core/genetic_code.py",
+    "src/cogent3/core/location.py",
+    "src/cogent3/core/moltype.py",
+    "src/cogent3/core/seq_storage.py",
+    "src/cogent3/core/sequence.py",
+    "src/cogent3/core/seqview.py",
+    "src/cogent3/core/slice_record.py",
+    "src/cogent3/core/tree.py",
+]
+
 
 @nox.session(python=False)
 def fmt(session: nox.Session) -> None:
@@ -53,6 +67,12 @@ def test(session):
         "not slow",
         *session.posargs,
     )
+
+
+@nox.session(python="3.14", venv_backend="uv")
+def type_check(session):
+    session.install("-e", ".", "--group", "typing")
+    session.run("mypy", *_typed_modules)
 
 
 @nox.session(python=[f"3.{v}" for v in _py_versions], venv_backend="uv")

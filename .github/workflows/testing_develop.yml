@@ -94,11 +94,13 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      - name: "Run Type Checking for ${{ matrix.python-version }}"
+      - name: "Installs for ${{ matrix.python-version }}"
         run: |
           uv venv venv -p python${{ matrix.python-version }}
-          uv pip install -p venv -e . --group typing
-          venv/bin/mypy src/cogent3/core/alignment.py src/cogent3/core/alphabet.py src/cogent3/core/annotation.py src/cogent3/core/genetic_code.py src/cogent3/core/location.py src/cogent3/core/moltype.py src/cogent3/core/seq_storage.py src/cogent3/core/sequence.py src/cogent3/core/seqview.py src/cogent3/core/slice_record.py src/cogent3/core/tree.py
+          uv tool install -p venv nox
+
+      - name: "Run Type Checking for ${{ matrix.python-version }}"
+        run: nox -db uv --force-python python -s type_check
 
 
   finish:
