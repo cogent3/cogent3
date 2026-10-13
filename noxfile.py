@@ -8,7 +8,7 @@ import nox
 if sys.version_info >= (3, 12):
     os.environ["COVERAGE_CORE"] = "sysmon"
 
-_py_versions = range(11, 15)
+_py_versions = range(11, 16)
 
 
 @nox.session(python=False)
