@@ -75,7 +75,8 @@ extra = [
 
 [dependency-groups]
 test = [
-    "cogent3-h5seqs>=0.8.0",
+    # h5py, which cogent3-h5seqs needs, has no python 3.15 wheels yet
+    "cogent3-h5seqs>=0.8.0; python_version <= '3.14'",
     # piqtree publishes wheels only for linux x86_64, macOS arm64 and windows
     # AMD64, and only for python 3.12 to 3.14, so restrict it to those or
     # resolution fails elsewhere
@@ -94,7 +95,7 @@ typing = ["mypy==2.3.1"]
 doc = [
     "click",
     "cogent3[extra]",
-    "cogent3-h5seqs>=0.8.0",
+    "cogent3-h5seqs>=0.8.0; python_version <= '3.14'",
     "ipykernel",
     "jupyter_client",
     "jupytext",

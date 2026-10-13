@@ -552,7 +552,7 @@ extra = [
 dev = [
     { name = "click" },
     { name = "cogent3", extra = ["extra"] },
-    { name = "cogent3-h5seqs" },
+    { name = "cogent3-h5seqs", marker = "python_full_version < '3.15'" },
     { name = "griffe" },
     { name = "iplotx" },
     { name = "ipykernel" },
@@ -579,7 +579,7 @@ dev = [
 doc = [
     { name = "click" },
     { name = "cogent3", extra = ["extra"] },
-    { name = "cogent3-h5seqs" },
+    { name = "cogent3-h5seqs", marker = "python_full_version < '3.15'" },
     { name = "griffe" },
     { name = "iplotx" },
     { name = "ipykernel" },
@@ -592,7 +592,7 @@ doc = [
     { name = "quartodoc" },
 ]
 test = [
-    { name = "cogent3-h5seqs" },
+    { name = "cogent3-h5seqs", marker = "python_full_version < '3.15'" },
     { name = "kaleido" },
     { name = "nox" },
     { name = "pandas" },
@@ -641,7 +641,7 @@ provides-extras = ["extra"]
 dev = [
     { name = "click" },
     { name = "cogent3", extras = ["extra"] },
-    { name = "cogent3-h5seqs", specifier = ">=0.8.0" },
+    { name = "cogent3-h5seqs", marker = "python_full_version < '3.15'", specifier = ">=0.8.0" },
     { name = "griffe", specifier = "<2" },
     { name = "iplotx", specifier = ">=1.7.1" },
     { name = "ipykernel" },
@@ -668,7 +668,7 @@ dev = [
 doc = [
     { name = "click" },
     { name = "cogent3", extras = ["extra"] },
-    { name = "cogent3-h5seqs", specifier = ">=0.8.0" },
+    { name = "cogent3-h5seqs", marker = "python_full_version < '3.15'", specifier = ">=0.8.0" },
     { name = "griffe", specifier = "<2" },
     { name = "iplotx", specifier = ">=1.7.1" },
     { name = "ipykernel" },
@@ -681,7 +681,7 @@ doc = [
     { name = "quartodoc" },
 ]
 test = [
-    { name = "cogent3-h5seqs", specifier = ">=0.8.0" },
+    { name = "cogent3-h5seqs", marker = "python_full_version < '3.15'", specifier = ">=0.8.0" },
     { name = "kaleido" },
     { name = "nox" },
     { name = "pandas" },
