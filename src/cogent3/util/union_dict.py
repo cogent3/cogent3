@@ -4,21 +4,25 @@ from typing import Any, Self
 
 
 def _convert_children(root: "UnionDict", source: Any) -> None:
-    # keyed by id so a dict shared or referenced from within itself is copied once
-    copies: dict[int, UnionDict] = {id(source): root}
-    stack = [root]
-    while stack:
-        node = stack.pop()
-        for key, value in node.items():
+    on_path = {id(source)}
+    frames = [(root, iter(root.items()), id(source))]
+    while frames:
+        node, items, source_id = frames[-1]
+        for key, value in items:
             if not isinstance(value, dict):
                 continue
-            child = copies.get(id(value))
-            if child is None:
-                child = UnionDict()
-                dict.update(child, value)
-                copies[id(value)] = child
-                stack.append(child)
+            if id(value) in on_path:
+                msg = f"cannot copy {key!r}, it refers back to a dict containing it"
+                raise ValueError(msg)
+            child = UnionDict()
+            dict.update(child, value)
             dict.__setitem__(node, key, child)
+            on_path.add(id(value))
+            frames.append((child, iter(child.items()), id(value)))
+            break
+        else:
+            frames.pop()
+            on_path.discard(source_id)
 
 
 class UnionDict(dict):
@@ -54,9 +58,16 @@ class UnionDict(dict):
         self[key] = value
 
     def __setitem__(self, key: Any, value: Any) -> None:
-        if isinstance(value, dict) and not isinstance(value, UnionDict):
+        # a |= on an attribute assigns the same object back, which must not copy it
+        stored_as_is = value is self.get(key) and isinstance(value, UnionDict)
+        if isinstance(value, dict) and not stored_as_is:
             value = UnionDict(value)
         super().__setitem__(key, value)
+
+    def setdefault(self, key: Any, default: Any = None) -> Any:
+        if key not in self:
+            self[key] = default
+        return self[key]
 
     def __or__(self, other: Any) -> Self:
         result = self.__class__(self)
@@ -73,18 +84,15 @@ class UnionDict(dict):
         keys unique to other are introduced, keys in self shared with other
         are updated with the value from other, except where both values are
         dicts, which are merged in the same way"""
-        other_copy = UnionDict(other)
-        merged = {(id(self), id(other_copy))}
-        stack: list[tuple[dict[Any, Any], dict[Any, Any]]] = [(self, other_copy)]
+        stack: list[tuple[dict[Any, Any], dict[Any, Any]]] = [(self, UnionDict(other))]
         while stack:
             target, source = stack.pop()
             for key, value in source.items():
                 current = target.get(key)
-                if not (isinstance(value, dict) and isinstance(current, dict)):
-                    dict.__setitem__(target, key, value)
-                elif (id(current), id(value)) not in merged:
-                    merged.add((id(current), id(value)))
+                if isinstance(value, dict) and isinstance(current, dict):
                     stack.append((current, value))
+                else:
+                    dict.__setitem__(target, key, value)
 
     def update(self, *args: Any, **kwargs: Any) -> None:
         """Converts to UnionDict."""

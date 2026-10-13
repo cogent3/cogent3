@@ -1,5 +1,7 @@
 """Unit tests for union_dict."""
 
+import pytest
+
 from cogent3.util.union_dict import UnionDict
 
 
@@ -168,34 +170,64 @@ def test_nested_ior_keeps_held_references():
     assert layout.xaxis.title.text == "z"
 
 
-def test_assigning_union_dict_stores_it():
+def test_assigning_union_dict_copies_it():
     d = UnionDict()
-    inner = UnionDict({"c": 1})
+    inner = UnionDict({"c": {"e": 1}})
     d.b = inner
-    assert d.b is inner
+    assert d.b == inner
+    assert d.b is not inner
+    assert d.b.c is not inner.c
 
 
-def test_construction_preserves_shared_children():
-    shared = {"c": 1}
+def test_construction_copies_shared_children():
+    shared = {"c": {"e": 1}}
     d = UnionDict({"a": shared, "b": shared})
-    assert d.a is d.b
+    assert d.a == d.b
+    assert d.a is not d.b
+    assert d.a.c is not d.b.c
 
 
-def test_construction_from_self_referencing_dict():
+def test_union_into_children_built_from_one_dict():
+    shared = {"x": 0}
+    d = UnionDict({"a": shared, "b": shared})
+    d |= {"a": {"x": 1}, "b": {"x": 2}}
+    assert d.a.x == 1
+    assert d.b.x == 2
+
+
+def test_setdefault_copies_dict():
+    shared = {"x": 0}
+    d = UnionDict()
+    d.setdefault("a", shared)
+    d.setdefault("b", shared)
+    assert isinstance(d.a, UnionDict)
+    assert d.a is not d.b
+    d |= {"a": {"x": 1}, "b": {"x": 2}}
+    assert d.a.x == 1
+    assert d.b.x == 2
+    assert shared == {"x": 0}
+
+
+def test_setdefault_returns_existing_value():
+    d = UnionDict({"a": {"x": 1}})
+    existing = d.a
+    assert d.setdefault("a", {"x": 2}) is existing
+    assert d.setdefault("b") is None
+
+
+def test_construction_from_self_referencing_dict_raises():
     data: dict[str, object] = {"x": 1}
     data["me"] = data
-    d = UnionDict(data)
-    assert d.me is d
-    assert d.me.x == 1
+    with pytest.raises(ValueError):
+        UnionDict(data)
 
 
-def test_union_with_self_referencing_dicts():
+def test_union_with_self_referencing_dict_raises():
     data: dict[str, object] = {"x": 1}
     data["me"] = data
-    d = UnionDict(data)
-    d |= data
-    assert d.x == 1
-    assert d.me.me.x == 1
+    d = UnionDict({"x": 0})
+    with pytest.raises(ValueError):
+        d |= data
 
 
 def test_update_kwargs_converts_children():
