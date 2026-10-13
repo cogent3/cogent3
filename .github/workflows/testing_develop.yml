@@ -43,17 +43,12 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      - name: "Installs for ${{ matrix.python-version }}"
-        run: |
-          uv venv venv -p python${{ matrix.python-version }}
-          uv tool install -p venv nox
-
       - name: "Run nox for ${{ matrix.python-version }}"
         shell: bash
         run: |
           dn=$(pwd)
           cov="--cov-report lcov:lcov-${{matrix.os}}-${{matrix.python-version}}.lcov --cov-report term --cov-append --cov cogent3 --cov-config=${dn}/.coveragerc"
-          nox  -db uv --force-python python -s test -- $cov
+          uv run --locked -p python${{ matrix.python-version }} --only-group test nox -db uv --force-python python -s test -- $cov
 
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
@@ -94,13 +89,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      - name: "Installs for ${{ matrix.python-version }}"
-        run: |
-          uv venv venv -p python${{ matrix.python-version }}
-          uv tool install -p venv nox
-
       - name: "Run Type Checking for ${{ matrix.python-version }}"
-        run: nox -db uv --force-python python -s type_check
+        run: uv run --locked -p python${{ matrix.python-version }} --only-group test nox -db uv --force-python python -s type_check
 
 
   finish:

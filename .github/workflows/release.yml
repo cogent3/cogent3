@@ -31,15 +31,10 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      - name: "Installs for ${{ matrix.python-version }}"
-        run: |
-          uv venv venv -p python${{ matrix.python-version }}
-          uv tool install -p venv nox
-
       - name: "Run nox for ${{ matrix.python-version }}"
         shell: bash
         run: |
-          nox -db uv --force-python python -s test
+          uv run --locked -p python${{ matrix.python-version }} --only-group test nox -db uv --force-python python -s test
 
 
   docbuild:
@@ -66,13 +61,8 @@ jobs:
       - name: Install quarto
         uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b # v2.2.0
 
-      - name: "Installs for ${{ matrix.python-version }}"
-        run: |
-          uv venv venv -p python${{ matrix.python-version }}
-          uv tool install -p venv nox
-
       - name: "test the docs code"
-        run: "nox -db uv --force-python python -s testdocs"
+        run: "uv run --locked -p python3.13 --only-group test nox -db uv --force-python python -s testdocs"
 
   build:
     name: Build wheel and sdist
