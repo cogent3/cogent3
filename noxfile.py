@@ -53,8 +53,6 @@ def test(session):
         "-s",
         "-x",
         "--doctest-modules",
-        "--ignore=composable.py",
-        "--ignore=sqlite_data_store.py",
         ".",
     )
 
