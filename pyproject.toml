@@ -88,7 +88,7 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
-    "nox",
+    "nox>=2026.8.10",
 ]
 typing = ["mypy==2.3.1"]
 doc = [
@@ -111,7 +111,6 @@ doc = [
     "iplotx>=1.7.1",
 ]
 dev = [
-    "nox",
     "scriv",
     "types-tqdm",
     { include-group = "doc" },
