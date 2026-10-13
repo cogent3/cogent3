@@ -1036,7 +1036,7 @@ def seq_to_kmer_indices_overlapping(
             if gained_char >= num_states:
                 val = gap_index if gained_char == gap_char_index else missing_index
         elif idx < 0:
-            idx = (seq[i : i + k] * coeffs).sum()
+            idx = int((seq[i : i + k] * coeffs).sum())
             val = idx
             skip_until = -1
         else:

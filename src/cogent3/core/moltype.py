@@ -1277,7 +1277,9 @@ class MolType(Generic[TStrOrBytes]):
         if isinstance(seq, str):
             assert self.ambiguities is not None
             rng = numpy.random.default_rng()
-            return "".join(rng.choice(list(self.ambiguities.get(n, n))) for n in seq)
+            return "".join(
+                str(rng.choice(list(self.ambiguities.get(n, n)))) for n in seq
+            )
 
         if isinstance(seq, bytes):
             return self.random_disambiguate(seq.decode("utf8")).encode("utf8")
