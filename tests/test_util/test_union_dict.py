@@ -116,3 +116,98 @@ def test_setitem():
     assert d.b.c == 42
     assert d["b"] == {"c": 42}
     assert isinstance(d.b, UnionDict)
+
+
+def test_or_with_plain_dict():
+    d = UnionDict({"a": 1, "d": {"e": 5}})
+    f = d | {"d": {"g": {"h": 8}}}
+    assert isinstance(f, UnionDict)
+    assert f.d.e == 5
+    assert f.d.g.h == 8
+    assert "g" not in d.d
+
+
+def test_two_level_shared_merge():
+    d = UnionDict({"d": {"e": {"k": 1}}})
+    f = d | {"d": {"e": {"m": 2}}}
+    assert f.d.e == {"k": 1, "m": 2}
+    assert d.d.e == {"k": 1}
+
+
+def test_or_leaves_right_operand_unaliased():
+    d = UnionDict({"a": 1})
+    e = UnionDict({"b": {"c": 1}, "p": {"q": {"r": 1}}})
+    f = d | e
+    f.b.c = 99
+    f.p.q.r = 99
+    assert e.b.c == 1
+    assert e.p.q.r == 1
+
+
+def test_union_none_replaces_dict():
+    d = UnionDict({"a": {"b": 1}})
+    d |= {"a": None}
+    assert d.a is None
+
+
+def test_union_dict_replaces_nested_value():
+    d = UnionDict({"a": {"b": 1}})
+    d |= {"a": {"b": {"c": 2}}}
+    assert isinstance(d.a.b, UnionDict)
+    assert d.a.b.c == 2
+
+
+def test_construction_leaves_input_unchanged():
+    data = {"a": {"b": {"c": 1}}}
+    d = UnionDict(data)
+    d.a.b.c = 2
+    assert type(data["a"]) is dict
+    assert type(data["a"]["b"]) is dict
+    assert data["a"]["b"]["c"] == 1
+
+
+def test_update_kwargs_converts_children():
+    d = UnionDict()
+    d.update(b={"c": {"e": 2}})
+    assert d.b.c.e == 2
+
+
+def test_ior_with_plain_dict_converts_children():
+    d = UnionDict({"a": 1})
+    d |= {"b": {"c": {"e": 2}}}
+    assert isinstance(d.b, UnionDict)
+    assert isinstance(d.b.c, UnionDict)
+    assert d.b.c.e == 2
+
+
+def test_union_method():
+    d = UnionDict({"d": {"e": 5, "f": 6}})
+    d.union({"d": {"f": 0}})
+    assert d.d == {"e": 5, "f": 0}
+
+
+def _make_nested(depth: int, leaf: dict[str, object]) -> dict[str, object]:
+    data = leaf
+    for _ in range(depth):
+        data = {"x": data}
+    return data
+
+
+def test_deeply_nested_construction():
+    depth = 2000
+    d = UnionDict(_make_nested(depth, {"leaf": 1}))
+    node = d
+    for _ in range(depth):
+        node = node.x
+    assert isinstance(node, UnionDict)
+    assert node.leaf == 1
+
+
+def test_deeply_nested_union():
+    depth = 2000
+    d = UnionDict(_make_nested(depth, {"a": 1}))
+    d |= _make_nested(depth, {"b": 2})
+    node = d
+    for _ in range(depth):
+        node = node.x
+    assert node == {"a": 1, "b": 2}
