@@ -1,4 +1,33 @@
 
+<a id='changelog-2026.10.15'></a>
+# Changes in release "2026.10.15"
+
+Minor bug fix release plus bumping py version.
+
+## Contributors
+
+- @GavinHuttley
+
+## Enhancements
+
+- Added support for Python 3.15 and numpy 2.5. The optional `cogent3-h5seqs`
+  dependency is installed only on Python 3.14 and below (for now), and
+  `piqtree` only on platforms where it publishes wheels.
+
+## Bug fixes
+
+- `UnionDict` merging no longer loops forever when both sides share a nested
+  dict two or more levels down, e.g.
+  `{"d": {"e": {"k": 1}}} | {"d": {"e": {"m": 2}}}`. Nested dicts are now
+  copied on construction and assignment, so `|` leaves both operands
+  untouched and keys can no longer share a child dict. A dict that contains
+  itself now raises `ValueError` instead of `RecursionError`.
+
+## Documentation
+
+- Removed code snippets and references to modules deleted in 2026.9.10,
+  including `cogent3.util.io`.
+
 <a id='changelog-2026.9.10'></a>
 # Changes in release "2026.9.10"
 
