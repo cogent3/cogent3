@@ -475,11 +475,11 @@ wheels = [
 
 [[package]]
 name = "citeable"
-version = "2026.3.11b1"
+version = "2026.9.24"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/04/2e/145346ec16350c8c1ced7cfeefb190e056928e7a39d65d86d22488be3bb6/citeable-2026.3.11b1.tar.gz", hash = "sha256:185915fb852b58b64ab82a4d90cbc91ef4033650e42e286467d1758c10edfac0", size = 52516, upload-time = "2026-03-13T00:01:11.783Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/3e/2c4685f7f8b4bab551ae510cdbe09bf5681e581fa67ba17b3205f90864c3/citeable-2026.9.24.tar.gz", hash = "sha256:3dc000c88c3fc0cf9a37860bbc17f94ea56eca38bae153bd03d5988390f9f0a8", size = 52823, upload-time = "2026-09-24T00:03:06.56Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f0/76/f208c2b7167b39ea15c116683930200a450219db8a382ecd6584779b2129/citeable-2026.3.11b1-py3-none-any.whl", hash = "sha256:04a939569c6dd6cd0e934440562d8fc026e59e8ae05887dbfc93c0690672efa0", size = 14439, upload-time = "2026-03-13T00:01:10.482Z" },
+    { url = "https://files.pythonhosted.org/packages/48/3a/13ba02af735b1de9b4232b30cd484ae4943310ff8a5bc933e1a33cdb75a4/citeable-2026.9.24-py3-none-any.whl", hash = "sha256:d81a0af02b3478bfae5924ccddf12f5c10219f6ccf2399e04929463cc3340435", size = 14448, upload-time = "2026-09-24T00:03:05.209Z" },
 ]
 
 [[package]]
