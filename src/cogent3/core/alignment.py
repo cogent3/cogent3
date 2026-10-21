@@ -3226,7 +3226,8 @@ class Alignment(CollectionBase[Aligned]):
         ----------
         calc
             a pairwise distance calculator name. Presently only
-            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear' are supported.
+            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear', 'logdet' are
+            supported.
         drop_invalid
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if

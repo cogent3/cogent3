@@ -1166,7 +1166,58 @@ def test_prop_dists_big(DATA_DIR, oldcalc, newcalc):
     assert_allclose(got.array, expect.array)
 
 
-@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
+@pytest.mark.parametrize("use_tk_adjustment", [True, False])
+def test_numba_logdet_matches_logdet_pair(brca1_5, use_tk_adjustment):
+    calc = LogDetPair(moltype=DNA, alignment=brca1_5)
+    calc.run(use_tk_adjustment=use_tk_adjustment, show_progress=False)
+    expect = calc.dists.take_dists(brca1_5.names)
+    got = pdist_numba.logdet(
+        brca1_5, parallel=False, use_tk_adjustment=use_tk_adjustment
+    ).take_dists(brca1_5.names)
+    assert_allclose(got.array, expect.array, rtol=1e-5)
+
+
+@pytest.mark.parametrize("use_tk_adjustment", [True, False])
+def test_numba_logdet_for_determinant_lte_zero(use_tk_adjustment):
+    data = {
+        "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        "seq2": "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    }
+    aln = cogent3.make_aligned_seqs(data, moltype="dna")
+    dists = pdist_numba.logdet(aln, use_tk_adjustment=use_tk_adjustment)
+    assert numpy.isnan(dists.array).any()
+    with pytest.raises(ArithmeticError):
+        pdist_numba.logdet(
+            aln, invalid_raises=True, use_tk_adjustment=use_tk_adjustment
+        )
+
+
+def test_numba_tn93_rna_matches_dna(brca1_5):
+    rna = cogent3.make_aligned_seqs(
+        {n: s.replace("T", "U") for n, s in brca1_5.to_dict().items()},
+        moltype="rna",
+    )
+    expect = pdist_numba.tn93(brca1_5, parallel=False)
+    got = pdist_numba.tn93(rna, parallel=False)
+    assert_allclose(got.array, expect.array)
+
+
+@pytest.mark.parametrize("parallel", [False, True])
+def test_pairwise_diffs_and_valid(parallel):
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGTN-", "b": "ACCT--", "c": "------"},
+        moltype="dna",
+    )
+    diffs, valid = pdist_numba.pairwise_diffs_and_valid(
+        aln.array_seqs, 4, parallel=parallel
+    )
+    assert_equal(diffs, [[0, 1, 0], [1, 0, 0], [0, 0, 0]])
+    assert_equal(valid, [[0, 4, 0], [4, 0, 0], [0, 0, 0]])
+
+
+@pytest.mark.parametrize(
+    "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
+)
 def test_numba_get_dist(calc, basic_alignment) -> None:
     aln = cogent3.make_aligned_seqs(
         basic_alignment.to_dict(),
@@ -1177,7 +1228,7 @@ def test_numba_get_dist(calc, basic_alignment) -> None:
     assert isinstance(got, DistanceMatrix)
 
 
-@pytest.mark.parametrize("calc", ["tn93", "paralinear"])
+@pytest.mark.parametrize("calc", ["tn93", "paralinear", "logdet"])
 def test_invalid_moltype_fast_distances(calc, basic_alignment):
     from cogent3.core import moltype as c3_moltype
 
@@ -1215,7 +1266,9 @@ def test_unknown_dist():
         pdist_numba.get_distance_calculator("blah")
 
 
-@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
+@pytest.mark.parametrize(
+    "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
+)
 def test_compare_parallel_serial(DATA_DIR, calc):
     aln = cogent3.load_aligned_seqs(
         DATA_DIR / "brca1.fasta",
