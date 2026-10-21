@@ -2181,6 +2181,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             The distance calculation method to use, either "pdist" or "jc69".
             - "pdist" is an approximation of the proportion sites different.
             - "jc69" is an approximation of the Jukes Cantor distance.
+        kwargs
+            not supported, any keyword raises TypeError.
 
         Returns
         -------
@@ -2199,6 +2201,13 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         proportion sites different, i.e., a transformation of the above.
         """
         from cogent3.app.dist import get_approx_dist_calc
+
+        if kwargs:
+            msg = (
+                "distance_matrix() got unexpected keyword argument(s): "
+                f"{', '.join(sorted(kwargs))}"
+            )
+            raise TypeError(msg)
 
         # check moltype
         if len(self.moltype.alphabet) != 4:

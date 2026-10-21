@@ -2915,6 +2915,15 @@ def test_sequence_collection_distance_matrix_passes_correct_moltype(moltype):
     assert got[("s1", "s2")] == 0.0
 
 
+@pytest.mark.parametrize("moltype", ["dna", "protein"])
+def test_sequence_collection_distance_matrix_rejects_keywords(moltype):
+    # keywords are checked before the moltype
+    data = {"s1": "ACGA", "s2": "ACGA"}
+    seqs = c3_alignment.make_unaligned_seqs(data, moltype=moltype)
+    with pytest.raises(TypeError, match=r"drop_invalid, parallel$"):
+        seqs.distance_matrix(calc="jc69", parallel=True, drop_invalid=True)
+
+
 @pytest.mark.parametrize(
     "collection_maker",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
