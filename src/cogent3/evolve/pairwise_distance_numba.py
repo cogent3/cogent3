@@ -543,7 +543,8 @@ def hamming(
     parallel
         If True, uses parallel processing via numba.
     invalid_raises
-        Ignored, accepted for a common calculator signature.
+        Ignored, accepted for a common calculator signature. A pair with
+        no sites where both sequences have a canonical state is 0.
     """
     diffs, _ = _diffs_and_valid(aln, parallel)
     return DistanceMatrix.from_array_names(diffs.astype(numpy.float32), aln.names)
@@ -561,10 +562,11 @@ def pdist(
     parallel
         If True, uses parallel processing via numba.
     invalid_raises
-        Ignored, accepted for a common calculator signature.
+        If True and nan in result, raises an ArithmeticError. A pair with
+        no sites where both sequences have a canonical state is nan.
     """
     p = _proportion_diff(*_diffs_and_valid(aln, parallel))
-    return DistanceMatrix.from_array_names(p.astype(numpy.float32), aln.names)
+    return _to_dist_matrix(p.astype(numpy.float32), aln, invalid_raises)
 
 
 _calculators: dict[

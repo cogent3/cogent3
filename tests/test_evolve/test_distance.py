@@ -1206,6 +1206,26 @@ def test_distance_matrix_rejects_unused_kwarg(basic_alignment, calc):
         basic_alignment.distance_matrix(calc=calc, use_tk_adjustment=False)
 
 
+@pytest.fixture
+def no_shared_sites_aln():
+    # a and b have no sites in common, so their pdist is 0 / 0
+    return cogent3.make_aligned_seqs(
+        {"a": "ACGT", "b": "----", "c": "ACGA"}, moltype="dna"
+    )
+
+
+def test_pdist_invalid_raises(no_shared_sites_aln):
+    assert numpy.isnan(pdist_numba.pdist(no_shared_sites_aln)["a", "b"])
+    with pytest.raises(ArithmeticError):
+        pdist_numba.pdist(no_shared_sites_aln, invalid_raises=True)
+
+
+@pytest.mark.parametrize("calc", ["pdist", "jc69", "tn93", "paralinear", "logdet"])
+def test_distance_matrix_no_shared_sites_raises(no_shared_sites_aln, calc):
+    with pytest.raises(ArithmeticError, match="drop_invalid=True"):
+        no_shared_sites_aln.distance_matrix(calc=calc)
+
+
 def test_numba_tn93_uses_alignment_base_composition():
     # base frequencies are estimated from the whole alignment, not per pair,
     # so adding a sequence changes the distance between an existing pair
