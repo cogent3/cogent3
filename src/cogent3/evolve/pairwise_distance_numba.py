@@ -7,7 +7,11 @@ import numba.types as numba_types
 import numpy
 
 from cogent3.core import moltype as c3_moltype
-from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.evolve.fast_distance import (
+    DistanceMatrix,
+    get_purine_indices,
+    get_pyrimidine_indices,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     # Forward reference to avoid circular import
@@ -36,7 +40,7 @@ def num_diffs_and_valid(
     seq1: numba_types.uint8[:],
     seq2: numba_types.uint8[:],
     num_states: numba_types.uint8,
-) -> numba_types.int32[:]:  # pragma: no cover
+) -> tuple[int, int]:  # pragma: no cover
     """returns the number of differences and the number of valid positions"""
     num_valid = 0
     num_diff = 0
@@ -47,7 +51,7 @@ def num_diffs_and_valid(
         if seq1[i] != seq2[i]:
             num_diff += 1
 
-    return numpy.array([num_diff, num_valid], dtype=numpy.int32)
+    return num_diff, num_valid
 
 
 @numba.jit(cache=True)
@@ -74,29 +78,64 @@ def _get_matrix_and_counts(matrix, seq1, seq2):  # pragma: no cover
     return matrix, num_diff, num_valid
 
 
+# statistics computed by pairwise_count_matrix
+_HAMMING = 0
+_PDIST = 1
+_JC69 = 2
+SHARED_SITES = 3
+MATCHING_SITES = 4
+
+
+@numba.jit
+def _count_statistic(method, num_diffs, num_valid, frac):  # pragma: no cover
+    if method == _HAMMING:
+        value = float(num_diffs)
+    elif method == SHARED_SITES:
+        value = float(num_valid)
+    elif method == MATCHING_SITES:
+        value = float(num_valid - num_diffs)
+    elif num_valid == 0:
+        value = numpy.nan
+    elif method == _PDIST or num_diffs == 0:
+        # also gives jc69 a distance of 0.0, not -0.0, for identical pairs
+        value = num_diffs / num_valid
+    else:
+        p = num_diffs / num_valid
+        value = numpy.nan if p >= 0.75 else -numpy.log(1.0 - frac * p) / frac
+    return value
+
+
 @numba.jit(parallel=True)
-def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
-    """Compute JC69 distances between all sequence pairs.
+def pairwise_count_matrix(
+    array_seqs, num_states, method, parallel=True
+):  # pragma: no cover
+    """returns a matrix of a statistic computed from per pair site counts
 
     Parameters
     ----------
     array_seqs
         2D array of sequences
     num_states
-        Number of states, e.g. 4 for nucleotides
+        Number of states, e.g. 4 for nucleotides. A site is valid for a pair
+        when both sequences have a state below this value.
+    method
+        SHARED_SITES gives the number of valid sites, MATCHING_SITES the
+        number of valid sites that are identical. The other codes give the
+        hamming, pdist and jc69 distances.
     parallel
         Runs in parallel if True, otherwise reduces to single thread
 
     Returns
     -------
-    array
-        Matrix of pairwise JC69 distances
-
-    Notes
-    -----
-    If the proportion of differences is >= 0.75, the distance is set
-    to numpy.nan.
+    numpy.ndarray
+        Symmetric float32 matrix with a zero diagonal. pdist and jc69 are
+        nan for pairs with no valid sites, jc69 also when the proportion of
+        differences is >= 0.75.
     """
+    if method < _HAMMING or method > MATCHING_SITES:
+        msg = "unknown method code"
+        raise ValueError(msg)
+
     num_threads = numba.get_num_threads()
     if not parallel:
         # numba still gets all the threads it can, but it only
@@ -105,11 +144,8 @@ def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
         numba.set_num_threads(1)
 
     n_seqs = array_seqs.shape[0]
-    dists = numpy.zeros((n_seqs, n_seqs), dtype=numpy.float32)
-    nan = numpy.float32(numpy.nan)
-    zero = numpy.float32(0.0)
-    frac = numpy.float32(num_states / (num_states - 1))
-    dist_scale = numpy.float32((num_states - 1) / -num_states)
+    result = numpy.zeros((n_seqs, n_seqs), dtype=numpy.float32)
+    frac = num_states / (num_states - 1) if num_states > 1 else 1.0
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
@@ -119,20 +155,36 @@ def jc69_dist_matrix(array_seqs, num_states, parallel=True):  # pragma: no cover
             array_seqs[j],
             num_states,
         )
-
-        if num_valid == 0:
-            d = nan
-        elif num_diffs == 0:
-            d = zero
-        else:
-            p = num_diffs / num_valid
-            d = nan if p >= 0.75 else dist_scale * numpy.log(1.0 - frac * p)
-        dists[i, j] = dists[j, i] = d
+        value = _count_statistic(method, num_diffs, num_valid, frac)
+        result[i, j] = result[j, i] = value
 
     if not parallel:
         # restore original number of threads
         numba.set_num_threads(num_threads)
-    return dists
+    return result
+
+
+def _count_matrix(aln: "Alignment", method: int, parallel: bool) -> numpy.ndarray:
+    return pairwise_count_matrix(
+        aln.array_seqs, len(aln.moltype.alphabet), method, parallel=parallel
+    )
+
+
+def _to_dist_matrix(
+    mat: numpy.ndarray, aln: "Alignment", invalid_raises: bool
+) -> DistanceMatrix:
+    if invalid_raises and numpy.isnan(mat).any():
+        msg = "nan's in matrix"
+        raise ArithmeticError(msg)
+    return DistanceMatrix.from_array_names(mat, aln.names)
+
+
+def _check_nucleic(aln: "Alignment", calc: str) -> None:
+    if not aln.moltype.is_nucleic:
+        msg = (
+            f"{calc} distance only works with nucleotide alignments, not {aln.moltype}"
+        )
+        raise c3_moltype.MolTypeError(msg)
 
 
 def jc69(
@@ -150,14 +202,14 @@ def jc69(
         If True and nan in result, raises an ArithmeticError
     parallel
         If True, uses parallel processing via numba.
-    """
 
-    num_states = len(aln.moltype.alphabet)
-    mat = jc69_dist_matrix(aln.array_seqs, num_states, parallel=parallel)
-    if invalid_raises and numpy.isnan(mat).any():
-        msg = "nan's in matrix"
-        raise ArithmeticError(msg)
-    return DistanceMatrix.from_array_names(mat, aln.names)
+    Notes
+    -----
+    If the proportion of differences is >= 0.75, the distance is set
+    to numpy.nan.
+    """
+    mat = _count_matrix(aln, _JC69, parallel)
+    return _to_dist_matrix(mat, aln, invalid_raises)
 
 
 @numba.jit
@@ -319,19 +371,14 @@ def tn93(
     parallel
         If True, uses parallel processing via numba.
     """
-    if not aln.moltype.is_nucleic:
-        msg = f"tn93 distance only works with nucleotide alignments, not {aln.moltype}"
-        raise c3_moltype.MolTypeError(
-            msg,
-        )
-
+    _check_nucleic(aln, "tn93")
     alpha = aln.moltype.alphabet
 
     counts = _count_states(aln.array_seqs, len(alpha), parallel=parallel)
     freqs = (counts / counts.sum()).astype(numpy.float32)
 
-    pur_indices = alpha.to_indices("AG")
-    pyr_indices = alpha.to_indices("CT")
+    pur_indices = numpy.array(get_purine_indices(aln.moltype))
+    pyr_indices = numpy.array(get_pyrimidine_indices(aln.moltype))
 
     # these constants are used across all the pairwise distance calculations
     pur_freqs = freqs.take(pur_indices).sum()
@@ -364,14 +411,17 @@ def tn93(
         coeff3,
         parallel=parallel,
     )
-    if invalid_raises and numpy.isnan(mat).any():
-        msg = "nan's in matrix"
-        raise ArithmeticError(msg)
-    return DistanceMatrix.from_array_names(mat, aln.names)
+    return _to_dist_matrix(mat, aln, invalid_raises)
+
+
+# method codes for the logdet family of distances
+_PARALINEAR = 0
+_LOGDET_TK = 1
+_LOGDET = 2
 
 
 @numba.jit
-def _paralinear(matrix, num_states):  # pragma: no cover
+def _logdet_family(matrix, num_states, method):  # pragma: no cover
     # we replace the missing diagonal states with a
     # pseudocount of 0.5 then normalise
     frequency = matrix.astype(numpy.float32)
@@ -384,16 +434,25 @@ def _paralinear(matrix, num_states):  # pragma: no cover
     if det <= 0:
         return numpy.float32(numpy.nan)
 
-    # the inverse matrix of frequency, every element is squared
-    denom = numpy.sqrt((frequency.sum(axis=0) * frequency.sum(axis=1)).prod())
+    if method == _LOGDET:
+        return numpy.float32(-numpy.log(det) / num_states - numpy.log(num_states))
 
-    return -numpy.log(det / denom) / num_states
+    freqs_0 = frequency.sum(axis=0)
+    freqs_1 = frequency.sum(axis=1)
+    log_ratio = numpy.log(det / numpy.sqrt((freqs_0 * freqs_1).prod()))
+    if method == _PARALINEAR:
+        return numpy.float32(-log_ratio / num_states)
+
+    # Tamura and Kumar 2002 adjustment for unequal state frequencies
+    coeff = (((freqs_0 + freqs_1) ** 2).sum() / 4 - 1) / (num_states - 1)
+    return numpy.float32(coeff * log_ratio)
 
 
 @numba.jit(parallel=True)
-def paralinear_distance_matrix(
+def logdet_family_distance_matrix(
     array_seqs,
     num_states,
+    method,
     parallel=True,
 ):  # pragma: no cover
     num_threads = numba.get_num_threads()
@@ -426,10 +485,7 @@ def paralinear_distance_matrix(
         elif num_diffs == 0:
             d = zero
         else:
-            d = _paralinear(
-                div_matrix,
-                num_states,
-            )
+            d = _logdet_family(div_matrix, num_states, method)
         dists[i, j] = dists[j, i] = d
 
     if not parallel:
@@ -458,50 +514,48 @@ def paralinear(
     -----
     This is limited to 4-state alphabets for now.
     """
-    if not aln.moltype.is_nucleic:
-        msg = f"paralinear distance only works with nucleotide alignments, not {aln.moltype}"
-        raise c3_moltype.MolTypeError(
-            msg,
-        )
-
-    num_states = len(aln.moltype.alphabet)
-
-    mat = paralinear_distance_matrix(aln.array_seqs, num_states, parallel=parallel)
-    if invalid_raises and numpy.isnan(mat).any():
-        msg = "nan's in matrix"
-        raise ArithmeticError(msg)
-    return DistanceMatrix.from_array_names(mat, aln.names)
+    _check_nucleic(aln, "paralinear")
+    mat = logdet_family_distance_matrix(
+        aln.array_seqs, len(aln.moltype.alphabet), _PARALINEAR, parallel=parallel
+    )
+    return _to_dist_matrix(mat, aln, invalid_raises)
 
 
-@numba.jit(parallel=True)
-def simple_distance_matrix(
-    array_seqs,
-    num_states,
-    parallel=True,
-    hamming=True,
-):  # pragma: no cover
-    num_threads = numba.get_num_threads()
-    if not parallel:
-        numba.set_num_threads(1)
+def logdet(
+    aln: "Alignment",
+    invalid_raises: bool = False,
+    parallel: bool = False,
+    use_tk_adjustment: bool = True,
+) -> DistanceMatrix:
+    """returns matrix of pairwise LogDet distances
 
-    n_seqs = array_seqs.shape[0]
-    dists = numpy.zeros((n_seqs, n_seqs), dtype=numpy.float32)
-    # making working matrices for each thread
-    # outer parallel loop
-    for i in numba.prange(n_seqs - 1):
-        for j in range(i + 1, n_seqs):
-            d, num_valid = num_diffs_and_valid(array_seqs[i], array_seqs[j], num_states)
-            if not hamming:
-                d /= num_valid
-            dists[i, j] = dists[j, i] = d
+    Parameters
+    ----------
+    aln
+        Alignment instance
+    invalid_raises
+        If True and nan in result, raises an ArithmeticError
+    parallel
+        If True, uses parallel processing via numba.
+    use_tk_adjustment
+        If True, applies the Tamura and Kumar (2002) correction for
+        unequal state frequencies.
 
-    if not parallel:
-        # restore original number of threads
-        numba.set_num_threads(num_threads)
-    return dists
+    Notes
+    -----
+    This is limited to 4-state alphabets for now.
+    """
+    _check_nucleic(aln, "logdet")
+    method = _LOGDET_TK if use_tk_adjustment else _LOGDET
+    mat = logdet_family_distance_matrix(
+        aln.array_seqs, len(aln.moltype.alphabet), method, parallel=parallel
+    )
+    return _to_dist_matrix(mat, aln, invalid_raises)
 
 
-def hamming(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
+def hamming(
+    aln: "Alignment", parallel: bool = False, invalid_raises: bool = False
+) -> DistanceMatrix:
     """returns matrix of hamming distances
 
     Parameters
@@ -510,18 +564,17 @@ def hamming(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatri
         Alignment instance
     parallel
         If True, uses parallel processing via numba.
+    invalid_raises
+        Ignored, accepted for a common calculator signature. A pair with
+        no sites where both sequences have a canonical state is 0.
     """
-    num_states = len(aln.moltype.alphabet)
-    mat = simple_distance_matrix(
-        aln.array_seqs,
-        num_states,
-        parallel=parallel,
-        hamming=True,
-    )
+    mat = _count_matrix(aln, _HAMMING, parallel)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
-def pdist(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
+def pdist(
+    aln: "Alignment", parallel: bool = False, invalid_raises: bool = False
+) -> DistanceMatrix:
     """returns matrix of pairwise proportion difference distances
 
     Parameters
@@ -530,22 +583,20 @@ def pdist(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
         Alignment instance
     parallel
         If True, uses parallel processing via numba.
+    invalid_raises
+        If True and nan in result, raises an ArithmeticError. A pair with
+        no sites where both sequences have a canonical state is nan.
     """
-    num_states = len(aln.moltype.alphabet)
-    mat = simple_distance_matrix(
-        aln.array_seqs,
-        num_states,
-        parallel=parallel,
-        hamming=False,
-    )
-    return DistanceMatrix.from_array_names(mat, aln.names)
+    mat = _count_matrix(aln, _PDIST, parallel)
+    return _to_dist_matrix(mat, aln, invalid_raises)
 
 
 _calculators: dict[
-    Literal["paralinear", "jc69", "tn93", "hamming", "pdist"],
+    Literal["paralinear", "logdet", "jc69", "tn93", "hamming", "pdist"],
     Callable[..., DistanceMatrix],
 ] = {
     "paralinear": paralinear,
+    "logdet": logdet,
     "jc69": jc69,
     "tn93": tn93,
     "hamming": hamming,

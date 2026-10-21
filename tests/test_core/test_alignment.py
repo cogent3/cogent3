@@ -2915,6 +2915,15 @@ def test_sequence_collection_distance_matrix_passes_correct_moltype(moltype):
     assert got[("s1", "s2")] == 0.0
 
 
+@pytest.mark.parametrize("moltype", ["dna", "protein"])
+def test_sequence_collection_distance_matrix_rejects_keywords(moltype):
+    # keywords are checked before the moltype
+    data = {"s1": "ACGA", "s2": "ACGA"}
+    seqs = c3_alignment.make_unaligned_seqs(data, moltype=moltype)
+    with pytest.raises(TypeError, match=r"drop_invalid, parallel$"):
+        seqs.distance_matrix(calc="jc69", parallel=True, drop_invalid=True)
+
+
 @pytest.mark.parametrize(
     "collection_maker",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
@@ -4798,9 +4807,9 @@ def test_alignment_distance_matrix():
     with pytest.raises(ArithmeticError):
         # default settings cause an exception
         _ = aln.distance_matrix(calc="paralinear")
-    # but setting drop_invalid=False allows calc
+    # but setting drop_invalid=True drops seq1, the only invalid sequence
     dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
-    assert dists is None
+    assert list(dists.names) == ["seq2", "seq3"]
 
 
 def test_alignment_sample_with_replacement():
@@ -5171,6 +5180,22 @@ def test_alignment_quick_tree_missing_hook(brca1_data):
     aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
     with pytest.raises(ValueError):
         aln.quick_tree(use_hook="missing_hook")
+
+
+def test_alignment_quick_tree_forwards_calculator_options(brca1_data):
+    aln = c3_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:300]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    names = aln.names
+    default = aln.quick_tree(calc="logdet", use_hook="cogent3")
+    not_tk = aln.quick_tree(calc="logdet", use_tk_adjustment=False, use_hook="cogent3")
+    expect = aln.distance_matrix(calc="logdet", use_tk_adjustment=False).quick_tree(
+        use_hook="cogent3"
+    )
+    got_dists = not_tk.tip_to_tip_distances().take_dists(names).array
+    expect_dists = expect.tip_to_tip_distances().take_dists(names).array
+    default_dists = default.tip_to_tip_distances().take_dists(names).array
+    assert numpy.allclose(got_dists, expect_dists)
+    assert not numpy.allclose(got_dists, default_dists)
 
 
 @pytest.mark.skipif(not has_piqtree, reason="piqtree not installed")

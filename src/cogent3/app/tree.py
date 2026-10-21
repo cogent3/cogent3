@@ -110,23 +110,21 @@ class quick_tree(ComposableApp, cite=cite_cogent3):
         Parameters
         ----------
         drop_invalid
-            drops all rows / columns with an invalid entry. If True, sequences
-            for which a distance could not be calculated are excluded and
-            the resulting tree will be for the subset of labels with strictly
-            valid distances. If False, an ArithmeticError is raised if a
-            distance is invalid.
+            If True, sequences are dropped until no invalid distances remain,
+            repeatedly taking the sequence in the most invalid pairs, and the
+            tree is for the remaining labels. If False, invalid distances
+            cause an exception.
         """
         self._drop_invalid = drop_invalid
 
     def main(self, dists: PairwiseDistanceType) -> SerialisableType | TreeType:
         """estimates a neighbor joining tree"""
-        size = dists.shape[0]
         dists = dists.drop_invalid() if self._drop_invalid else dists
-        if dists is None or (dists.shape[0] != size and not self._drop_invalid):
+        if dists.shape[0] < 2:
             msg = "invalid pairwise distances"
             raise ValueError(msg)
 
-        if size == 2:
+        if dists.shape[0] == 2:
             # use code from dist matrix for this, no hook applied
             tree = dists.quick_tree()
         else:

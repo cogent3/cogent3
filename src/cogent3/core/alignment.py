@@ -2181,6 +2181,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             The distance calculation method to use, either "pdist" or "jc69".
             - "pdist" is an approximation of the proportion sites different.
             - "jc69" is an approximation of the Jukes Cantor distance.
+        kwargs
+            not supported, any keyword raises TypeError.
 
         Returns
         -------
@@ -2199,6 +2201,13 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         proportion sites different, i.e., a transformation of the above.
         """
         from cogent3.app.dist import get_approx_dist_calc
+
+        if kwargs:
+            msg = (
+                "distance_matrix() got unexpected keyword argument(s): "
+                f"{', '.join(sorted(kwargs))}"
+            )
+            raise TypeError(msg)
 
         # check moltype
         if len(self.moltype.alphabet) != 4:
@@ -3226,18 +3235,23 @@ class Alignment(CollectionBase[Aligned]):
         ----------
         calc
             a pairwise distance calculator name. Presently only
-            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear' are supported.
+            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear', 'logdet' are
+            supported.
         drop_invalid
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
+        kwargs
+            passed unchanged to the calculator, e.g. use_tk_adjustment for
+            'logdet'. A calculator raises TypeError for keywords it does not
+            accept.
         """
         from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
         calculator = get_distance_calculator(calc)
         try:
             result = calculator(
-                self, invalid_raises=not drop_invalid, parallel=parallel
+                self, invalid_raises=not drop_invalid, parallel=parallel, **kwargs
             )
         except ArithmeticError as e:
             msg = "not all pairwise distances could be computed, try drop_invalid=True"
@@ -4435,14 +4449,15 @@ class Alignment(CollectionBase[Aligned]):
         drop_invalid: bool = False,
         parallel: bool = False,
         use_hook: str | None = None,
+        **kwargs: bool,
     ) -> PhyloNode:
         """Returns a phylogenetic tree.
 
         Parameters
         ----------
         calc
-            a pairwise distance calculator or name of one. For options see
-            cogent3.evolve.fast_distance.available_distances
+            name of a pairwise distance calculator (case insensitive), one of
+            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear', 'logdet'.
         drop_invalid
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
@@ -4454,6 +4469,9 @@ class Alignment(CollectionBase[Aligned]):
             hook. If not specified, defaults to the first available hook or
             the cogent3 quick_tree() app. To force default, set
             use_hook="cogent3".
+        kwargs
+            passed to the distance calculator, e.g. use_tk_adjustment for
+            'logdet'.
 
         Returns
         -------
@@ -4463,6 +4481,7 @@ class Alignment(CollectionBase[Aligned]):
             calc=calc,
             drop_invalid=drop_invalid,
             parallel=parallel,
+            **kwargs,
         )
         return dm.quick_tree(use_hook=use_hook)
 

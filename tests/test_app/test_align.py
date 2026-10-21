@@ -30,6 +30,7 @@ from cogent3.app.align import (
 )
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
+from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
 DNA = get_moltype("dna")
 
@@ -617,6 +618,115 @@ def test_sp_score_affine_gap():
     aln = make_aligned_seqs(data, moltype="dna")
     got = app.main(aln)
     assert_allclose(got, (mscore - gscore).sum())
+
+
+_HUMAN = "ACGTACGTAC"
+_CHIMP = "ACGTACGTTC"
+_ORANG = "ACGAACGTAC"
+
+
+@pytest.mark.parametrize(
+    ("data", "expect_pdist", "expect_jc69"),
+    [
+        # no pair without differences
+        ({"a": _HUMAN, "b": _CHIMP, "c": _ORANG}, 26.0, 25.527325),
+        # a sequence with no sites shared with the others
+        ({"a": _HUMAN, "b": _CHIMP, "c": "-" * 10}, -35.0, -35.073256),
+        ({"a": _HUMAN, "b": "-" * 10, "c": _ORANG}, -35.0, -35.073256),
+        ({"a": "-" * 10, "b": _CHIMP, "c": _ORANG}, -36.0, -36.326162),
+        # a sparse sequence whose few sites agree with another sequence
+        ({"a": _HUMAN, "b": _CHIMP, "c": "ACG" + "-" * 7}, -23.0, -23.073256),
+        ({"a": "ACG" + "-" * 7, "b": _CHIMP, "c": _ORANG}, -24.0, -24.326162),
+        # identical sequences
+        ({"a": _HUMAN, "b": _HUMAN, "c": _ORANG}, 28.0, 27.853487),
+        ({"a": "AATG", "b": "AA--", "c": "AATC"}, -21.0, -21.216395),
+    ],
+)
+def test_sp_score_shared_sites(data, expect_pdist, expect_jc69):
+    # every pair is scored on its own shared sites, including pairs
+    # without differences
+    aln = make_aligned_seqs(data, moltype="dna")
+    got = get_app("sp_score", calc="pdist")(aln)
+    assert got == expect_pdist
+    got = get_app("sp_score", calc="JC69")(aln)
+    assert_allclose(got, expect_jc69, rtol=1e-6)
+
+
+def test_sp_score_jc69_undefined_after_sparse_match():
+    # c has a single site, which differs from a (p=1) but matches b
+    data = {"a": _HUMAN, "b": _CHIMP, "c": "-" * 8 + "T-"}
+    aln = make_aligned_seqs(data, moltype="dna")
+    assert get_app("sp_score", calc="pdist")(aln) == -56.0
+    got = get_app("sp_score", calc="jc69")(aln)
+    assert isinstance(got, NotCompleted)
+    assert "'a'" in got.message
+
+
+@pytest.mark.parametrize(
+    ("moltype", "expect"),
+    [("dna", 2.0), ("text", 4.0)],
+)
+def test_sp_score_pdist_moltype_states(moltype, expect):
+    # N is not a canonical DNA state but is a valid text character
+    aln = make_aligned_seqs({"a": "ACNN", "b": "ACNN"}, moltype=moltype)
+    app = get_app("sp_score", calc="pdist", gap_insert=0, gap_extend=0)
+    assert app(aln) == expect
+
+
+def test_sp_score_hamming_matches_pdist():
+    data = {"a": "AAGAA-A", "b": "-ATAATG", "c": "C-TGG-G", "d": "AAGTA-A"}
+    aln = make_aligned_seqs(data, moltype="dna")
+    pdist = get_app("sp_score", calc="pdist")(aln)
+    hamming = get_app("sp_score", calc="hamming")(aln)
+    assert hamming == pdist
+
+
+@pytest.mark.parametrize("calc", ["jc69", "paralinear", "logdet"])
+def test_sp_score_rna_matches_dna(calc):
+    data = {"a": _HUMAN, "b": _CHIMP, "c": _ORANG}
+    app = get_app("sp_score", calc=calc)
+    dna = app(make_aligned_seqs(data, moltype="dna"))
+    rna_data = {k: v.replace("T", "U") for k, v in data.items()}
+    rna = app(make_aligned_seqs(rna_data, moltype="rna"))
+    assert isinstance(dna, float)
+    assert_allclose(rna, dna)
+
+
+def test_sp_score_protein_jc69():
+    aln = make_aligned_seqs(
+        {"a": "ACDEFGHIKL", "b": "ACDEFGHIKM"},
+        moltype="protein",
+    )
+    got = get_app("sp_score", calc="jc69", gap_insert=0, gap_extend=0)(aln)
+    # JC69 distance for 1 difference in 10 sites, the protein alphabet has
+    # 21 states (it includes selenocysteine)
+    frac = 21 / 20
+    dist = -numpy.log(1 - frac * 0.1) / frac
+    assert_allclose(got, 10 * (1 - dist), rtol=1e-6)
+
+
+@pytest.mark.parametrize("calc", ["tn93", "paralinear", "logdet"])
+@pytest.mark.parametrize(("seq_d", "d_shared"), [("ACGTTCGTAC", 10), ("AC--ACGTAC", 8)])
+def test_sp_score_matches_numba_distances(calc, seq_d, d_shared):
+    # each pair contributes shared_sites * (1 - distance), distances from the
+    # numba calculators, which estimate base frequencies from the whole alignment
+    data = {"a": _HUMAN, "b": _CHIMP, "c": _ORANG, "d": seq_d}
+    aln = make_aligned_seqs(data, moltype="dna")
+    dists = get_distance_calculator(calc)(aln).array
+    shared = numpy.full((4, 4), 10)
+    shared[3, :] = shared[:, 3] = d_shared
+    upper = numpy.triu_indices(4, k=1)
+    expect = (shared[upper] * (1 - dists[upper])).sum()
+    app = get_app("sp_score", calc=calc, gap_insert=0, gap_extend=0)
+    assert_allclose(app(aln), expect, rtol=1e-6)
+
+
+def test_sp_score_similarity_floor():
+    # p = 0.6 gives a JC69 distance of 1.207, which would make the
+    # similarity negative
+    aln = make_aligned_seqs({"a": "AAAAA", "b": "CCCAA"}, moltype="dna")
+    app = get_app("sp_score", calc="jc69", gap_insert=0, gap_extend=0)
+    assert app(aln) == 0.0
 
 
 def test_progressive_align_one_seq(seqs):

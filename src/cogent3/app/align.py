@@ -1,9 +1,8 @@
 import typing
 import warnings
 from bisect import bisect_left
-from itertools import combinations
 
-from numpy import array, isnan
+from numpy import array, float64, isnan, maximum, triu_indices
 from scinexus import get_id_from_source
 from scinexus.composable import ComposableApp, NotCompleted, define_app
 
@@ -20,8 +19,13 @@ from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import MolTypeLiteral, get_moltype
-from cogent3.evolve.fast_distance import get_distance_calculator
 from cogent3.evolve.models import get_model
+from cogent3.evolve.pairwise_distance_numba import (
+    MATCHING_SITES,
+    SHARED_SITES,
+    get_distance_calculator,
+    pairwise_count_matrix,
+)
 from cogent3.maths.util import safe_log
 
 from ._citations import cite_cogent3
@@ -881,7 +885,9 @@ class sp_score(ComposableApp, cite=cite_cogent3):
     We first compute pairwise genetic distances by the user specified
     method. For each pair, this genetic distance is converted into an
     estimate of the number of unchanged positions (with the minimum being
-    zero). The result is a sequence similarity matrix.
+    zero). Only positions where both sequences have a canonical state of
+    the alignment moltype are counted. The result is a sequence similarity
+    matrix.
 
     We compute pairwise affine gap distance using the user specified
     values. The first matrix minus the second gives the statistic for
@@ -901,15 +907,13 @@ class sp_score(ComposableApp, cite=cite_cogent3):
         Parameters
         ----------
         calc
-            name of the pairwise distance calculator
+            name of the pairwise distance calculator, one of 'pdist',
+            'hamming', 'jc69', 'tn93', 'paralinear' or 'logdet' (case
+            insensitive). 'pdist' and 'hamming' give the same score.
         gap_insert
             gap insertion penalty
         gap_extend
             gap extension penalty
-
-        Notes
-        -----
-        see available_distances() for the list of available methods.
 
         Examples
         --------
@@ -938,14 +942,11 @@ class sp_score(ComposableApp, cite=cite_cogent3):
         """
         self._insert = gap_insert
         self._extend = gap_extend
-        self._calc = get_distance_calculator(calc)
+        self._calc_name = calc.lower()
+        self._calc = get_distance_calculator(self._calc_name)
         self._gap_calc = dist.gap_dist(gap_insert=gap_insert, gap_extend=gap_extend)
 
     def main(self, aln: AlignedSeqsType) -> float:
-        # this is a distance matrix, we want a similarity matrix
-        # because genetic distances can exceed 1, we need to adjust by
-        # multiplying by the length of the alignment to get the estimated
-        # number of changes and subtract that from the alignment length
         if aln.num_seqs == 1 or len(aln) == 0:
             msg = "zero length" if len(aln) == 0 else "single sequence"
             return NotCompleted(
@@ -955,32 +956,35 @@ class sp_score(ComposableApp, cite=cite_cogent3):
                 source=aln,
             )
 
-        self._calc(aln, show_progress=False)
-        dmat = self._calc.dists
-
-        if isnan(dmat.array).sum():
-            nans = isnan(dmat.array).sum(axis=0) > 0
-            names = ", ".join(f"{n!r}" for n in array(dmat.names)[nans])
-            return NotCompleted(
-                "ERROR",
-                self,
-                f"Some genetic distances involving {names} were NaN's. "
-                "Using calc='pdist' will prevent this issue.",
-                source=aln,
+        num_states = len(aln.moltype.alphabet)
+        if self._calc_name in ("pdist", "hamming"):
+            # length * (1 - diffs / length) is exactly the number of matches
+            similarity = pairwise_count_matrix(
+                aln.array_seqs, num_states, MATCHING_SITES, parallel=False
             )
+        else:
+            # sites where both seqs have a canonical state
+            shared = pairwise_count_matrix(
+                aln.array_seqs, num_states, SHARED_SITES, parallel=False
+            ).astype(float64)
+            dists = self._calc(aln, invalid_raises=False).array
+            # pairs with no shared sites contribute no similarity
+            dists[shared == 0] = 0.0
+            if isnan(dists).any():
+                nans = isnan(dists).any(axis=0)
+                names = ", ".join(f"{n!r}" for n in array(aln.names)[nans])
+                return NotCompleted(
+                    "ERROR",
+                    self,
+                    f"Some genetic distances involving {names} were NaN's. "
+                    "Using calc='pdist' will prevent this issue.",
+                    source=aln,
+                )
+            # genetic distances can exceed 1, so the estimated number of
+            # unchanged sites is limited to 0
+            similarity = maximum(shared * (1 - dists), 0.0)
 
-        lengths = self._calc.lengths
-        for i, j in combinations(range(aln.num_seqs), 2):
-            n1, n2 = dmat.names[i], dmat.names[j]
-            length = lengths[n1, n2]
-            unchanged = length - dmat[i, j] * length
-            # for very divergent cases, unchanged could be < 0,
-            # limit this to 0
-            dmat[i, j] = dmat[j, i] = max(unchanged, 0.0)
-        # compute the pairwise gap as number of gaps * gap_insert + length
-        # of gaps * gap_extend
-        gap_scores = self._gap_calc(aln)
-        # make sure the two dmats in same name order
-        gap_scores = gap_scores.take_dists(dmat.names)
-        dmat.array -= gap_scores
-        return dmat.array.sum() / 2
+        # number of gaps * gap_insert + length of gaps * gap_extend
+        gap_scores = self._gap_calc(aln).take_dists(aln.names).array
+        upper = triu_indices(aln.num_seqs, k=1)
+        return float((similarity - gap_scores)[upper].sum(dtype=float64))

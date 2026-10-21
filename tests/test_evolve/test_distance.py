@@ -228,7 +228,7 @@ def test_dropping_from_matrix():
 
     darr = DistanceMatrix(data)
     new = darr.drop_invalid()
-    assert new is None
+    assert list(new.names) == ["ABAYE2984", "Avin_42730"]
 
     data = {
         ("ABAYE2984", "Atu3667"): 0.25,
@@ -246,7 +246,8 @@ def test_dropping_from_matrix():
     }
     darr = DistanceMatrix(data)
     new = darr.drop_invalid()
-    assert new.shape == (2, 2)
+    # a single invalid pair is resolved by dropping the later name
+    assert list(new.names) == ["ABAYE2984", "Atu3667", "Avin_42730"]
 
 
 def test_distance_matrix_from_array_names():
@@ -922,8 +923,7 @@ def test_names():
     darr = DistanceMatrix(data)
     assert set(darr.names) == names
     darr = darr.drop_invalid()
-    for n in ("ABAYE2984", "BAA10469"):
-        names.remove(n)
+    names.remove("BAA10469")
     assert set(darr.names) == names
 
 
@@ -1166,7 +1166,179 @@ def test_prop_dists_big(DATA_DIR, oldcalc, newcalc):
     assert_allclose(got.array, expect.array)
 
 
-@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
+@pytest.mark.parametrize("use_tk_adjustment", [True, False])
+def test_numba_logdet_matches_logdet_pair(brca1_5, use_tk_adjustment):
+    calc = LogDetPair(moltype=DNA, alignment=brca1_5)
+    calc.run(use_tk_adjustment=use_tk_adjustment, show_progress=False)
+    expect = calc.dists.take_dists(brca1_5.names)
+    got = pdist_numba.logdet(
+        brca1_5, parallel=False, use_tk_adjustment=use_tk_adjustment
+    ).take_dists(brca1_5.names)
+    assert_allclose(got.array, expect.array, rtol=1e-5)
+
+
+@pytest.mark.parametrize("use_tk_adjustment", [True, False])
+def test_numba_logdet_for_determinant_lte_zero(use_tk_adjustment):
+    data = {
+        "seq1": "AGGGGGGGGGGCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGCGGTTTTTTTTTTTTTTTTTT",
+        "seq2": "TAAAAAAAAAAGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCC",
+    }
+    aln = cogent3.make_aligned_seqs(data, moltype="dna")
+    dists = pdist_numba.logdet(aln, use_tk_adjustment=use_tk_adjustment)
+    assert numpy.isnan(dists.array).any()
+    with pytest.raises(ArithmeticError):
+        pdist_numba.logdet(
+            aln, invalid_raises=True, use_tk_adjustment=use_tk_adjustment
+        )
+
+
+def test_distance_matrix_forwards_logdet_adjustment(brca1_5):
+    tk = brca1_5.distance_matrix(calc="logdet")
+    not_tk = brca1_5.distance_matrix(calc="logdet", use_tk_adjustment=False)
+    expect = pdist_numba.logdet(brca1_5, use_tk_adjustment=False)
+    assert_allclose(not_tk.array, expect.array)
+    assert not numpy.allclose(tk.array, not_tk.array)
+
+
+@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "pdist", "hamming"])
+def test_distance_matrix_rejects_unused_kwarg(basic_alignment, calc):
+    with pytest.raises(TypeError):
+        basic_alignment.distance_matrix(calc=calc, use_tk_adjustment=False)
+
+
+@pytest.fixture
+def no_shared_sites_aln():
+    # a and b have no sites in common, so their pdist is 0 / 0
+    return cogent3.make_aligned_seqs(
+        {"a": "ACGT", "b": "----", "c": "ACGA"}, moltype="dna"
+    )
+
+
+def test_pdist_invalid_raises(no_shared_sites_aln):
+    assert numpy.isnan(pdist_numba.pdist(no_shared_sites_aln)["a", "b"])
+    with pytest.raises(ArithmeticError):
+        pdist_numba.pdist(no_shared_sites_aln, invalid_raises=True)
+
+
+def test_distance_matrix_drop_invalid_keeps_most(no_shared_sites_aln):
+    got = no_shared_sites_aln.distance_matrix(calc="pdist", drop_invalid=True)
+    assert list(got.names) == ["a", "c"]
+    assert_allclose(got["a", "c"], 0.25)
+
+
+@pytest.mark.parametrize(
+    ("names", "expect"),
+    [(["x", "y"], ["x"]), (["y", "x"], ["y"]), (["x", "z", "y"], ["x", "z"])],
+)
+def test_drop_invalid_tie_drops_later_name(names, expect):
+    # only the x-y distance is invalid
+    data = numpy.ones((len(names), len(names)))
+    numpy.fill_diagonal(data, 0)
+    i, j = names.index("x"), names.index("y")
+    data[i, j] = data[j, i] = numpy.nan
+    got = DistanceMatrix.from_array_names(data, names).drop_invalid()
+    assert list(got.names) == expect
+
+
+def test_drop_invalid_asymmetric_nan():
+    data = numpy.array([[0.0, numpy.nan, 1.0], [1.0, 0.0, 1.0], [1.0, 1.0, 0.0]])
+    got = DistanceMatrix.from_array_names(data, ["x", "y", "z"]).drop_invalid()
+    assert list(got.names) == ["x", "z"]
+
+
+def test_drop_invalid_all_nan_leaves_one():
+    data = numpy.full((3, 3), numpy.nan)
+    numpy.fill_diagonal(data, 0)
+    got = DistanceMatrix.from_array_names(data, ["x", "y", "z"]).drop_invalid()
+    assert isinstance(got, DistanceMatrix)
+    assert list(got.names) == ["x"]
+
+
+def test_drop_invalid_keeps_source():
+    data = numpy.ones((3, 3))
+    data[0, 1] = data[1, 0] = numpy.nan
+    dists = DistanceMatrix.from_array_names(data, ["x", "y", "z"])
+    dists.source = "some/path.fa"
+    assert dists.drop_invalid().source == "some/path.fa"
+
+
+def test_drop_invalid_ignores_nan_diagonal():
+    data = numpy.array([[numpy.nan, 1.0], [1.0, 0.0]])
+    got = DistanceMatrix.from_array_names(data, ["x", "y"]).drop_invalid()
+    assert list(got.names) == ["x", "y"]
+
+
+@pytest.mark.parametrize("names", [["x"], ["x", "y"]])
+def test_quick_tree_too_few_valid(names):
+    data = numpy.full((len(names), len(names)), numpy.nan)
+    numpy.fill_diagonal(data, 0)
+    dists = DistanceMatrix.from_array_names(data, names)
+    with pytest.raises(ValueError, match="at least 2"):
+        dists.quick_tree()
+
+
+@pytest.mark.parametrize("calc", ["pdist", "jc69", "tn93", "paralinear", "logdet"])
+def test_distance_matrix_no_shared_sites_raises(no_shared_sites_aln, calc):
+    with pytest.raises(ArithmeticError, match="drop_invalid=True"):
+        no_shared_sites_aln.distance_matrix(calc=calc)
+
+
+def test_numba_tn93_uses_alignment_base_composition():
+    # base frequencies are estimated from the whole alignment, not per pair,
+    # so adding a sequence changes the distance between an existing pair
+    pair = {"a": "ACGTACGTACGTAAGT", "b": "ACGCACGTATGTAAGC"}
+    with_gc_rich = {**pair, "c": "GGCCGGCCGGCCGGCA"}
+    two = pdist_numba.tn93(cogent3.make_aligned_seqs(pair, moltype="dna"))
+    three = pdist_numba.tn93(cogent3.make_aligned_seqs(with_gc_rich, moltype="dna"))
+    assert not numpy.isclose(two["a", "b"], three["a", "b"])
+    # a and b differ only by 3 C<->T transitions in 16 sites, and across all
+    # three sequences C and T counts are 14 and 7 of 48
+    coeff = 2 * (14 / 48) * (7 / 48) / (21 / 48)
+    expect = -coeff * numpy.log(1 - (3 / 16) / coeff)
+    assert_allclose(three["a", "b"], expect, rtol=1e-5)
+
+
+def test_numba_tn93_rna_matches_dna(brca1_5):
+    rna = cogent3.make_aligned_seqs(
+        {n: s.replace("T", "U") for n, s in brca1_5.to_dict().items()},
+        moltype="rna",
+    )
+    expect = pdist_numba.tn93(brca1_5, parallel=False)
+    got = pdist_numba.tn93(rna, parallel=False)
+    assert_allclose(got.array, expect.array)
+
+
+@pytest.mark.parametrize("parallel", [False, True])
+@pytest.mark.parametrize(
+    ("method", "expect"),
+    [
+        (pdist_numba.SHARED_SITES, [[0, 4, 0], [4, 0, 0], [0, 0, 0]]),
+        (pdist_numba.MATCHING_SITES, [[0, 3, 0], [3, 0, 0], [0, 0, 0]]),
+    ],
+)
+def test_pairwise_count_matrix(parallel, method, expect):
+    # a and b share 4 valid sites and differ at one, c has none
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGTN-", "b": "ACCT--", "c": "------"},
+        moltype="dna",
+    )
+    got = pdist_numba.pairwise_count_matrix(
+        aln.array_seqs, 4, method, parallel=parallel
+    )
+    assert got.dtype == numpy.float32
+    assert_equal(got, expect)
+
+
+@pytest.mark.parametrize("method", [-1, 5])
+def test_pairwise_count_matrix_unknown_method(method):
+    aln = cogent3.make_aligned_seqs({"a": "ACGT", "b": "ACGA"}, moltype="dna")
+    with pytest.raises(ValueError, match="unknown method"):
+        pdist_numba.pairwise_count_matrix(aln.array_seqs, 4, method, parallel=False)
+
+
+@pytest.mark.parametrize(
+    "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
+)
 def test_numba_get_dist(calc, basic_alignment) -> None:
     aln = cogent3.make_aligned_seqs(
         basic_alignment.to_dict(),
@@ -1177,7 +1349,7 @@ def test_numba_get_dist(calc, basic_alignment) -> None:
     assert isinstance(got, DistanceMatrix)
 
 
-@pytest.mark.parametrize("calc", ["tn93", "paralinear"])
+@pytest.mark.parametrize("calc", ["tn93", "paralinear", "logdet"])
 def test_invalid_moltype_fast_distances(calc, basic_alignment):
     from cogent3.core import moltype as c3_moltype
 
@@ -1215,7 +1387,9 @@ def test_unknown_dist():
         pdist_numba.get_distance_calculator("blah")
 
 
-@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "hamming", "pdist"])
+@pytest.mark.parametrize(
+    "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
+)
 def test_compare_parallel_serial(DATA_DIR, calc):
     aln = cogent3.load_aligned_seqs(
         DATA_DIR / "brca1.fasta",
