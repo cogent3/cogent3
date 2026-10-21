@@ -87,7 +87,7 @@ MATCHING_SITES = 4
 
 
 @numba.jit
-def _count_statistic(method, num_diffs, num_valid, frac):  # pragma: no cover
+def _count_statistic(method, num_diffs, num_valid, num_states):  # pragma: no cover
     if method == _HAMMING:
         value = float(num_diffs)
     elif method == SHARED_SITES:
@@ -99,9 +99,13 @@ def _count_statistic(method, num_diffs, num_valid, frac):  # pragma: no cover
     elif method == _PDIST or num_diffs == 0:
         # also gives jc69 a distance of 0.0, not -0.0, for identical pairs
         value = num_diffs / num_valid
+    elif num_diffs * num_states >= num_valid * (num_states - 1):
+        # integer test, as p * frac rounds below 1 at saturation for some states
+        value = numpy.nan
     else:
         p = num_diffs / num_valid
-        value = numpy.nan if p >= 0.75 else -numpy.log(1.0 - frac * p) / frac
+        frac = num_states / (num_states - 1)
+        value = -numpy.log(1.0 - frac * p) / frac
     return value
 
 
@@ -130,7 +134,7 @@ def pairwise_count_matrix(
     numpy.ndarray
         Symmetric float32 matrix with a zero diagonal. pdist and jc69 are
         nan for pairs with no valid sites, jc69 also when the proportion of
-        differences is >= 0.75.
+        differences is >= (num_states - 1) / num_states.
     """
     if method < _HAMMING or method > MATCHING_SITES:
         msg = "unknown method code"
@@ -145,7 +149,6 @@ def pairwise_count_matrix(
 
     n_seqs = array_seqs.shape[0]
     result = numpy.zeros((n_seqs, n_seqs), dtype=numpy.float32)
-    frac = num_states / (num_states - 1) if num_states > 1 else 1.0
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
@@ -155,7 +158,7 @@ def pairwise_count_matrix(
             array_seqs[j],
             num_states,
         )
-        value = _count_statistic(method, num_diffs, num_valid, frac)
+        value = _count_statistic(method, num_diffs, num_valid, num_states)
         result[i, j] = result[j, i] = value
 
     if not parallel:
@@ -194,6 +197,10 @@ def jc69(
 ) -> DistanceMatrix:
     """returns JC69 pairwise distances for an alignment
 
+    A distance is numpy.nan when a pair shares no valid sites, or when the
+    proportion of differences is at least (n - 1) / n for an alphabet of n
+    states, e.g. 0.75 for DNA.
+
     Parameters
     ----------
     aln
@@ -202,11 +209,6 @@ def jc69(
         If True and nan in result, raises an ArithmeticError
     parallel
         If True, uses parallel processing via numba.
-
-    Notes
-    -----
-    If the proportion of differences is >= 0.75, the distance is set
-    to numpy.nan.
     """
     mat = _count_matrix(aln, _JC69, parallel)
     return _to_dist_matrix(mat, aln, invalid_raises)

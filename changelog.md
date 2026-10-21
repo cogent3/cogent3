@@ -22,7 +22,7 @@ Minor bug fix and feature enhancement release.
 ## Bug fixes
 
 - `sp_score` now scores every pair of sequences on the sites they share. It was giving wrong scores when a gappy sequence agreed with another one at all its shared sites, or when two sequences were identical. Fixes #2783.
-- Some `sp_score` values change. `pdist` correctly ignores moltype defined ambiguity codes. Protein `jc69` uses all 21 protein states. `tn93` estimates base frequencies from the whole alignment rather than from each pair. Distances other than `pdist` and `hamming` are computed in 32-bit floats.
+- Some `sp_score` values change. `pdist` correctly ignores moltype defined ambiguity codes. Protein `jc69` uses all 21 protein states, so a protein distance is now finite until 20/21 of shared sites differ, not 3/4. `tn93` estimates base frequencies from the whole alignment rather than from each pair. Distances other than `pdist` and `hamming` are computed in 32-bit floats.
 - The `tn93` distance used by `Alignment.distance_matrix()` now works for RNA alignments.
 - `Alignment.distance_matrix()` and `Alignment.quick_tree()` with `calc="pdist"` now raise `ArithmeticError` when two sequences share no sites, consistent with the other distances. Previously the distance was silently `nan`.
 - `DistanceMatrix.drop_invalid()` now drops sequences one at a time, each time the one in the most invalid pairs, until no invalid distances remain. Previously it dropped every sequence in any invalid pair, often leaving nothing. It now always returns a `DistanceMatrix`, never `None`.
