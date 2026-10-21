@@ -1309,16 +1309,31 @@ def test_numba_tn93_rna_matches_dna(brca1_5):
 
 
 @pytest.mark.parametrize("parallel", [False, True])
-def test_pairwise_diffs_and_valid(parallel):
+@pytest.mark.parametrize(
+    ("method", "expect"),
+    [
+        (pdist_numba.SHARED_SITES, [[0, 4, 0], [4, 0, 0], [0, 0, 0]]),
+        (pdist_numba.MATCHING_SITES, [[0, 3, 0], [3, 0, 0], [0, 0, 0]]),
+    ],
+)
+def test_pairwise_count_matrix(parallel, method, expect):
+    # a and b share 4 valid sites and differ at one, c has none
     aln = cogent3.make_aligned_seqs(
         {"a": "ACGTN-", "b": "ACCT--", "c": "------"},
         moltype="dna",
     )
-    diffs, valid = pdist_numba.pairwise_diffs_and_valid(
-        aln.array_seqs, 4, parallel=parallel
+    got = pdist_numba.pairwise_count_matrix(
+        aln.array_seqs, 4, method, parallel=parallel
     )
-    assert_equal(diffs, [[0, 1, 0], [1, 0, 0], [0, 0, 0]])
-    assert_equal(valid, [[0, 4, 0], [4, 0, 0], [0, 0, 0]])
+    assert got.dtype == numpy.float32
+    assert_equal(got, expect)
+
+
+@pytest.mark.parametrize("method", [-1, 5])
+def test_pairwise_count_matrix_unknown_method(method):
+    aln = cogent3.make_aligned_seqs({"a": "ACGT", "b": "ACGA"}, moltype="dna")
+    with pytest.raises(ValueError, match="unknown method"):
+        pdist_numba.pairwise_count_matrix(aln.array_seqs, 4, method, parallel=False)
 
 
 @pytest.mark.parametrize(

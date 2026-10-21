@@ -2,7 +2,7 @@ import typing
 import warnings
 from bisect import bisect_left
 
-from numpy import array, isnan, maximum, triu_indices
+from numpy import array, float64, isnan, maximum, triu_indices
 from scinexus import get_id_from_source
 from scinexus.composable import ComposableApp, NotCompleted, define_app
 
@@ -21,8 +21,10 @@ from cogent3.core.location import gap_coords_to_map
 from cogent3.core.moltype import MolTypeLiteral, get_moltype
 from cogent3.evolve.models import get_model
 from cogent3.evolve.pairwise_distance_numba import (
+    MATCHING_SITES,
+    SHARED_SITES,
     get_distance_calculator,
-    pairwise_diffs_and_valid,
+    pairwise_count_matrix,
 )
 from cogent3.maths.util import safe_log
 
@@ -954,18 +956,20 @@ class sp_score(ComposableApp, cite=cite_cogent3):
                 source=aln,
             )
 
-        # number of differences and of sites where both seqs have a
-        # canonical state, for every pair
-        diffs, valid = pairwise_diffs_and_valid(
-            aln.array_seqs, len(aln.moltype.alphabet), parallel=False
-        )
+        num_states = len(aln.moltype.alphabet)
         if self._calc_name in ("pdist", "hamming"):
-            # length * (1 - diffs / length) is exactly length - diffs
-            similarity = valid - diffs
+            # length * (1 - diffs / length) is exactly the number of matches
+            similarity = pairwise_count_matrix(
+                aln.array_seqs, num_states, MATCHING_SITES, parallel=False
+            )
         else:
+            # sites where both seqs have a canonical state
+            shared = pairwise_count_matrix(
+                aln.array_seqs, num_states, SHARED_SITES, parallel=False
+            ).astype(float64)
             dists = self._calc(aln, invalid_raises=False).array
             # pairs with no shared sites contribute no similarity
-            dists[valid == 0] = 0.0
+            dists[shared == 0] = 0.0
             if isnan(dists).any():
                 nans = isnan(dists).any(axis=0)
                 names = ", ".join(f"{n!r}" for n in array(aln.names)[nans])
@@ -978,9 +982,9 @@ class sp_score(ComposableApp, cite=cite_cogent3):
                 )
             # genetic distances can exceed 1, so the estimated number of
             # unchanged sites is limited to 0
-            similarity = maximum(valid * (1 - dists), 0.0)
+            similarity = maximum(shared * (1 - dists), 0.0)
 
         # number of gaps * gap_insert + length of gaps * gap_extend
         gap_scores = self._gap_calc(aln).take_dists(aln.names).array
         upper = triu_indices(aln.num_seqs, k=1)
-        return float((similarity - gap_scores)[upper].sum())
+        return float((similarity - gap_scores)[upper].sum(dtype=float64))

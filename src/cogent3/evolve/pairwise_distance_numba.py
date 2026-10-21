@@ -40,7 +40,7 @@ def num_diffs_and_valid(
     seq1: numba_types.uint8[:],
     seq2: numba_types.uint8[:],
     num_states: numba_types.uint8,
-) -> numba_types.int32[:]:  # pragma: no cover
+) -> tuple[int, int]:  # pragma: no cover
     """returns the number of differences and the number of valid positions"""
     num_valid = 0
     num_diff = 0
@@ -51,7 +51,7 @@ def num_diffs_and_valid(
         if seq1[i] != seq2[i]:
             num_diff += 1
 
-    return numpy.array([num_diff, num_valid], dtype=numpy.int32)
+    return num_diff, num_valid
 
 
 @numba.jit(cache=True)
@@ -78,9 +78,38 @@ def _get_matrix_and_counts(matrix, seq1, seq2):  # pragma: no cover
     return matrix, num_diff, num_valid
 
 
+# statistics computed by pairwise_count_matrix
+_HAMMING = 0
+_PDIST = 1
+_JC69 = 2
+SHARED_SITES = 3
+MATCHING_SITES = 4
+
+
+@numba.jit
+def _count_statistic(method, num_diffs, num_valid, frac):  # pragma: no cover
+    if method == _HAMMING:
+        value = float(num_diffs)
+    elif method == SHARED_SITES:
+        value = float(num_valid)
+    elif method == MATCHING_SITES:
+        value = float(num_valid - num_diffs)
+    elif num_valid == 0:
+        value = numpy.nan
+    elif method == _PDIST or num_diffs == 0:
+        # also gives jc69 a distance of 0.0, not -0.0, for identical pairs
+        value = num_diffs / num_valid
+    else:
+        p = num_diffs / num_valid
+        value = numpy.nan if p >= 0.75 else -numpy.log(1.0 - frac * p) / frac
+    return value
+
+
 @numba.jit(parallel=True)
-def pairwise_diffs_and_valid(array_seqs, num_states, parallel=True):  # pragma: no cover
-    """returns matrices of the number of differing and of shared valid sites
+def pairwise_count_matrix(
+    array_seqs, num_states, method, parallel=True
+):  # pragma: no cover
+    """returns a matrix of a statistic computed from per pair site counts
 
     Parameters
     ----------
@@ -89,13 +118,24 @@ def pairwise_diffs_and_valid(array_seqs, num_states, parallel=True):  # pragma: 
     num_states
         Number of states, e.g. 4 for nucleotides. A site is valid for a pair
         when both sequences have a state below this value.
+    method
+        SHARED_SITES gives the number of valid sites, MATCHING_SITES the
+        number of valid sites that are identical. The other codes give the
+        hamming, pdist and jc69 distances.
     parallel
         Runs in parallel if True, otherwise reduces to single thread
 
     Returns
     -------
-    Two symmetric int64 matrices, (diffs, valid), with zero diagonals.
+    numpy.ndarray
+        Symmetric float32 matrix with a zero diagonal. pdist and jc69 are
+        nan for pairs with no valid sites, jc69 also when the proportion of
+        differences is >= 0.75.
     """
+    if method < _HAMMING or method > MATCHING_SITES:
+        msg = "unknown method code"
+        raise ValueError(msg)
+
     num_threads = numba.get_num_threads()
     if not parallel:
         # numba still gets all the threads it can, but it only
@@ -104,8 +144,8 @@ def pairwise_diffs_and_valid(array_seqs, num_states, parallel=True):  # pragma: 
         numba.set_num_threads(1)
 
     n_seqs = array_seqs.shape[0]
-    diffs = numpy.zeros((n_seqs, n_seqs), dtype=numpy.int64)
-    valid = numpy.zeros((n_seqs, n_seqs), dtype=numpy.int64)
+    result = numpy.zeros((n_seqs, n_seqs), dtype=numpy.float32)
+    frac = num_states / (num_states - 1) if num_states > 1 else 1.0
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
@@ -115,29 +155,19 @@ def pairwise_diffs_and_valid(array_seqs, num_states, parallel=True):  # pragma: 
             array_seqs[j],
             num_states,
         )
-        diffs[i, j] = diffs[j, i] = num_diffs
-        valid[i, j] = valid[j, i] = num_valid
+        value = _count_statistic(method, num_diffs, num_valid, frac)
+        result[i, j] = result[j, i] = value
 
     if not parallel:
         # restore original number of threads
         numba.set_num_threads(num_threads)
-    return diffs, valid
+    return result
 
 
-def _diffs_and_valid(
-    aln: "Alignment", parallel: bool
-) -> tuple[numpy.ndarray, numpy.ndarray]:
-    return pairwise_diffs_and_valid(
-        aln.array_seqs, len(aln.moltype.alphabet), parallel=parallel
+def _count_matrix(aln: "Alignment", method: int, parallel: bool) -> numpy.ndarray:
+    return pairwise_count_matrix(
+        aln.array_seqs, len(aln.moltype.alphabet), method, parallel=parallel
     )
-
-
-def _proportion_diff(diffs: numpy.ndarray, valid: numpy.ndarray) -> numpy.ndarray:
-    # nan for pairs with no valid sites, 0 on the diagonal
-    p = numpy.full(diffs.shape, numpy.nan)
-    numpy.divide(diffs, valid, out=p, where=valid > 0)
-    numpy.fill_diagonal(p, 0.0)
-    return p
 
 
 def _to_dist_matrix(
@@ -178,16 +208,8 @@ def jc69(
     If the proportion of differences is >= 0.75, the distance is set
     to numpy.nan.
     """
-    num_states = len(aln.moltype.alphabet)
-    p = _proportion_diff(*_diffs_and_valid(aln, parallel))
-    mat = numpy.full(p.shape, numpy.nan)
-    # comparisons with nan are False, so pairs without valid sites stay nan
-    defined = p < 0.75
-    frac = num_states / (num_states - 1)
-    mat[defined] = -numpy.log(1.0 - frac * p[defined]) / frac
-    # avoid -0.0 for identical pairs
-    mat[p == 0] = 0.0
-    return _to_dist_matrix(mat.astype(numpy.float32), aln, invalid_raises)
+    mat = _count_matrix(aln, _JC69, parallel)
+    return _to_dist_matrix(mat, aln, invalid_raises)
 
 
 @numba.jit
@@ -546,8 +568,8 @@ def hamming(
         Ignored, accepted for a common calculator signature. A pair with
         no sites where both sequences have a canonical state is 0.
     """
-    diffs, _ = _diffs_and_valid(aln, parallel)
-    return DistanceMatrix.from_array_names(diffs.astype(numpy.float32), aln.names)
+    mat = _count_matrix(aln, _HAMMING, parallel)
+    return DistanceMatrix.from_array_names(mat, aln.names)
 
 
 def pdist(
@@ -565,8 +587,8 @@ def pdist(
         If True and nan in result, raises an ArithmeticError. A pair with
         no sites where both sequences have a canonical state is nan.
     """
-    p = _proportion_diff(*_diffs_and_valid(aln, parallel))
-    return _to_dist_matrix(p.astype(numpy.float32), aln, invalid_raises)
+    mat = _count_matrix(aln, _PDIST, parallel)
+    return _to_dist_matrix(mat, aln, invalid_raises)
 
 
 _calculators: dict[
