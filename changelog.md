@@ -1,4 +1,33 @@
 
+<a id='changelog-2026.10.22'></a>
+# Changes in release "2026.10.22"
+
+Minor bug fix and feature enhancement release.
+
+## API
+
+- `SequenceCollection.distance_matrix()` now raises `TypeError` for any keyword other than `calc`. Previously extra keywords were silently ignored.
+
+## Contributors
+
+- @GavinHuttley
+- Thanks to @uliseshmc for reporting the `sp_score` bug in #2783, along with a notebook that pinned down the cause.
+
+## Enhancements
+
+- `Alignment.distance_matrix()` now supports `calc="logdet"`, with or without the Tamura and Kumar adjustment.
+- In parallel mode, `hamming` and `pdist` distances are about 1.8x faster, because the work is now split evenly across threads.
+- `get_app("sp_score", calc="hamming")` now gives a meaningful score, the same as `calc="pdist"`.
+
+## Bug fixes
+
+- `sp_score` now scores every pair of sequences on the sites they share. It was giving wrong scores when a gappy sequence agreed with another one at all its shared sites, or when two sequences were identical. Fixes #2783.
+- Some `sp_score` values change. `pdist` correctly ignores moltype defined ambiguity codes. Protein `jc69` uses all 21 protein states. `tn93` estimates base frequencies from the whole alignment rather than from each pair. Distances other than `pdist` and `hamming` are computed in 32-bit floats.
+- The `tn93` distance used by `Alignment.distance_matrix()` now works for RNA alignments.
+- `Alignment.distance_matrix()` and `Alignment.quick_tree()` with `calc="pdist"` now raise `ArithmeticError` when two sequences share no sites, consistent with the other distances. Previously the distance was silently `nan`.
+- `DistanceMatrix.drop_invalid()` now drops sequences one at a time, each time the one in the most invalid pairs, until no invalid distances remain. Previously it dropped every sequence in any invalid pair, often leaving nothing. It now always returns a `DistanceMatrix`, never `None`.
+- `Alignment.quick_tree()` now passes extra keywords to the distance calculator, e.g. `use_tk_adjustment=False` with `calc="logdet"`.
+
 <a id='changelog-2026.10.15'></a>
 # Changes in release "2026.10.15"
 
