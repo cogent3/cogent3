@@ -1192,6 +1192,21 @@ def test_numba_logdet_for_determinant_lte_zero(use_tk_adjustment):
         )
 
 
+def test_numba_tn93_uses_alignment_base_composition():
+    # base frequencies are estimated from the whole alignment, not per pair,
+    # so adding a sequence changes the distance between an existing pair
+    pair = {"a": "ACGTACGTACGTAAGT", "b": "ACGCACGTATGTAAGC"}
+    with_gc_rich = {**pair, "c": "GGCCGGCCGGCCGGCA"}
+    two = pdist_numba.tn93(cogent3.make_aligned_seqs(pair, moltype="dna"))
+    three = pdist_numba.tn93(cogent3.make_aligned_seqs(with_gc_rich, moltype="dna"))
+    assert not numpy.isclose(two["a", "b"], three["a", "b"])
+    # a and b differ only by 3 C<->T transitions in 16 sites, and across all
+    # three sequences C and T counts are 14 and 7 of 48
+    coeff = 2 * (14 / 48) * (7 / 48) / (21 / 48)
+    expect = -coeff * numpy.log(1 - (3 / 16) / coeff)
+    assert_allclose(three["a", "b"], expect, rtol=1e-5)
+
+
 def test_numba_tn93_rna_matches_dna(brca1_5):
     rna = cogent3.make_aligned_seqs(
         {n: s.replace("T", "U") for n, s in brca1_5.to_dict().items()},

@@ -30,6 +30,7 @@ from cogent3.app.align import (
 )
 from cogent3.core.alignment import Aligned, Alignment
 from cogent3.core.location import gap_coords_to_map
+from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
 DNA = get_moltype("dna")
 
@@ -705,11 +706,27 @@ def test_sp_score_protein_jc69():
 
 
 @pytest.mark.parametrize("calc", ["tn93", "paralinear", "logdet"])
-def test_sp_score_diversity_matrix_calcs(calc):
-    data = {"a": _HUMAN, "b": _CHIMP, "c": _ORANG, "d": "AC--ACGTAC"}
+@pytest.mark.parametrize(("seq_d", "d_shared"), [("ACGTTCGTAC", 10), ("AC--ACGTAC", 8)])
+def test_sp_score_matches_numba_distances(calc, seq_d, d_shared):
+    # each pair contributes shared_sites * (1 - distance), distances from the
+    # numba calculators, which estimate base frequencies from the whole alignment
+    data = {"a": _HUMAN, "b": _CHIMP, "c": _ORANG, "d": seq_d}
     aln = make_aligned_seqs(data, moltype="dna")
-    got = get_app("sp_score", calc=calc)(aln)
-    assert isinstance(got, float)
+    dists = get_distance_calculator(calc)(aln).array
+    shared = numpy.full((4, 4), 10)
+    shared[3, :] = shared[:, 3] = d_shared
+    upper = numpy.triu_indices(4, k=1)
+    expect = (shared[upper] * (1 - dists[upper])).sum()
+    app = get_app("sp_score", calc=calc, gap_insert=0, gap_extend=0)
+    assert_allclose(app(aln), expect, rtol=1e-6)
+
+
+def test_sp_score_similarity_floor():
+    # p = 0.6 gives a JC69 distance of 1.207, which would make the
+    # similarity negative
+    aln = make_aligned_seqs({"a": "AAAAA", "b": "CCCAA"}, moltype="dna")
+    app = get_app("sp_score", calc="jc69", gap_insert=0, gap_extend=0)
+    assert app(aln) == 0.0
 
 
 def test_progressive_align_one_seq(seqs):
