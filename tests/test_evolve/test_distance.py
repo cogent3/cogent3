@@ -1336,6 +1336,34 @@ def test_pairwise_count_matrix_unknown_method(method):
         pdist_numba.pairwise_count_matrix(aln.array_seqs, 4, method, parallel=False)
 
 
+def test_jc69_protein_beyond_three_quarters():
+    # 4 of 5 sites differ, finite because protein saturates at 20/21
+    aln = cogent3.make_aligned_seqs({"a": "ACDEF", "b": "AGHIK"}, moltype="protein")
+    got = pdist_numba.jc69(aln, invalid_raises=True)
+    frac = 21 / 20
+    assert_allclose(got["a", "b"], -numpy.log(1 - frac * 0.8) / frac, rtol=1e-5)
+
+
+def _jc69_pair(num_states, num_diffs):
+    # every site is a valid state, the first num_diffs sites differ
+    seqs = numpy.zeros((2, num_states), dtype=numpy.uint8)
+    seqs[1, :num_diffs] = numpy.arange(1, num_diffs + 1)
+    got = pdist_numba.pairwise_count_matrix(
+        seqs, num_states, pdist_numba._JC69, parallel=False
+    )
+    return got[0, 1]
+
+
+@pytest.mark.parametrize("num_states", [4, 21, 61])
+def test_jc69_nan_at_saturation(num_states):
+    assert numpy.isnan(_jc69_pair(num_states, num_states - 1))
+
+
+@pytest.mark.parametrize("num_states", [4, 21, 61])
+def test_jc69_finite_below_saturation(num_states):
+    assert numpy.isfinite(_jc69_pair(num_states, num_states - 2))
+
+
 @pytest.mark.parametrize(
     "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
 )
