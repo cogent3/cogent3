@@ -4440,14 +4440,15 @@ class Alignment(CollectionBase[Aligned]):
         drop_invalid: bool = False,
         parallel: bool = False,
         use_hook: str | None = None,
+        **kwargs: bool,
     ) -> PhyloNode:
         """Returns a phylogenetic tree.
 
         Parameters
         ----------
         calc
-            a pairwise distance calculator or name of one. For options see
-            cogent3.evolve.fast_distance.available_distances
+            name of a pairwise distance calculator (case insensitive), one of
+            'pdist', 'jc69', 'tn93', 'hamming', 'paralinear', 'logdet'.
         drop_invalid
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
@@ -4459,6 +4460,9 @@ class Alignment(CollectionBase[Aligned]):
             hook. If not specified, defaults to the first available hook or
             the cogent3 quick_tree() app. To force default, set
             use_hook="cogent3".
+        kwargs
+            passed to the distance calculator, e.g. use_tk_adjustment for
+            'logdet'.
 
         Returns
         -------
@@ -4468,6 +4472,7 @@ class Alignment(CollectionBase[Aligned]):
             calc=calc,
             drop_invalid=drop_invalid,
             parallel=parallel,
+            **kwargs,
         )
         return dm.quick_tree(use_hook=use_hook)
 

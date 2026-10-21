@@ -5173,6 +5173,22 @@ def test_alignment_quick_tree_missing_hook(brca1_data):
         aln.quick_tree(use_hook="missing_hook")
 
 
+def test_alignment_quick_tree_forwards_calculator_options(brca1_data):
+    aln = c3_alignment.make_aligned_seqs(brca1_data, moltype="dna")[:300]
+    aln = aln.take_seqs(["Human", "Rhesus", "HowlerMon", "Galago", "Mouse"])
+    names = aln.names
+    default = aln.quick_tree(calc="logdet", use_hook="cogent3")
+    not_tk = aln.quick_tree(calc="logdet", use_tk_adjustment=False, use_hook="cogent3")
+    expect = aln.distance_matrix(calc="logdet", use_tk_adjustment=False).quick_tree(
+        use_hook="cogent3"
+    )
+    got_dists = not_tk.tip_to_tip_distances().take_dists(names).array
+    expect_dists = expect.tip_to_tip_distances().take_dists(names).array
+    default_dists = default.tip_to_tip_distances().take_dists(names).array
+    assert numpy.allclose(got_dists, expect_dists)
+    assert not numpy.allclose(got_dists, default_dists)
+
+
 @pytest.mark.skipif(not has_piqtree, reason="piqtree not installed")
 def test_alignment_quick_tree_third_party_hook():
     """use piqtree as a third party hook"""
