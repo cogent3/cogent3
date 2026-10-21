@@ -829,7 +829,7 @@ class DistanceMatrix(DictArray):
 
     def take_dists(
         self, names: Sequence[str] | str, negate: bool = False
-    ) -> "DistanceMatrix":
+    ) -> "DistanceMatrix | None":
         """
         Parameters
         ----------
@@ -862,22 +862,41 @@ class DistanceMatrix(DictArray):
         return self.from_array_names(data, names)
 
     def drop_invalid(self) -> "DistanceMatrix":
-        """drops all rows / columns with an invalid entry"""
+        """drops sequences until no invalid (nan) distances remain
+
+        Repeatedly drops the sequence in the most invalid pairs, on a tie the
+        one later in name order. This is not guaranteed to drop the fewest
+        sequences.
+        The result keeps the original name order and may have fewer than
+        two names.
+        """
         if (
             self.shape[0] != self.shape[1]
             or self.template.names[0] != self.template.names[1]
         ):
             msg = "Must be a square matrix"
             raise RuntimeError(msg)
-        names = array(self.names)
-        # NaN is an invalid value
-        cols = numpy.isnan(self.array).sum(axis=0)
-        exclude = names[cols != 0].tolist()
-        rows = numpy.isnan(self.array).sum(axis=1)
-        exclude += names[rows != 0].tolist()
-        exclude = set(exclude)
-        keep = set(names) ^ exclude
-        return self.take_dists(keep)
+        invalid = numpy.isnan(self.array)
+        # a pair is invalid if either direction is nan
+        invalid |= invalid.T
+        numpy.fill_diagonal(invalid, False)
+        counts = invalid.sum(axis=1)
+        keep = numpy.ones(len(counts), dtype=bool)
+        while counts.max(initial=0) > 0:
+            drop = len(counts) - 1 - counts[::-1].argmax()
+            keep[drop] = False
+            counts -= invalid[:, drop] & keep
+            counts[drop] = 0
+
+        if keep.all():
+            return self
+        kept = numpy.flatnonzero(keep)
+        data = self.array.take(kept, axis=0).take(kept, axis=1)
+        result = self.from_array_names(
+            data, array(self.names).take(kept), invalid=self._invalid
+        )
+        result.source = self.source
+        return result
 
     def quick_tree(self, use_hook: str | None = None) -> "PhyloNode":
         """Returns a phylogenetic tree
@@ -899,6 +918,9 @@ class DistanceMatrix(DictArray):
         """
         qtree = cogent3._plugin.get_quick_tree_hook(name=use_hook)
         dists = self.drop_invalid()
+        if dists.shape[0] < 2:
+            msg = "need at least 2 sequences with valid distances to build a tree"
+            raise ValueError(msg)
         if dists.shape[0] == 2:
             # NJ not needed for 2 seqs
             dist = dists[0, 1]

@@ -1,6 +1,7 @@
 import pathlib
 from unittest import TestCase
 
+import numpy
 import pytest
 from scinexus.composable import NotCompleted
 
@@ -9,6 +10,7 @@ from cogent3.app import dist
 from cogent3.app import tree as tree_app
 from cogent3.core.tree import PhyloNode
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.evolve.pairwise_distance_numba import pdist
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
@@ -170,10 +172,10 @@ class TestTree(TestCase):
         # must explicitly call main() method to avoid error trapping by decorator
         with pytest.raises(KeyError):
             quick_tree.main(darr)
-        # when distance_matrix is None after dropping invalid
-        with pytest.raises(ValueError):
-            quick_tree = tree_app.quick_tree(drop_invalid=True)
-            quick_tree.main(darr)
+        # dropping BAA10469 then Atu3667 leaves two valid sequences
+        quick_tree = tree_app.quick_tree(drop_invalid=True)
+        tree = quick_tree.main(darr)
+        assert set(tree.get_tip_names()) == {"ABAYE2984", "Avin_42730"}
 
         data = {
             ("DogFaced", "FlyingFox"): 0.05,
@@ -272,3 +274,21 @@ def test_uniformize_tree_source():
     )
     got = make_uniform(tree)
     assert got.source == source
+
+
+def test_quick_tree_drop_invalid_to_two_seqs():
+    # b shares no sites with a or c, dropping it leaves two sequences
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGT", "b": "----", "c": "ACGA"}, moltype="dna"
+    )
+    dists = pdist(aln)
+    tree = tree_app.quick_tree(drop_invalid=True).main(dists)
+    assert set(tree.get_tip_names()) == {"a", "c"}
+
+
+def test_quick_tree_drop_invalid_too_few():
+    data = numpy.full((3, 3), numpy.nan)
+    numpy.fill_diagonal(data, 0)
+    dists = DistanceMatrix.from_array_names(data, ["x", "y", "z"])
+    with pytest.raises(ValueError, match="invalid pairwise distances"):
+        tree_app.quick_tree(drop_invalid=True).main(dists)

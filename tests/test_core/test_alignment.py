@@ -4798,9 +4798,9 @@ def test_alignment_distance_matrix():
     with pytest.raises(ArithmeticError):
         # default settings cause an exception
         _ = aln.distance_matrix(calc="paralinear")
-    # but setting drop_invalid=False allows calc
+    # but setting drop_invalid=True drops seq1, the only invalid sequence
     dists = aln.distance_matrix(calc="paralinear", drop_invalid=True)
-    assert dists is None
+    assert list(dists.names) == ["seq2", "seq3"]
 
 
 def test_alignment_sample_with_replacement():
