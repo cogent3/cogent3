@@ -3232,13 +3232,17 @@ class Alignment(CollectionBase[Aligned]):
             If True, sequences for which a pairwise distance could not be
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
+        kwargs
+            passed unchanged to the calculator, e.g. use_tk_adjustment for
+            'logdet'. A calculator raises TypeError for keywords it does not
+            accept.
         """
         from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
         calculator = get_distance_calculator(calc)
         try:
             result = calculator(
-                self, invalid_raises=not drop_invalid, parallel=parallel
+                self, invalid_raises=not drop_invalid, parallel=parallel, **kwargs
             )
         except ArithmeticError as e:
             msg = "not all pairwise distances could be computed, try drop_invalid=True"

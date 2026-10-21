@@ -531,7 +531,9 @@ def logdet(
     return _to_dist_matrix(mat, aln, invalid_raises)
 
 
-def hamming(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
+def hamming(
+    aln: "Alignment", parallel: bool = False, invalid_raises: bool = False
+) -> DistanceMatrix:
     """returns matrix of hamming distances
 
     Parameters
@@ -540,12 +542,16 @@ def hamming(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatri
         Alignment instance
     parallel
         If True, uses parallel processing via numba.
+    invalid_raises
+        Ignored, accepted for a common calculator signature.
     """
     diffs, _ = _diffs_and_valid(aln, parallel)
     return DistanceMatrix.from_array_names(diffs.astype(numpy.float32), aln.names)
 
 
-def pdist(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
+def pdist(
+    aln: "Alignment", parallel: bool = False, invalid_raises: bool = False
+) -> DistanceMatrix:
     """returns matrix of pairwise proportion difference distances
 
     Parameters
@@ -554,6 +560,8 @@ def pdist(aln: "Alignment", parallel: bool = False, **kwargs) -> DistanceMatrix:
         Alignment instance
     parallel
         If True, uses parallel processing via numba.
+    invalid_raises
+        Ignored, accepted for a common calculator signature.
     """
     p = _proportion_diff(*_diffs_and_valid(aln, parallel))
     return DistanceMatrix.from_array_names(p.astype(numpy.float32), aln.names)

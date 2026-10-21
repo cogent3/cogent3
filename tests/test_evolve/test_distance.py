@@ -1192,6 +1192,20 @@ def test_numba_logdet_for_determinant_lte_zero(use_tk_adjustment):
         )
 
 
+def test_distance_matrix_forwards_logdet_adjustment(brca1_5):
+    tk = brca1_5.distance_matrix(calc="logdet")
+    not_tk = brca1_5.distance_matrix(calc="logdet", use_tk_adjustment=False)
+    expect = pdist_numba.logdet(brca1_5, use_tk_adjustment=False)
+    assert_allclose(not_tk.array, expect.array)
+    assert not numpy.allclose(tk.array, not_tk.array)
+
+
+@pytest.mark.parametrize("calc", ["jc69", "tn93", "paralinear", "pdist", "hamming"])
+def test_distance_matrix_rejects_unused_kwarg(basic_alignment, calc):
+    with pytest.raises(TypeError):
+        basic_alignment.distance_matrix(calc=calc, use_tk_adjustment=False)
+
+
 def test_numba_tn93_uses_alignment_base_composition():
     # base frequencies are estimated from the whole alignment, not per pair,
     # so adding a sequence changes the distance between an existing pair
