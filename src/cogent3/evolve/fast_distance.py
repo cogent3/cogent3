@@ -413,6 +413,7 @@ class _PairwiseDistance:
 
         names = self.names[:]
         matrix = zeros((self._dim, self._dim), float64)
+        off_diag = ~eye(self._dim, dtype=bool)
         progress = (
             get_progress(show_progress=True, **show_progress)
             if isinstance(show_progress, dict)
@@ -439,7 +440,11 @@ class _PairwiseDistance:
                 fill_diversity_matrix(matrix, s1, s2)
                 # Reusing distances to other sequences requires equal missing
                 # site masks as well as zero differences at shared sites.
-                if numpy.array_equal(s1, s2) and (s1 >= 0).any():
+                if (
+                    not matrix[off_diag].any()
+                    and numpy.array_equal(s1, s2)
+                    and (s1 >= 0).any()
+                ):
                     dupes.update([j])
                     duped[i].append(j)
                     continue
