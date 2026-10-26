@@ -390,6 +390,12 @@ class _PairwiseDistance:
     def func() -> None:
         pass  # over ride in subclasses
 
+    def _get_stats(self, matrix):
+        total = matrix.sum()
+        if total and total == matrix.trace():
+            return Stats(total, 0.0, 0.0, 0.0)
+        return Stats(*self.func(matrix, *self._func_args))
+
     def run(
         self,
         alignment=None,
@@ -407,11 +413,6 @@ class _PairwiseDistance:
 
         names = self.names[:]
         matrix = zeros((self._dim, self._dim), float64)
-        off_diag = [
-            (i, j) for i in range(self._dim) for j in range(self._dim) if i != j
-        ]
-        off_diag = tuple(tuple(a) for a in zip(*off_diag, strict=False))
-
         progress = (
             get_progress(show_progress=True, **show_progress)
             if isinstance(show_progress, dict)
@@ -436,17 +437,17 @@ class _PairwiseDistance:
                 matrix.fill(0)
                 s2 = self.indexed_seqs[j]
                 fill_diversity_matrix(matrix, s1, s2)
-                if not (matrix[off_diag] > 0).any():
-                    # j is a duplicate of i
+                # Reusing distances to other sequences requires equal missing
+                # site masks as well as zero differences at shared sites.
+                if numpy.array_equal(s1, s2) and (s1 >= 0).any():
                     dupes.update([j])
                     duped[i].append(j)
                     continue
 
-                total, p, dist, var = self.func(matrix, *self._func_args)
-                if self._invalid_raises and not isinstance(dist, Number):
+                result = self._get_stats(matrix)
+                if self._invalid_raises and not isinstance(result.dist, Number):
                     msg = f"distance could not be calculated for {name_1} - {name_2}"
                     raise ArithmeticError(msg)
-                result = Stats(total, p, dist, var)
                 self._dists[(name_1, name_2)] = result
                 self._dists[(name_2, name_1)] = result
 
