@@ -1,4 +1,28 @@
 
+<a id='changelog-2026.11.5'></a>
+# Changes in release "2026.11.5"
+
+A minor enhancement release.
+
+## Contributors
+
+- @GavinHuttley
+- Thanks to @fthirion89 for the genetic distance ambiguity codes feature request
+
+## Enhancements
+
+- The fast pairwise distances (`hamming`, `pdist`, `jc69`, `tn93`, `logdet`
+  and `paralinear`) take an `include_ambiguity` argument, e.g.
+  `aln.distance_matrix(calc="tn93", include_ambiguity=True)`. Sites with an
+  ambiguity code are then included rather than dropped, with each code
+  weighted by the alignment frequencies of the bases it represents. Codes
+  for every base, such as `N`, are still excluded.
+
+## Documentation
+
+- The genetic distance cookbook page shows how to use `include_ambiguity`,
+  with a small worked example of how ambiguity codes are weighted.
+
 <a id='changelog-2026.10.22'></a>
 # Changes in release "2026.10.22"
 
