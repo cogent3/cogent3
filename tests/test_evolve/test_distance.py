@@ -37,15 +37,10 @@ DNA = cogent3.get_moltype("dna")
 PROTEIN = cogent3.get_moltype("protein")
 RNA = cogent3.get_moltype("rna")
 
-SERIAL_AND_PARALLEL = [
-    False,
-    pytest.param(
-        True,
-        marks=pytest.mark.skipif(
-            (os.cpu_count() or 1) == 1, reason="parallel needs more than one CPU"
-        ),
-    ),
-]
+NEEDS_MULTIPLE_CPUS = pytest.mark.skipif(
+    (os.cpu_count() or 1) == 1, reason="parallel needs more than one CPU"
+)
+SERIAL_AND_PARALLEL = [False, pytest.param(True, marks=NEEDS_MULTIPLE_CPUS)]
 
 
 @pytest.fixture
@@ -1319,7 +1314,7 @@ def test_numba_tn93_rna_matches_dna(brca1_5):
     assert_allclose(got.array, expect.array)
 
 
-@pytest.mark.parametrize("parallel", [False, True])
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
 @pytest.mark.parametrize(
     ("method", "expect"),
     [
@@ -1426,6 +1421,7 @@ def test_unknown_dist():
         pdist_numba.get_distance_calculator("blah")
 
 
+@NEEDS_MULTIPLE_CPUS
 @pytest.mark.parametrize(
     "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
 )
