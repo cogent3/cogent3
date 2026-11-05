@@ -2,7 +2,7 @@ name: GitHub Actions security analysis with zizmor
 
 on:
   push:
-    branches-ignore:
+    branches:
       - master
     paths:
       - ".github/**"
