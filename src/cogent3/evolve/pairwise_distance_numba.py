@@ -32,6 +32,103 @@ def index_to_lower_tri(index):  # pragma: no cover
     return i, j
 
 
+def _ambiguity_weights(
+    moltype: c3_moltype.MolType, state_freqs: numpy.ndarray
+) -> numpy.ndarray:
+    """returns weights over the canonical states for each sequence code
+
+    Parameters
+    ----------
+    moltype
+        defines the sequence codes, as its degen_gapped_alphabet, and the
+        canonical states each ambiguity code represents
+    state_freqs
+        frequencies or counts of the canonical states, in the order of
+        moltype.alphabet
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape (number of codes, number of canonical states), row i for code
+        i of moltype.degen_gapped_alphabet. A canonical state has weight 1
+        on itself. An ambiguity code has weights on the states it represents
+        proportional to state_freqs and summing to 1. If all of those states
+        have a frequency of 0, the weights are equal instead, e.g. 0.5 each
+        for R. The rows for a gap and for codes representing every state are
+        all zero.
+    """
+    state_index = {state: i for i, state in enumerate(moltype.alphabet)}
+    num_states = len(state_index)
+    codes = list(moltype.degen_gapped_alphabet)
+    weights = numpy.zeros((len(codes), num_states), dtype=numpy.float64)
+    weights[:num_states] = numpy.eye(num_states)
+    for code, char in enumerate(codes[num_states:], start=num_states):
+        states = [
+            state_index[s]
+            for s in moltype.ambiguities.get(char, ())
+            if s in state_index
+        ]
+        if len(states) in (0, num_states):
+            continue
+        freqs = state_freqs[states]
+        total = freqs.sum()
+        weights[code, states] = freqs / total if total else 1 / len(states)
+    return weights
+
+
+def _pair_state_table(weights: numpy.ndarray) -> numpy.ndarray:
+    """returns the weight each pair of sequence codes adds to each state pair
+
+    Parameters
+    ----------
+    weights
+        weights over the canonical states for each sequence code, as returned
+        by _ambiguity_weights
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape (number of codes, number of codes, number of states, number of
+        states). Element [a, b, i, j] is the weight a site with code a in the
+        first sequence and code b in the second adds to state i paired with
+        state j. For different codes it is weights[a, i] * weights[b, j]. For
+        the same code it is weights[a, i] if i equals j, otherwise 0, so the
+        same code in both sequences is a match.
+    """
+    table = numpy.einsum("ai,bj->abij", weights, weights)
+    codes = numpy.arange(len(weights))
+    table[codes, codes] = weights[:, :, None] * numpy.eye(weights.shape[1])
+    return table
+
+
+def _pair_count_tables(
+    state_table: numpy.ndarray,
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    """returns the valid site and difference counts for each pair of codes
+
+    Parameters
+    ----------
+    state_table
+        state pair weights for each pair of sequence codes, as returned by
+        _pair_state_table
+
+    Returns
+    -------
+    valid
+        Shape (number of codes, number of codes). Element [a, b] is 1 if a site
+        with code a in the first sequence and code b in the second is
+        compared, otherwise 0.
+    diffs
+        Shape (number of codes, number of codes). Element [a, b] is the
+        expected number of differences, from 0 to 1, that such a site adds.
+    """
+    # weights sum to 1 only within rounding, so neither count is derived from
+    # a sum that includes the diagonal
+    valid = state_table.any(axis=(2, 3)).astype(numpy.float64)
+    off_diagonal = 1 - numpy.eye(state_table.shape[-1])
+    return valid, (state_table * off_diagonal).sum(axis=(2, 3))
+
+
 # fills in a diversity matrix from sequences of integers
 
 

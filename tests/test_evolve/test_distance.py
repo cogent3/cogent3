@@ -1451,3 +1451,146 @@ def test_index_to_lower_tri_large_n():
     for i in range(1, n):
         idx = i * (i - 1) // 2
         assert index_to_lower_tri(idx) == (i, 0)
+
+
+@pytest.fixture
+def dna_freqs():
+    # alphabet order is T, C, A, G
+    return numpy.array([0.1, 0.4, 0.3, 0.2])
+
+
+@pytest.fixture
+def dna_weights(dna_freqs):
+    return pdist_numba._ambiguity_weights(cogent3.get_moltype("dna"), dna_freqs)
+
+
+def _code(moltype_name, char):
+    return list(cogent3.get_moltype(moltype_name).degen_gapped_alphabet).index(char)
+
+
+@pytest.mark.parametrize(
+    ("char", "expect"),
+    [
+        ("A", [0, 0, 1, 0]),
+        ("R", [0, 0, 0.6, 0.4]),
+        ("Y", [0.2, 0.8, 0, 0]),
+        ("B", [0.1 / 0.7, 0.4 / 0.7, 0, 0.2 / 0.7]),
+        ("-", [0, 0, 0, 0]),
+        ("N", [0, 0, 0, 0]),
+        ("?", [0, 0, 0, 0]),
+    ],
+)
+def test_ambiguity_weights_dna(dna_weights, char, expect):
+    assert_allclose(dna_weights[_code("dna", char)], expect)
+
+
+def test_ambiguity_weights_rna_matches_dna(dna_freqs, dna_weights):
+    rna = cogent3.get_moltype("rna")
+    assert_allclose(pdist_numba._ambiguity_weights(rna, dna_freqs), dna_weights)
+
+
+def test_ambiguity_weights_absent_states_uniform():
+    # neither A nor G occur, so R splits evenly
+    dna = cogent3.get_moltype("dna")
+    weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.5, 0.5, 0, 0]))
+    assert_allclose(weights[_code("dna", "R")], [0, 0, 0.5, 0.5])
+
+
+def test_ambiguity_weights_protein():
+    protein = cogent3.get_moltype("protein")
+    freqs = numpy.arange(1, 22, dtype=float)
+    freqs /= freqs.sum()
+    weights = pdist_numba._ambiguity_weights(protein, freqs)
+    alpha = list(protein.alphabet)
+    d, n = alpha.index("D"), alpha.index("N")
+    expect = numpy.zeros(21)
+    expect[[d, n]] = freqs[[d, n]] / freqs[[d, n]].sum()
+    assert_allclose(weights[_code("protein", "B")], expect)
+    assert not weights[_code("protein", "X")].any()
+
+
+@pytest.mark.parametrize(
+    ("char1", "char2", "valid", "diffs"),
+    [
+        ("A", "A", 1, 0),
+        ("A", "C", 1, 1),
+        ("A", "R", 1, 0.4),
+        ("C", "R", 1, 1),
+        ("R", "R", 1, 0),
+        ("R", "Y", 1, 1),
+        # S is C or G, weighted 2/3 and 1/3, only G matches R
+        ("R", "S", 1, 1 - 0.4 / 3),
+        ("R", "N", 0, 0),
+        ("A", "-", 0, 0),
+        ("R", "-", 0, 0),
+    ],
+)
+def test_pair_count_tables(dna_weights, char1, char2, valid, diffs):
+    got_valid, got_diffs = pdist_numba._pair_count_tables(
+        pdist_numba._pair_state_table(dna_weights)
+    )
+    a, b = _code("dna", char1), _code("dna", char2)
+    assert_allclose(
+        [got_valid[a, b], got_valid[b, a], got_diffs[a, b], got_diffs[b, a]],
+        [valid, valid, diffs, diffs],
+    )
+
+
+def _state_matrix(entries):
+    alpha = list(cogent3.get_moltype("dna").alphabet)
+    mat = numpy.zeros((4, 4))
+    if entries:
+        rows, cols = zip(
+            *[(alpha.index(a), alpha.index(b)) for a, b in entries], strict=True
+        )
+        mat[list(rows), list(cols)] = list(entries.values())
+    return mat
+
+
+@pytest.mark.parametrize(
+    ("char1", "char2", "entries"),
+    [
+        ("A", "G", {("A", "G"): 1}),
+        ("C", "R", {("C", "A"): 0.6, ("C", "G"): 0.4}),
+        ("R", "C", {("A", "C"): 0.6, ("G", "C"): 0.4}),
+        ("A", "R", {("A", "A"): 0.6, ("A", "G"): 0.4}),
+        ("R", "R", {("A", "A"): 0.6, ("G", "G"): 0.4}),
+        # S is C or G, weighted 2/3 and 1/3
+        (
+            "R",
+            "S",
+            {
+                ("A", "C"): 0.4,
+                ("A", "G"): 0.2,
+                ("G", "C"): 0.4 * 2 / 3,
+                ("G", "G"): 0.4 / 3,
+            },
+        ),
+        ("N", "A", {}),
+        ("R", "-", {}),
+    ],
+)
+def test_pair_state_table(dna_weights, char1, char2, entries):
+    table = pdist_numba._pair_state_table(dna_weights)
+    got = table[_code("dna", char1), _code("dna", char2)]
+    assert_allclose(got, _state_matrix(entries))
+
+
+def test_pair_count_tables_exact():
+    # W weights of 0.25 and 0.75 sum to 1 - 1.1e-16, but a W site is still
+    # exactly one valid site and W against W is exactly no difference
+    dna = cogent3.get_moltype("dna")
+    weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.1, 0.1, 0.3, 0.5]))
+    valid, diffs = pdist_numba._pair_count_tables(
+        pdist_numba._pair_state_table(weights)
+    )
+    w = _code("dna", "W")
+    assert valid[w, w] == 1
+    assert diffs[w, w] == 0
+
+
+def test_ambiguity_weights_some_states_absent():
+    # G does not occur, so R is all A
+    dna = cogent3.get_moltype("dna")
+    weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.5, 0.2, 0.3, 0]))
+    assert_allclose(weights[_code("dna", "R")], [0, 0, 1, 0])
