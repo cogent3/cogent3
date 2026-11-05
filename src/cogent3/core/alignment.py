@@ -3242,9 +3242,10 @@ class Alignment(CollectionBase[Aligned]):
             calculated are excluded. If False, an ArithmeticError is raised if
             a distance could not be computed on observed data.
         kwargs
-            passed unchanged to the calculator, e.g. use_tk_adjustment for
-            'logdet'. A calculator raises TypeError for keywords it does not
-            accept.
+            passed unchanged to the calculator, e.g. include_ambiguity=True
+            (include sites with ambiguity codes) or use_tk_adjustment=True
+            for 'logdet'. A calculator raises TypeError for keywords it does
+            not accept.
         """
         from cogent3.evolve.pairwise_distance_numba import get_distance_calculator
 
