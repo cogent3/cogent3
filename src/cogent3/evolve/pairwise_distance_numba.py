@@ -32,6 +32,103 @@ def index_to_lower_tri(index):  # pragma: no cover
     return i, j
 
 
+def _ambiguity_weights(
+    moltype: c3_moltype.MolType, state_freqs: numpy.ndarray
+) -> numpy.ndarray:
+    """returns weights over the canonical states for each sequence code
+
+    Parameters
+    ----------
+    moltype
+        defines the sequence codes, as its degen_gapped_alphabet, and the
+        canonical states each ambiguity code represents
+    state_freqs
+        frequencies or counts of the canonical states, in the order of
+        moltype.alphabet
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape (number of codes, number of canonical states), row i for code
+        i of moltype.degen_gapped_alphabet. A canonical state has weight 1
+        on itself. An ambiguity code has weights on the states it represents
+        proportional to state_freqs and summing to 1. If all of those states
+        have a frequency of 0, the weights are equal instead, e.g. 0.5 each
+        for R. The rows for a gap and for codes representing every state are
+        all zero.
+    """
+    state_index = {state: i for i, state in enumerate(moltype.alphabet)}
+    num_states = len(state_index)
+    codes = list(moltype.degen_gapped_alphabet)
+    weights = numpy.zeros((len(codes), num_states), dtype=numpy.float64)
+    weights[:num_states] = numpy.eye(num_states)
+    for code, char in enumerate(codes[num_states:], start=num_states):
+        states = [
+            state_index[s]
+            for s in moltype.ambiguities.get(char, ())
+            if s in state_index
+        ]
+        if len(states) in (0, num_states):
+            continue
+        freqs = state_freqs[states]
+        total = freqs.sum()
+        weights[code, states] = freqs / total if total else 1 / len(states)
+    return weights
+
+
+def _pair_state_table(weights: numpy.ndarray) -> numpy.ndarray:
+    """returns the weight each pair of sequence codes adds to each state pair
+
+    Parameters
+    ----------
+    weights
+        weights over the canonical states for each sequence code, as returned
+        by _ambiguity_weights
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape (number of codes, number of codes, number of states, number of
+        states). Element [a, b, i, j] is the weight a site with code a in the
+        first sequence and code b in the second adds to state i paired with
+        state j. For different codes it is weights[a, i] * weights[b, j]. For
+        the same code it is weights[a, i] if i equals j, otherwise 0, so the
+        same code in both sequences is a match.
+    """
+    table = numpy.einsum("ai,bj->abij", weights, weights)
+    codes = numpy.arange(len(weights))
+    table[codes, codes] = weights[:, :, None] * numpy.eye(weights.shape[1])
+    return table
+
+
+def _pair_count_tables(
+    state_table: numpy.ndarray,
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    """returns the valid site and difference counts for each pair of codes
+
+    Parameters
+    ----------
+    state_table
+        state pair weights for each pair of sequence codes, as returned by
+        _pair_state_table
+
+    Returns
+    -------
+    valid
+        Shape (number of codes, number of codes). Element [a, b] is 1 if a site
+        with code a in the first sequence and code b in the second is
+        compared, otherwise 0.
+    diffs
+        Shape (number of codes, number of codes). Element [a, b] is the
+        expected number of differences, from 0 to 1, that such a site adds.
+    """
+    # weights sum to 1 only within rounding, so neither count is derived from
+    # a sum that includes the diagonal
+    valid = state_table.any(axis=(2, 3)).astype(numpy.float64)
+    off_diagonal = 1 - numpy.eye(state_table.shape[-1])
+    return valid, (state_table * off_diagonal).sum(axis=(2, 3))
+
+
 # fills in a diversity matrix from sequences of integers
 
 
@@ -51,6 +148,16 @@ def num_diffs_and_valid(
         if seq1[i] != seq2[i]:
             num_diff += 1
 
+    return num_diff, num_valid
+
+
+@numba.jit
+def _weighted_diffs_and_valid(seq1, seq2, valid_table, diff_table):  # pragma: no cover
+    num_valid = 0.0
+    num_diff = 0.0
+    for i in range(len(seq1)):
+        num_valid += valid_table[seq1[i], seq2[i]]
+        num_diff += diff_table[seq1[i], seq2[i]]
     return num_diff, num_valid
 
 
@@ -78,6 +185,53 @@ def _get_matrix_and_counts(matrix, seq1, seq2):  # pragma: no cover
     return matrix, num_diff, num_valid
 
 
+@numba.jit
+def _fill_pair_matrix(matrix, seq1, seq2, tables):  # pragma: no cover
+    """adds the state pair counts for two sequences to matrix
+
+    Parameters
+    ----------
+    matrix
+        square array with a row and column per canonical state, updated in
+        place. Must be float if tables is provided.
+    seq1, seq2
+        sequences as indices into the moltype's degen_gapped_alphabet
+    tables
+        None, or the state pair, valid and difference tables returned by
+        _ambiguity_tables. If None, only sites where both sequences have a
+        canonical state are counted.
+
+    Returns
+    -------
+    matrix
+        the updated matrix, element [i, j] counting sites with state i in
+        seq1 and state j in seq2
+    num_diffs
+        number of sites that differ, fractional if tables is provided
+    num_valid
+        number of sites compared
+    """
+    if tables is None:
+        return _get_matrix_and_counts(matrix, seq1, seq2)
+
+    state_table, valid_table, diff_table = tables
+    num_states = matrix.shape[0]
+    num_valid = 0.0
+    num_diff = 0.0
+    for i in range(len(seq1)):
+        a = seq1[i]
+        b = seq2[i]
+        if a < num_states and b < num_states:
+            matrix[a, b] += 1
+        elif valid_table[a, b]:
+            for k in range(num_states):
+                for m in range(num_states):
+                    matrix[k, m] += state_table[a, b, k, m]
+        num_valid += valid_table[a, b]
+        num_diff += diff_table[a, b]
+    return matrix, num_diff, num_valid
+
+
 # statistics computed by pairwise_count_matrix
 _HAMMING = 0
 _PDIST = 1
@@ -100,7 +254,7 @@ def _count_statistic(method, num_diffs, num_valid, num_states):  # pragma: no co
         # also gives jc69 a distance of 0.0, not -0.0, for identical pairs
         value = num_diffs / num_valid
     elif num_diffs * num_states >= num_valid * (num_states - 1):
-        # integer test, as p * frac rounds below 1 at saturation for some states
+        # tested on counts, as p * frac rounds below 1 at saturation for some states
         value = numpy.nan
     else:
         p = num_diffs / num_valid
@@ -111,7 +265,7 @@ def _count_statistic(method, num_diffs, num_valid, num_states):  # pragma: no co
 
 @numba.jit(parallel=True)
 def pairwise_count_matrix(
-    array_seqs, num_states, method, parallel=True
+    array_seqs, num_states, method, parallel=True, count_tables=None
 ):  # pragma: no cover
     """returns a matrix of a statistic computed from per pair site counts
 
@@ -128,6 +282,11 @@ def pairwise_count_matrix(
         hamming, pdist and jc69 distances.
     parallel
         Runs in parallel if True, otherwise reduces to single thread
+    count_tables
+        If provided, a pair of 2D arrays indexed by the codes of two
+        sequences at a site, giving the valid sites and the differences that
+        site adds. They replace the num_states rule, so counts can be
+        fractional.
 
     Returns
     -------
@@ -153,11 +312,16 @@ def pairwise_count_matrix(
     # loop is parallelised
     for index in numba.prange(num_pairs):
         i, j = index_to_lower_tri(index)
-        num_diffs, num_valid = num_diffs_and_valid(
-            array_seqs[i],
-            array_seqs[j],
-            num_states,
-        )
+        if count_tables is None:
+            num_diffs, num_valid = num_diffs_and_valid(
+                array_seqs[i],
+                array_seqs[j],
+                num_states,
+            )
+        else:
+            num_diffs, num_valid = _weighted_diffs_and_valid(
+                array_seqs[i], array_seqs[j], count_tables[0], count_tables[1]
+            )
         value = _count_statistic(method, num_diffs, num_valid, num_states)
         result[i, j] = result[j, i] = value
 
@@ -167,9 +331,44 @@ def pairwise_count_matrix(
     return result
 
 
-def _count_matrix(aln: "Alignment", method: int, parallel: bool) -> numpy.ndarray:
+def _ambiguity_tables(
+    moltype: c3_moltype.MolType, state_counts: numpy.ndarray
+) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    """returns the state pair, valid and difference tables for pairs of codes"""
+    if moltype.degen_gapped_alphabet is None:
+        msg = f"include_ambiguity needs a moltype with ambiguity codes, not {moltype.name!r}"
+        raise c3_moltype.MolTypeError(msg)
+    state_table = _pair_state_table(_ambiguity_weights(moltype, state_counts))
+    return state_table, *_pair_count_tables(state_table)
+
+
+def _working_matrices(
+    num_states: int, tables: tuple[numpy.ndarray, ...] | None
+) -> numpy.ndarray:
+    # integer counts accumulate faster, so floats only for fractional counts
+    dtype = numpy.int32 if tables is None else numpy.float64
+    return numpy.zeros((numba.get_num_threads(), num_states, num_states), dtype=dtype)
+
+
+def _alignment_ambiguity_tables(
+    aln: "Alignment", parallel: bool
+) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    num_states = len(aln.moltype.alphabet)
+    counts = _count_states(aln.array_seqs, num_states, parallel=parallel)
+    return _ambiguity_tables(aln.moltype, counts)
+
+
+def _count_matrix(
+    aln: "Alignment", method: int, parallel: bool, include_ambiguity: bool
+) -> numpy.ndarray:
     return pairwise_count_matrix(
-        aln.array_seqs, len(aln.moltype.alphabet), method, parallel=parallel
+        aln.array_seqs,
+        len(aln.moltype.alphabet),
+        method,
+        parallel=parallel,
+        count_tables=_alignment_ambiguity_tables(aln, parallel)[1:]
+        if include_ambiguity
+        else None,
     )
 
 
@@ -194,6 +393,7 @@ def jc69(
     aln: "Alignment",
     invalid_raises: bool = False,
     parallel: bool = False,
+    include_ambiguity: bool = False,
 ) -> DistanceMatrix:
     """returns JC69 pairwise distances for an alignment
 
@@ -209,8 +409,14 @@ def jc69(
         If True and nan in result, raises an ArithmeticError
     parallel
         If True, uses parallel processing via numba.
+    include_ambiguity
+        If True, sites with an ambiguity code are included. A code is
+        weighted by the alignment frequencies of the states it represents,
+        e.g. with A at 0.3 and G at 0.2, R counts as 0.6 A and 0.4 G. The
+        same code in both sequences counts as a match. Codes representing
+        every state, such as N, are still excluded.
     """
-    mat = _count_matrix(aln, _JC69, parallel)
+    mat = _count_matrix(aln, _JC69, parallel, include_ambiguity)
     return _to_dist_matrix(mat, aln, invalid_raises)
 
 
@@ -247,7 +453,7 @@ def _calc_tn93_dist(
 @numba.jit(parallel=True)
 def tn93_dist_matrix(
     array_seqs,
-    num_states,
+    matrices,
     pur_freqs,
     pyr_freqs,
     pur_coords,
@@ -257,6 +463,7 @@ def tn93_dist_matrix(
     coeff2,
     coeff3,
     parallel=True,
+    tables=None,
 ):  # pragma: no cover
     num_threads = numba.get_num_threads()
     if not parallel:
@@ -266,11 +473,6 @@ def tn93_dist_matrix(
     nan = numpy.float32(numpy.nan)
     zero = numpy.float32(0.0)
 
-    # making working matrices for each thread
-    matrices = numpy.zeros(
-        (numba.get_num_threads(), num_states, num_states),
-        dtype=numpy.int32,
-    )
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
@@ -278,10 +480,11 @@ def tn93_dist_matrix(
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
         div_matrix.fill(0)
-        div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+        div_matrix, num_diffs, num_valid = _fill_pair_matrix(
             div_matrix,
             array_seqs[i],
             array_seqs[j],
+            tables,
         )
         if num_valid == 0:
             d = nan
@@ -361,6 +564,7 @@ def tn93(
     aln: "Alignment",
     invalid_raises: bool = False,
     parallel: bool = False,
+    include_ambiguity: bool = False,
 ) -> DistanceMatrix:
     """returns TN93 pairwise distances for an alignment
 
@@ -372,11 +576,19 @@ def tn93(
         If True and nan in result, raises an ArithmeticError
     parallel
         If True, uses parallel processing via numba.
+    include_ambiguity
+        If True, sites with an ambiguity code are included. A code is
+        weighted by the alignment frequencies of the states it represents,
+        e.g. with A at 0.3 and G at 0.2, R counts as 0.6 A and 0.4 G. The
+        same code in both sequences counts as a match. Codes representing
+        every state, such as N, are still excluded. The base frequencies
+        in the TN93 formula are from canonical states only.
     """
     _check_nucleic(aln, "tn93")
     alpha = aln.moltype.alphabet
 
     counts = _count_states(aln.array_seqs, len(alpha), parallel=parallel)
+    tables = _ambiguity_tables(aln.moltype, counts) if include_ambiguity else None
     freqs = (counts / counts.sum()).astype(numpy.float32)
 
     pur_indices = numpy.array(get_purine_indices(aln.moltype))
@@ -402,7 +614,7 @@ def tn93(
 
     mat = tn93_dist_matrix(
         aln.array_seqs,
-        4,
+        _working_matrices(4, tables),
         pur_freqs,
         pyr_freqs,
         pur_coords,
@@ -412,6 +624,7 @@ def tn93(
         coeff2,
         coeff3,
         parallel=parallel,
+        tables=tables,
     )
     return _to_dist_matrix(mat, aln, invalid_raises)
 
@@ -453,23 +666,20 @@ def _logdet_family(matrix, num_states, method):  # pragma: no cover
 @numba.jit(parallel=True)
 def logdet_family_distance_matrix(
     array_seqs,
-    num_states,
+    matrices,
     method,
     parallel=True,
+    tables=None,
 ):  # pragma: no cover
     num_threads = numba.get_num_threads()
     if not parallel:
         numba.set_num_threads(1)
     n_seqs = array_seqs.shape[0]
+    num_states = matrices.shape[1]
     dists = numpy.zeros((n_seqs, n_seqs), dtype=numpy.float32)
     nan = numpy.float32(numpy.nan)
     zero = numpy.float32(0.0)
 
-    # making working matrices for each thread
-    matrices = numpy.zeros(
-        (numba.get_num_threads(), num_states, num_states),
-        dtype=numpy.int32,
-    )
     num_pairs = n_seqs * (n_seqs - 1) // 2
     # loop is parallelised
     for index in numba.prange(num_pairs):
@@ -477,10 +687,11 @@ def logdet_family_distance_matrix(
         # get a working matrix for this thread
         div_matrix = matrices[numba.get_thread_id()]
         div_matrix.fill(0)
-        div_matrix, num_diffs, num_valid = _get_matrix_and_counts(
+        div_matrix, num_diffs, num_valid = _fill_pair_matrix(
             div_matrix,
             array_seqs[i],
             array_seqs[j],
+            tables,
         )
         if num_valid == 0:
             d = nan
@@ -496,10 +707,24 @@ def logdet_family_distance_matrix(
     return dists
 
 
+def _logdet_family_matrix(
+    aln: "Alignment", method: int, parallel: bool, include_ambiguity: bool
+) -> numpy.ndarray:
+    tables = _alignment_ambiguity_tables(aln, parallel) if include_ambiguity else None
+    return logdet_family_distance_matrix(
+        aln.array_seqs,
+        _working_matrices(len(aln.moltype.alphabet), tables),
+        method,
+        parallel=parallel,
+        tables=tables,
+    )
+
+
 def paralinear(
     aln: "Alignment",
     invalid_raises: bool = False,
     parallel: bool = False,
+    include_ambiguity: bool = False,
 ) -> DistanceMatrix:
     """returns matrix of pairwise paralinear distances
 
@@ -511,15 +736,19 @@ def paralinear(
         If True and nan in result, raises an ArithmeticError
     parallel
         If True, uses parallel processing via numba.
+    include_ambiguity
+        If True, sites with an ambiguity code are included. A code is
+        weighted by the alignment frequencies of the states it represents,
+        e.g. with A at 0.3 and G at 0.2, R counts as 0.6 A and 0.4 G. The
+        same code in both sequences counts as a match. Codes representing
+        every state, such as N, are still excluded.
 
     Notes
     -----
     This is limited to 4-state alphabets for now.
     """
     _check_nucleic(aln, "paralinear")
-    mat = logdet_family_distance_matrix(
-        aln.array_seqs, len(aln.moltype.alphabet), _PARALINEAR, parallel=parallel
-    )
+    mat = _logdet_family_matrix(aln, _PARALINEAR, parallel, include_ambiguity)
     return _to_dist_matrix(mat, aln, invalid_raises)
 
 
@@ -528,6 +757,7 @@ def logdet(
     invalid_raises: bool = False,
     parallel: bool = False,
     use_tk_adjustment: bool = True,
+    include_ambiguity: bool = False,
 ) -> DistanceMatrix:
     """returns matrix of pairwise LogDet distances
 
@@ -542,6 +772,12 @@ def logdet(
     use_tk_adjustment
         If True, applies the Tamura and Kumar (2002) correction for
         unequal state frequencies.
+    include_ambiguity
+        If True, sites with an ambiguity code are included. A code is
+        weighted by the alignment frequencies of the states it represents,
+        e.g. with A at 0.3 and G at 0.2, R counts as 0.6 A and 0.4 G. The
+        same code in both sequences counts as a match. Codes representing
+        every state, such as N, are still excluded.
 
     Notes
     -----
@@ -549,14 +785,15 @@ def logdet(
     """
     _check_nucleic(aln, "logdet")
     method = _LOGDET_TK if use_tk_adjustment else _LOGDET
-    mat = logdet_family_distance_matrix(
-        aln.array_seqs, len(aln.moltype.alphabet), method, parallel=parallel
-    )
+    mat = _logdet_family_matrix(aln, method, parallel, include_ambiguity)
     return _to_dist_matrix(mat, aln, invalid_raises)
 
 
 def hamming(
-    aln: "Alignment", parallel: bool = False, invalid_raises: bool = False
+    aln: "Alignment",
+    parallel: bool = False,
+    invalid_raises: bool = False,
+    include_ambiguity: bool = False,
 ) -> DistanceMatrix:
     """returns matrix of hamming distances
 
@@ -568,14 +805,24 @@ def hamming(
         If True, uses parallel processing via numba.
     invalid_raises
         Ignored, accepted for a common calculator signature. A pair with
-        no sites where both sequences have a canonical state is 0.
+        no valid sites is 0.
+    include_ambiguity
+        If True, sites with an ambiguity code are included, so a distance
+        can be fractional. A code is weighted by the alignment frequencies
+        of the states it represents, e.g. with A at 0.3 and G at 0.2, R
+        counts as 0.6 A and 0.4 G. The same code in both sequences counts
+        as a match. Codes representing every state, such as N, are still
+        excluded.
     """
-    mat = _count_matrix(aln, _HAMMING, parallel)
+    mat = _count_matrix(aln, _HAMMING, parallel, include_ambiguity)
     return DistanceMatrix.from_array_names(mat, aln.names)
 
 
 def pdist(
-    aln: "Alignment", parallel: bool = False, invalid_raises: bool = False
+    aln: "Alignment",
+    parallel: bool = False,
+    invalid_raises: bool = False,
+    include_ambiguity: bool = False,
 ) -> DistanceMatrix:
     """returns matrix of pairwise proportion difference distances
 
@@ -587,9 +834,15 @@ def pdist(
         If True, uses parallel processing via numba.
     invalid_raises
         If True and nan in result, raises an ArithmeticError. A pair with
-        no sites where both sequences have a canonical state is nan.
+        no valid sites is nan.
+    include_ambiguity
+        If True, sites with an ambiguity code are included. A code is
+        weighted by the alignment frequencies of the states it represents,
+        e.g. with A at 0.3 and G at 0.2, R counts as 0.6 A and 0.4 G. The
+        same code in both sequences counts as a match. Codes representing
+        every state, such as N, are still excluded.
     """
-    mat = _count_matrix(aln, _PDIST, parallel)
+    mat = _count_matrix(aln, _PDIST, parallel, include_ambiguity)
     return _to_dist_matrix(mat, aln, invalid_raises)
 
 

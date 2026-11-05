@@ -24,6 +24,36 @@ dists = aln.distance_matrix(calc="tn93")
 dists
 ```
 
+## Including ambiguity codes
+
+By default, a site where either sequence has an ambiguity code, such as `R` (A or G), is excluded. Here the sequences differ only at the last site, so all the distances are 0.
+
+```{python}
+from cogent3 import make_aligned_seqs
+
+aln = make_aligned_seqs(
+    {"s1": "ACGTACGTAC", "s2": "ACGTACGTAR", "s3": "ACGTACGTAY"},
+    moltype="dna",
+)
+aln.distance_matrix(calc="tn93")
+```
+
+Setting `include_ambiguity=True` includes those sites, for `hamming`, `pdist`, `jc69`, `tn93`, `logdet` and `paralinear`. Each code is weighted by how often the bases it represents occur in the alignment. In this alignment C occurs 7 times and T 6 times, so `Y` (C or T) counts as 7/13 C and 6/13 T. Against the `C` in `s1` it is 6/13 of a difference, giving a proportion of (6/13) / 10 = 0.046 differences. `R` against `C` is a whole difference whichever base `R` stands for.
+
+```{python}
+aln.distance_matrix(calc="pdist", include_ambiguity=True)
+```
+
+The same code in both sequences counts as a match. Gaps, and codes that represent every base such as `N`, are still excluded.
+
+```{python}
+aln.distance_matrix(calc="tn93", include_ambiguity=True)
+```
+
+::: {.callout-note}
+`include_ambiguity` is available through `distance_matrix()`, not the distance calculator object described next.
+:::
+
 ## Using the distance calculator directly
 
 ```{python}

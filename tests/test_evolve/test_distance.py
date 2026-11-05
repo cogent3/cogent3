@@ -1,3 +1,4 @@
+import os
 import pathlib
 import warnings
 
@@ -35,6 +36,11 @@ numpy.seterr(invalid="ignore")
 DNA = cogent3.get_moltype("dna")
 PROTEIN = cogent3.get_moltype("protein")
 RNA = cogent3.get_moltype("rna")
+
+NEEDS_MULTIPLE_CPUS = pytest.mark.skipif(
+    (os.cpu_count() or 1) == 1, reason="parallel needs more than one CPU"
+)
+SERIAL_AND_PARALLEL = [False, pytest.param(True, marks=NEEDS_MULTIPLE_CPUS)]
 
 
 @pytest.fixture
@@ -1308,7 +1314,7 @@ def test_numba_tn93_rna_matches_dna(brca1_5):
     assert_allclose(got.array, expect.array)
 
 
-@pytest.mark.parametrize("parallel", [False, True])
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
 @pytest.mark.parametrize(
     ("method", "expect"),
     [
@@ -1415,6 +1421,7 @@ def test_unknown_dist():
         pdist_numba.get_distance_calculator("blah")
 
 
+@NEEDS_MULTIPLE_CPUS
 @pytest.mark.parametrize(
     "calc", ["jc69", "tn93", "paralinear", "logdet", "hamming", "pdist"]
 )
@@ -1451,3 +1458,312 @@ def test_index_to_lower_tri_large_n():
     for i in range(1, n):
         idx = i * (i - 1) // 2
         assert index_to_lower_tri(idx) == (i, 0)
+
+
+@pytest.fixture
+def dna_freqs():
+    # alphabet order is T, C, A, G
+    return numpy.array([0.1, 0.4, 0.3, 0.2])
+
+
+@pytest.fixture
+def dna_weights(dna_freqs):
+    return pdist_numba._ambiguity_weights(cogent3.get_moltype("dna"), dna_freqs)
+
+
+def _code(moltype_name, char):
+    return list(cogent3.get_moltype(moltype_name).degen_gapped_alphabet).index(char)
+
+
+@pytest.mark.parametrize(
+    ("char", "expect"),
+    [
+        ("A", [0, 0, 1, 0]),
+        ("R", [0, 0, 0.6, 0.4]),
+        ("Y", [0.2, 0.8, 0, 0]),
+        ("B", [0.1 / 0.7, 0.4 / 0.7, 0, 0.2 / 0.7]),
+        ("-", [0, 0, 0, 0]),
+        ("N", [0, 0, 0, 0]),
+        ("?", [0, 0, 0, 0]),
+    ],
+)
+def test_ambiguity_weights_dna(dna_weights, char, expect):
+    assert_allclose(dna_weights[_code("dna", char)], expect)
+
+
+def test_ambiguity_weights_rna_matches_dna(dna_freqs, dna_weights):
+    rna = cogent3.get_moltype("rna")
+    assert_allclose(pdist_numba._ambiguity_weights(rna, dna_freqs), dna_weights)
+
+
+def test_ambiguity_weights_absent_states_uniform():
+    # neither A nor G occur, so R splits evenly
+    dna = cogent3.get_moltype("dna")
+    weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.5, 0.5, 0, 0]))
+    assert_allclose(weights[_code("dna", "R")], [0, 0, 0.5, 0.5])
+
+
+def test_ambiguity_weights_protein():
+    protein = cogent3.get_moltype("protein")
+    freqs = numpy.arange(1, 22, dtype=float)
+    freqs /= freqs.sum()
+    weights = pdist_numba._ambiguity_weights(protein, freqs)
+    alpha = list(protein.alphabet)
+    d, n = alpha.index("D"), alpha.index("N")
+    expect = numpy.zeros(21)
+    expect[[d, n]] = freqs[[d, n]] / freqs[[d, n]].sum()
+    assert_allclose(weights[_code("protein", "B")], expect)
+    assert not weights[_code("protein", "X")].any()
+
+
+@pytest.mark.parametrize(
+    ("char1", "char2", "valid", "diffs"),
+    [
+        ("A", "A", 1, 0),
+        ("A", "C", 1, 1),
+        ("A", "R", 1, 0.4),
+        ("C", "R", 1, 1),
+        ("R", "R", 1, 0),
+        ("R", "Y", 1, 1),
+        # S is C or G, weighted 2/3 and 1/3, only G matches R
+        ("R", "S", 1, 1 - 0.4 / 3),
+        ("R", "N", 0, 0),
+        ("A", "-", 0, 0),
+        ("R", "-", 0, 0),
+    ],
+)
+def test_pair_count_tables(dna_weights, char1, char2, valid, diffs):
+    got_valid, got_diffs = pdist_numba._pair_count_tables(
+        pdist_numba._pair_state_table(dna_weights)
+    )
+    a, b = _code("dna", char1), _code("dna", char2)
+    assert_allclose(
+        [got_valid[a, b], got_valid[b, a], got_diffs[a, b], got_diffs[b, a]],
+        [valid, valid, diffs, diffs],
+    )
+
+
+def _state_matrix(entries):
+    alpha = list(cogent3.get_moltype("dna").alphabet)
+    mat = numpy.zeros((4, 4))
+    if entries:
+        rows, cols = zip(
+            *[(alpha.index(a), alpha.index(b)) for a, b in entries], strict=True
+        )
+        mat[list(rows), list(cols)] = list(entries.values())
+    return mat
+
+
+@pytest.mark.parametrize(
+    ("char1", "char2", "entries"),
+    [
+        ("A", "G", {("A", "G"): 1}),
+        ("C", "R", {("C", "A"): 0.6, ("C", "G"): 0.4}),
+        ("R", "C", {("A", "C"): 0.6, ("G", "C"): 0.4}),
+        ("A", "R", {("A", "A"): 0.6, ("A", "G"): 0.4}),
+        ("R", "R", {("A", "A"): 0.6, ("G", "G"): 0.4}),
+        # S is C or G, weighted 2/3 and 1/3
+        (
+            "R",
+            "S",
+            {
+                ("A", "C"): 0.4,
+                ("A", "G"): 0.2,
+                ("G", "C"): 0.4 * 2 / 3,
+                ("G", "G"): 0.4 / 3,
+            },
+        ),
+        ("N", "A", {}),
+        ("R", "-", {}),
+    ],
+)
+def test_pair_state_table(dna_weights, char1, char2, entries):
+    table = pdist_numba._pair_state_table(dna_weights)
+    got = table[_code("dna", char1), _code("dna", char2)]
+    assert_allclose(got, _state_matrix(entries))
+
+
+def test_pair_count_tables_exact():
+    # W weights of 0.25 and 0.75 sum to 1 - 1.1e-16, but a W site is still
+    # exactly one valid site and W against W is exactly no difference
+    dna = cogent3.get_moltype("dna")
+    weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.1, 0.1, 0.3, 0.5]))
+    valid, diffs = pdist_numba._pair_count_tables(
+        pdist_numba._pair_state_table(weights)
+    )
+    w = _code("dna", "W")
+    assert valid[w, w] == 1
+    assert diffs[w, w] == 0
+
+
+def test_ambiguity_weights_some_states_absent():
+    # G does not occur, so R is all A
+    dna = cogent3.get_moltype("dna")
+    weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.5, 0.2, 0.3, 0]))
+    assert_allclose(weights[_code("dna", "R")], [0, 0, 1, 0])
+
+
+@pytest.fixture
+def r_vs_a_aln():
+    # canonical counts are A=3, C=2, G=2, T=2, so R is 3/5 A and 2/5 G and
+    # the last site adds 0.4 differences
+    return cogent3.make_aligned_seqs({"a": "ACGTR", "b": "ACGTA"}, moltype="dna")
+
+
+def _jc69(p):
+    return -0.75 * numpy.log(1 - 4 * p / 3)
+
+
+@pytest.mark.parametrize(
+    ("calc", "expect"),
+    [("hamming", 0.4), ("pdist", 0.4 / 5), ("jc69", _jc69(0.4 / 5))],
+)
+def test_count_distances_include_ambiguity(r_vs_a_aln, calc, expect):
+    got = r_vs_a_aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert_allclose(got["a", "b"], expect, rtol=1e-6)
+
+
+@pytest.mark.parametrize("calc", ["hamming", "pdist", "jc69"])
+def test_count_distances_exclude_ambiguity_by_default(r_vs_a_aln, calc):
+    assert r_vs_a_aln.distance_matrix(calc=calc)["a", "b"] == 0
+
+
+@pytest.mark.parametrize(
+    ("calc", "expect"),
+    [("hamming", 1), ("pdist", 1 / 4), ("jc69", _jc69(1 / 4))],
+)
+def test_count_distances_same_ambiguity_matches(calc, expect):
+    # R against R is a valid matching site, so 1 of 4 sites differ
+    aln = cogent3.make_aligned_seqs({"a": "ACGR", "b": "AGGR"}, moltype="dna")
+    got = aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert_allclose(got["a", "b"], expect, rtol=1e-6)
+
+
+@pytest.mark.parametrize(
+    ("moltype", "seqs", "expect"),
+    [
+        ("dna", ("ACGR", "AGGR"), 4),
+        ("dna", ("ACGN", "ACGA"), 3),
+        ("dna", ("ACG-", "ACGR"), 3),
+        ("dna", ("ACG?", "ACGR"), 3),
+        ("protein", ("ACDX", "ACDA"), 3),
+    ],
+)
+def test_shared_sites_include_ambiguity(moltype, seqs, expect):
+    aln = cogent3.make_aligned_seqs(dict(zip("ab", seqs, strict=True)), moltype=moltype)
+    got = pdist_numba.pairwise_count_matrix(
+        aln.array_seqs,
+        len(aln.moltype.alphabet),
+        pdist_numba.SHARED_SITES,
+        parallel=False,
+        count_tables=pdist_numba._alignment_ambiguity_tables(aln, parallel=False)[1:],
+    )
+    assert got[0, 1] == expect
+
+
+def test_pdist_include_ambiguity_protein():
+    # D occurs 3 times and N twice, so B against D adds 0.4 differences
+    aln = cogent3.make_aligned_seqs({"a": "ACDNB", "b": "ACDND"}, moltype="protein")
+    got = aln.distance_matrix(calc="pdist", include_ambiguity=True)
+    assert_allclose(got["a", "b"], 0.4 / 5, rtol=1e-6)
+
+
+def test_include_ambiguity_needs_ambiguity_codes():
+    from cogent3.core import moltype as c3_moltype
+
+    aln = cogent3.make_aligned_seqs({"a": "ACGT", "b": "ACGA"}, moltype="text")
+    with pytest.raises(c3_moltype.MolTypeError, match="ambiguity"):
+        pdist_numba.pdist(aln, include_ambiguity=True)
+
+
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
+@pytest.mark.parametrize(
+    ("method", "expect"),
+    [
+        (pdist_numba.SHARED_SITES, 5),
+        (pdist_numba.MATCHING_SITES, 4.6),
+        (pdist_numba._HAMMING, 0.4),
+    ],
+)
+def test_pairwise_count_matrix_count_tables(r_vs_a_aln, parallel, method, expect):
+    tables = pdist_numba._alignment_ambiguity_tables(r_vs_a_aln, parallel=parallel)[1:]
+    got = pdist_numba.pairwise_count_matrix(
+        r_vs_a_aln.array_seqs, 4, method, parallel=parallel, count_tables=tables
+    )
+    assert_allclose(got[0, 1], expect, rtol=1e-6)
+
+
+def test_fill_pair_matrix_include_ambiguity(r_vs_a_aln):
+    tables = pdist_numba._alignment_ambiguity_tables(r_vs_a_aln, parallel=False)
+    matrix, num_diffs, num_valid = pdist_numba._fill_pair_matrix(
+        numpy.zeros((4, 4)), *r_vs_a_aln.array_seqs, tables
+    )
+    # R against A adds 0.6 to A/A and 0.4 to G/A
+    expect = _state_matrix(
+        {("T", "T"): 1, ("C", "C"): 1, ("G", "G"): 1, ("A", "A"): 1.6, ("G", "A"): 0.4}
+    )
+    assert_allclose(matrix, expect)
+    assert_allclose([num_diffs, num_valid], [0.4, 5])
+
+
+def test_fill_pair_matrix_ambiguity_against_missing():
+    # gap and N against R are missing data, leaving 3 identical sites
+    aln = cogent3.make_aligned_seqs({"a": "ACGRR", "b": "ACG-N"}, moltype="dna")
+    tables = pdist_numba._alignment_ambiguity_tables(aln, parallel=False)
+    matrix, num_diffs, num_valid = pdist_numba._fill_pair_matrix(
+        numpy.zeros((4, 4)), *aln.array_seqs, tables
+    )
+    assert_allclose(
+        matrix, _state_matrix({("A", "A"): 1, ("C", "C"): 1, ("G", "G"): 1})
+    )
+    assert (num_diffs, num_valid) == (0, 3)
+
+
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
+def test_tn93_include_ambiguity(parallel):
+    # the only difference is Y against C, and with C=7 and T=6 across the
+    # alignment, Y adds 6/13 of a C<->T transition in 16 sites
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGTACGTACGTAAGC", "b": "ACGTACGTACGTAAGY"}, moltype="dna"
+    )
+    got = pdist_numba.tn93(aln, parallel=parallel, include_ambiguity=True)
+    coeff = 2 * (7 / 31) * (6 / 31) / (13 / 31)
+    expect = -coeff * numpy.log(1 - (6 / 13 / 16) / coeff)
+    assert_allclose(got["a", "b"], expect, rtol=1e-5)
+    assert pdist_numba.tn93(aln, parallel=parallel)["a", "b"] == 0
+
+
+@pytest.fixture
+def c_vs_r_aln():
+    # as in the issue, sequences identical except C against R
+    return cogent3.make_aligned_seqs(
+        {"a": "ACGTACGTAC", "b": "ACGTACGTAR"}, moltype="dna"
+    )
+
+
+@pytest.mark.parametrize("calc", ["tn93", "logdet", "paralinear"])
+def test_matrix_distances_include_ambiguity(c_vs_r_aln, calc):
+    assert c_vs_r_aln.distance_matrix(calc=calc)["a", "b"] == 0
+    got = c_vs_r_aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert got["a", "b"] > 0
+
+
+@pytest.mark.parametrize("calc", ["tn93", "logdet", "paralinear"])
+def test_matrix_distances_same_ambiguity_matches(calc):
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGTACGTAR", "b": "ACGTACGTAR"}, moltype="dna"
+    )
+    got = aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert got["a", "b"] == 0
+
+
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
+@pytest.mark.parametrize("calc", ["logdet", "paralinear"])
+def test_logdet_family_include_ambiguity_resolved(calc, parallel):
+    # G is absent, so R can only be A and the distances match an A
+    seqs = {"a": "ACTTACTTACAC", "b": "ACTCACTTATA"}
+    with_r = cogent3.make_aligned_seqs({**seqs, "b": seqs["b"] + "R"}, moltype="dna")
+    with_a = cogent3.make_aligned_seqs({**seqs, "b": seqs["b"] + "A"}, moltype="dna")
+    got = with_r.distance_matrix(calc=calc, include_ambiguity=True, parallel=parallel)
+    expect = with_a.distance_matrix(calc=calc)
+    assert_allclose(got["a", "b"], expect["a", "b"], rtol=1e-6)
