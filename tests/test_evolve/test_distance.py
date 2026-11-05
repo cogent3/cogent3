@@ -1,3 +1,4 @@
+import os
 import pathlib
 import warnings
 
@@ -35,6 +36,16 @@ numpy.seterr(invalid="ignore")
 DNA = cogent3.get_moltype("dna")
 PROTEIN = cogent3.get_moltype("protein")
 RNA = cogent3.get_moltype("rna")
+
+SERIAL_AND_PARALLEL = [
+    False,
+    pytest.param(
+        True,
+        marks=pytest.mark.skipif(
+            (os.cpu_count() or 1) == 1, reason="parallel needs more than one CPU"
+        ),
+    ),
+]
 
 
 @pytest.fixture
@@ -1594,3 +1605,93 @@ def test_ambiguity_weights_some_states_absent():
     dna = cogent3.get_moltype("dna")
     weights = pdist_numba._ambiguity_weights(dna, numpy.array([0.5, 0.2, 0.3, 0]))
     assert_allclose(weights[_code("dna", "R")], [0, 0, 1, 0])
+
+
+@pytest.fixture
+def r_vs_a_aln():
+    # canonical counts are A=3, C=2, G=2, T=2, so R is 3/5 A and 2/5 G and
+    # the last site adds 0.4 differences
+    return cogent3.make_aligned_seqs({"a": "ACGTR", "b": "ACGTA"}, moltype="dna")
+
+
+def _jc69(p):
+    return -0.75 * numpy.log(1 - 4 * p / 3)
+
+
+@pytest.mark.parametrize(
+    ("calc", "expect"),
+    [("hamming", 0.4), ("pdist", 0.4 / 5), ("jc69", _jc69(0.4 / 5))],
+)
+def test_count_distances_include_ambiguity(r_vs_a_aln, calc, expect):
+    got = r_vs_a_aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert_allclose(got["a", "b"], expect, rtol=1e-6)
+
+
+@pytest.mark.parametrize("calc", ["hamming", "pdist", "jc69"])
+def test_count_distances_exclude_ambiguity_by_default(r_vs_a_aln, calc):
+    assert r_vs_a_aln.distance_matrix(calc=calc)["a", "b"] == 0
+
+
+@pytest.mark.parametrize(
+    ("calc", "expect"),
+    [("hamming", 1), ("pdist", 1 / 4), ("jc69", _jc69(1 / 4))],
+)
+def test_count_distances_same_ambiguity_matches(calc, expect):
+    # R against R is a valid matching site, so 1 of 4 sites differ
+    aln = cogent3.make_aligned_seqs({"a": "ACGR", "b": "AGGR"}, moltype="dna")
+    got = aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert_allclose(got["a", "b"], expect, rtol=1e-6)
+
+
+@pytest.mark.parametrize(
+    ("moltype", "seqs", "expect"),
+    [
+        ("dna", ("ACGR", "AGGR"), 4),
+        ("dna", ("ACGN", "ACGA"), 3),
+        ("dna", ("ACG-", "ACGR"), 3),
+        ("dna", ("ACG?", "ACGR"), 3),
+        ("protein", ("ACDX", "ACDA"), 3),
+    ],
+)
+def test_shared_sites_include_ambiguity(moltype, seqs, expect):
+    aln = cogent3.make_aligned_seqs(dict(zip("ab", seqs, strict=True)), moltype=moltype)
+    got = pdist_numba.pairwise_count_matrix(
+        aln.array_seqs,
+        len(aln.moltype.alphabet),
+        pdist_numba.SHARED_SITES,
+        parallel=False,
+        count_tables=pdist_numba._count_tables(aln, parallel=False),
+    )
+    assert got[0, 1] == expect
+
+
+def test_pdist_include_ambiguity_protein():
+    # D occurs 3 times and N twice, so B against D adds 0.4 differences
+    aln = cogent3.make_aligned_seqs({"a": "ACDNB", "b": "ACDND"}, moltype="protein")
+    got = aln.distance_matrix(calc="pdist", include_ambiguity=True)
+    assert_allclose(got["a", "b"], 0.4 / 5, rtol=1e-6)
+
+
+def test_include_ambiguity_needs_ambiguity_codes():
+    from cogent3.core import moltype as c3_moltype
+
+    aln = cogent3.make_aligned_seqs({"a": "ACGT", "b": "ACGA"}, moltype="text")
+    with pytest.raises(c3_moltype.MolTypeError, match="ambiguity"):
+        pdist_numba.pdist(aln, include_ambiguity=True)
+
+
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
+@pytest.mark.parametrize(
+    ("method", "expect"),
+    [
+        (pdist_numba.SHARED_SITES, 5),
+        (pdist_numba.MATCHING_SITES, 4.6),
+        (pdist_numba._HAMMING, 0.4),
+    ],
+)
+def test_pairwise_count_matrix_count_tables(r_vs_a_aln, parallel, method, expect):
+    tables = pdist_numba._count_tables(r_vs_a_aln, parallel=parallel)
+    got = pdist_numba.pairwise_count_matrix(
+        r_vs_a_aln.array_seqs, 4, method, parallel=parallel, count_tables=tables
+    )
+    assert_allclose(got[0, 1], expect, rtol=1e-6)
