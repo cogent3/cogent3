@@ -1660,7 +1660,7 @@ def test_shared_sites_include_ambiguity(moltype, seqs, expect):
         len(aln.moltype.alphabet),
         pdist_numba.SHARED_SITES,
         parallel=False,
-        count_tables=pdist_numba._count_tables(aln, parallel=False),
+        count_tables=pdist_numba._alignment_ambiguity_tables(aln, parallel=False)[1:],
     )
     assert got[0, 1] == expect
 
@@ -1690,8 +1690,84 @@ def test_include_ambiguity_needs_ambiguity_codes():
     ],
 )
 def test_pairwise_count_matrix_count_tables(r_vs_a_aln, parallel, method, expect):
-    tables = pdist_numba._count_tables(r_vs_a_aln, parallel=parallel)
+    tables = pdist_numba._alignment_ambiguity_tables(r_vs_a_aln, parallel=parallel)[1:]
     got = pdist_numba.pairwise_count_matrix(
         r_vs_a_aln.array_seqs, 4, method, parallel=parallel, count_tables=tables
     )
     assert_allclose(got[0, 1], expect, rtol=1e-6)
+
+
+def test_fill_pair_matrix_include_ambiguity(r_vs_a_aln):
+    tables = pdist_numba._alignment_ambiguity_tables(r_vs_a_aln, parallel=False)
+    matrix, num_diffs, num_valid = pdist_numba._fill_pair_matrix(
+        numpy.zeros((4, 4)), *r_vs_a_aln.array_seqs, tables
+    )
+    # R against A adds 0.6 to A/A and 0.4 to G/A
+    expect = _state_matrix(
+        {("T", "T"): 1, ("C", "C"): 1, ("G", "G"): 1, ("A", "A"): 1.6, ("G", "A"): 0.4}
+    )
+    assert_allclose(matrix, expect)
+    assert_allclose([num_diffs, num_valid], [0.4, 5])
+
+
+def test_fill_pair_matrix_ambiguity_against_missing():
+    # gap and N against R are missing data, leaving 3 identical sites
+    aln = cogent3.make_aligned_seqs({"a": "ACGRR", "b": "ACG-N"}, moltype="dna")
+    tables = pdist_numba._alignment_ambiguity_tables(aln, parallel=False)
+    matrix, num_diffs, num_valid = pdist_numba._fill_pair_matrix(
+        numpy.zeros((4, 4)), *aln.array_seqs, tables
+    )
+    assert_allclose(
+        matrix, _state_matrix({("A", "A"): 1, ("C", "C"): 1, ("G", "G"): 1})
+    )
+    assert (num_diffs, num_valid) == (0, 3)
+
+
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
+def test_tn93_include_ambiguity(parallel):
+    # the only difference is Y against C, and with C=7 and T=6 across the
+    # alignment, Y adds 6/13 of a C<->T transition in 16 sites
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGTACGTACGTAAGC", "b": "ACGTACGTACGTAAGY"}, moltype="dna"
+    )
+    got = pdist_numba.tn93(aln, parallel=parallel, include_ambiguity=True)
+    coeff = 2 * (7 / 31) * (6 / 31) / (13 / 31)
+    expect = -coeff * numpy.log(1 - (6 / 13 / 16) / coeff)
+    assert_allclose(got["a", "b"], expect, rtol=1e-5)
+    assert pdist_numba.tn93(aln, parallel=parallel)["a", "b"] == 0
+
+
+@pytest.fixture
+def c_vs_r_aln():
+    # as in the issue, sequences identical except C against R
+    return cogent3.make_aligned_seqs(
+        {"a": "ACGTACGTAC", "b": "ACGTACGTAR"}, moltype="dna"
+    )
+
+
+@pytest.mark.parametrize("calc", ["tn93", "logdet", "paralinear"])
+def test_matrix_distances_include_ambiguity(c_vs_r_aln, calc):
+    assert c_vs_r_aln.distance_matrix(calc=calc)["a", "b"] == 0
+    got = c_vs_r_aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert got["a", "b"] > 0
+
+
+@pytest.mark.parametrize("calc", ["tn93", "logdet", "paralinear"])
+def test_matrix_distances_same_ambiguity_matches(calc):
+    aln = cogent3.make_aligned_seqs(
+        {"a": "ACGTACGTAR", "b": "ACGTACGTAR"}, moltype="dna"
+    )
+    got = aln.distance_matrix(calc=calc, include_ambiguity=True)
+    assert got["a", "b"] == 0
+
+
+@pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
+@pytest.mark.parametrize("calc", ["logdet", "paralinear"])
+def test_logdet_family_include_ambiguity_resolved(calc, parallel):
+    # G is absent, so R can only be A and the distances match an A
+    seqs = {"a": "ACTTACTTACAC", "b": "ACTCACTTATA"}
+    with_r = cogent3.make_aligned_seqs({**seqs, "b": seqs["b"] + "R"}, moltype="dna")
+    with_a = cogent3.make_aligned_seqs({**seqs, "b": seqs["b"] + "A"}, moltype="dna")
+    got = with_r.distance_matrix(calc=calc, include_ambiguity=True, parallel=parallel)
+    expect = with_a.distance_matrix(calc=calc)
+    assert_allclose(got["a", "b"], expect["a", "b"], rtol=1e-6)
