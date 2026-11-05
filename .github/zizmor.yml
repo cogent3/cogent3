@@ -1,0 +1,6 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        "*": hash-pin
+        "pypa/gh-action-pypi-publish": ref-pin
