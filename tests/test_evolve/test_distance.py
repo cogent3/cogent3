@@ -1676,6 +1676,27 @@ def test_include_ambiguity_needs_ambiguity_codes():
         pdist_numba.pdist(aln, include_ambiguity=True)
 
 
+@pytest.mark.parametrize("missing", [None, "?"])
+def test_include_ambiguity_without_gap(missing):
+    from cogent3.core import moltype as c3_moltype
+
+    mtype = c3_moltype.MolType(
+        name="gapless",
+        monomers="TCAG",
+        make_seq="Sequence",
+        gap=None,
+        missing=missing,
+        ambiguities={"R": frozenset("AG"), "N": frozenset("TCAG")},
+    )
+    aln = cogent3.make_aligned_seqs(
+        {"a": "TCAGRTCA", "b": "TCAATTCA", "c": "TCGGATCA"}, moltype=mtype
+    )
+    # state counts T7 C6 A7 G3 resolve R as 0.7 A and 0.3 G
+    dists = pdist_numba.pdist(aln, include_ambiguity=True)
+    got = [dists["a", "b"], dists["a", "c"], dists["b", "c"]]
+    assert got == pytest.approx([0.25, 1.3 / 8, 0.375])
+
+
 @pytest.mark.parametrize("parallel", SERIAL_AND_PARALLEL)
 @pytest.mark.parametrize(
     ("method", "expect"),

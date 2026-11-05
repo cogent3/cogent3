@@ -40,7 +40,7 @@ def _ambiguity_weights(
     Parameters
     ----------
     moltype
-        defines the sequence codes, as its degen_gapped_alphabet, and the
+        defines the sequence codes, as its most_degen_alphabet(), and the
         canonical states each ambiguity code represents
     state_freqs
         frequencies or counts of the canonical states, in the order of
@@ -50,7 +50,7 @@ def _ambiguity_weights(
     -------
     numpy.ndarray
         Shape (number of codes, number of canonical states), row i for code
-        i of moltype.degen_gapped_alphabet. A canonical state has weight 1
+        i of moltype.most_degen_alphabet(). A canonical state has weight 1
         on itself. An ambiguity code has weights on the states it represents
         proportional to state_freqs and summing to 1. If all of those states
         have a frequency of 0, the weights are equal instead, e.g. 0.5 each
@@ -59,7 +59,7 @@ def _ambiguity_weights(
     """
     state_index = {state: i for i, state in enumerate(moltype.alphabet)}
     num_states = len(state_index)
-    codes = list(moltype.degen_gapped_alphabet)
+    codes = list(moltype.most_degen_alphabet())
     weights = numpy.zeros((len(codes), num_states), dtype=numpy.float64)
     weights[:num_states] = numpy.eye(num_states)
     for code, char in enumerate(codes[num_states:], start=num_states):
@@ -195,7 +195,7 @@ def _fill_pair_matrix(matrix, seq1, seq2, tables):  # pragma: no cover
         square array with a row and column per canonical state, updated in
         place. Must be float if tables is provided.
     seq1, seq2
-        sequences as indices into the moltype's degen_gapped_alphabet
+        sequences as indices into the moltype's most_degen_alphabet()
     tables
         None, or the state pair, valid and difference tables returned by
         _ambiguity_tables. If None, only sites where both sequences have a
@@ -335,7 +335,7 @@ def _ambiguity_tables(
     moltype: c3_moltype.MolType, state_counts: numpy.ndarray
 ) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     """returns the state pair, valid and difference tables for pairs of codes"""
-    if moltype.degen_gapped_alphabet is None:
+    if moltype.degen_alphabet is None:
         msg = f"include_ambiguity needs a moltype with ambiguity codes, not {moltype.name!r}"
         raise c3_moltype.MolTypeError(msg)
     state_table = _pair_state_table(_ambiguity_weights(moltype, state_counts))
