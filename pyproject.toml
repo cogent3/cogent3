@@ -90,7 +90,7 @@ test = [
     "pytest-xdist",
     "nox>=2026.8.10",
 ]
-typing = ["mypy==2.4.0"]
+typing = ["mypy==2.4.1"]
 doc = [
     "click",
     "cogent3[extra]",
