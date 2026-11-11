@@ -4,6 +4,7 @@
 Info is a dictionary and is the annotation object of a Sequence object.
 """
 
+from collections.abc import Mapping
 from typing import Any, ClassVar
 from warnings import warn
 
@@ -195,3 +196,17 @@ class Info(MappedRecord, Delegator):
                 stacklevel=2,
             )
         return super().update(item)
+
+
+def info_to_metadata(info: Mapping[str, Any]) -> dict[str, Any]:
+    """Return legacy info as a plain dict, without an empty ``Refs``.
+
+    An ``Info`` always holds ``Refs``, so an empty one carries no data.
+    Nested dict subclasses are left for ``MetaData``, which stores every
+    mapping it is given as a plain dict.
+    """
+    result = dict(info.items())
+    refs = result.get("Refs")
+    if "Refs" in result and (refs is None or (isinstance(refs, DbRefs) and not refs)):
+        del result["Refs"]
+    return result

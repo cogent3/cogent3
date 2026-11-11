@@ -22,6 +22,7 @@ from scinexus.deserialise import register_deserialiser
 from scinexus.misc import get_object_provenance
 
 from cogent3.core import alphabet as c3_alphabet
+from cogent3.core.metadata import _info_arg_renamed
 from cogent3.data.molecular_weight import DnaMW, ProteinMW, RnaMW, WeightCalculator
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -640,6 +641,7 @@ class MolType(Generic[TStrOrBytes]):
 
         return any(alpha == alphabet for alpha in self.iter_alphabets())
 
+    @_info_arg_renamed
     def make_seq(
         self,
         *,

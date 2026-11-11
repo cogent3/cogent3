@@ -13,6 +13,7 @@ from importlib import import_module
 from scinexus import open_, open_data_store, set_parallel_backend  # noqa: F401
 
 from cogent3._version import __version__
+from cogent3.core.metadata import _info_arg_renamed
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import numpy
@@ -118,6 +119,7 @@ __numba_logger.setLevel(logging.WARNING)
 os.environ.setdefault("KMP_WARNINGS", "0")
 
 
+@_info_arg_renamed
 def make_seq(
     seq,
     name: str | None = None,

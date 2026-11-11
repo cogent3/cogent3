@@ -2,14 +2,50 @@
 
 import copy
 import functools
-from collections.abc import Iterable, Iterator, Mapping, MutableMapping
+from collections.abc import Callable, Iterable, Iterator, Mapping, MutableMapping
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Final, Self
+from typing import TYPE_CHECKING, Any, Final, Self, TypeVar, cast
+
+from scinexus.warning import deprecated, deprecated_args
 
 if TYPE_CHECKING:
     from _typeshed import SupportsKeysAndGetItem
 
 _NO_METADATA: Mapping[str, Any] = MappingProxyType({})
+
+_INFO_REMOVAL_VERSION: Final = "2027.4"
+_INFO_REASON: Final = (
+    "metadata has more consistent behaviour and will be saved in storage "
+    "backends that support it"
+)
+_rename_info_arg: Final = deprecated_args(
+    version=_INFO_REMOVAL_VERSION,
+    reason=_INFO_REASON,
+    old_new=[("info", "metadata")],
+    stack_level=3,
+)
+
+_F = TypeVar("_F", bound=Callable[..., Any])
+
+
+def _info_arg_renamed(func: _F) -> _F:
+    # deprecated_args is typed as returning Callable[..., Any], which would
+    # erase func's signature for type checkers
+    return cast("_F", _rename_info_arg(func))
+
+
+def _warn_info_attribute() -> None:
+    # called from the info property, so stack level 4 is the property's caller
+    deprecated(
+        "method",
+        "info",
+        "metadata",
+        _INFO_REMOVAL_VERSION,
+        _INFO_REASON,
+        stack_level=4,
+    )
+
+
 # an unpickled MetaData reads this as empty until bind() supplies its stored layer
 _UNBOUND: Final[Mapping[str, Any]] = MappingProxyType({})
 

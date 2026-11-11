@@ -44,7 +44,7 @@ from cogent3.core.annotation_db import (
     FeatureDataType,
     SqliteAnnotationDbMixin,
 )
-from cogent3.core.info import Info as InfoClass
+from cogent3.core.info import Info, info_to_metadata
 from cogent3.core.location import (
     FeatureMap,
     IndelMap,
@@ -53,6 +53,7 @@ from cogent3.core.location import (
     Strand,
     _LostSpan,
 )
+from cogent3.core.metadata import MetaData, _info_arg_renamed, _warn_info_attribute
 from cogent3.core.seqview import SeqView, SeqViewABC
 from cogent3.format.fasta import seqs_to_fasta
 from cogent3.maths.stats.number import CategoryCounter
@@ -194,6 +195,14 @@ def validate_positive_int(name: str, value: object) -> None:
         raise ValueError(msg)
 
 
+def _owned_metadata(value: Mapping[str, Any] | None) -> MetaData | None:
+    # a sequence's stored layer is always empty, so the values of a MetaData
+    # argument, stored ones included, are copied into the local layer
+    if isinstance(value, Info):
+        value = info_to_metadata(value)
+    return MetaData(local=value) if value else None
+
+
 @total_ordering
 class Sequence(AnnotatableMixin):
     """Holds the standard Sequence object. Immutable.
@@ -205,20 +214,21 @@ class Sequence(AnnotatableMixin):
 
     __slots__ = (
         "_annotation_db",
+        "_metadata",
         "_repr_policy",
         "_seq",
-        "info",
         "moltype",
         "name",
     )
 
+    @_info_arg_renamed
     def __init__(
         self,
         moltype: c3_moltype.MolType[Any],
         seq: str | bytes | NumpyIntArrayType | SeqViewABC,
         *,
         name: str | None = None,
-        info: dict[str, Any] | InfoClass | None = None,
+        metadata: Mapping[str, Any] | None = None,
         annotation_offset: int = 0,
         annotation_db: AnnotationDbABC | None = None,
     ) -> None:
@@ -232,8 +242,8 @@ class Sequence(AnnotatableMixin):
             the raw sequence string, default is ''
         name
             the sequence name
-        info
-            Info object or dict
+        metadata
+            values for the sequence's metadata, which are copied
         annotation_offset
             integer indicating start position relative to annotations
         annotation_db
@@ -253,11 +263,48 @@ class Sequence(AnnotatableMixin):
             annotation_offset,
         )
 
-        self.info = InfoClass(**(info or {}))
+        self._metadata = _owned_metadata(metadata)
         self._repr_policy: dict[str, int] = {"num_pos": 60, "wrap": 60}
         self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
             annotation_db
         )
+
+    @property
+    def metadata(self) -> MetaData:
+        """The sequence's metadata, a mutable mapping."""
+        if self._metadata is None:
+            self._metadata = MetaData()
+        return self._metadata
+
+    @property
+    def info(self) -> MetaData:
+        """Deprecated alias of metadata."""
+        _warn_info_attribute()
+        return self.metadata
+
+    @info.setter
+    def info(self, value: Mapping[str, Any] | None) -> None:
+        _warn_info_attribute()
+        metadata = self.metadata
+        if value is metadata:
+            return
+        if isinstance(value, Info):
+            value = info_to_metadata(value)
+        new = value.to_dict() if isinstance(value, MetaData) else value or {}
+        metadata.clear()
+        metadata |= new
+
+    def __setstate__(self, state: tuple[dict[str, Any] | None, dict[str, Any]]) -> None:
+        instance_dict, slots = state
+        if instance_dict:
+            self.__dict__.update(instance_dict)
+        slots = dict(slots)
+        # pickles made before metadata replaced info hold an info slot
+        legacy_info = slots.pop("info", None)
+        metadata = slots.pop("_metadata", legacy_info)
+        for name, value in slots.items():
+            setattr(self, name, value)
+        self._metadata = _owned_metadata(metadata)
 
     def __del__(self):
         if self._annotation_db:
@@ -355,15 +402,12 @@ class Sequence(AnnotatableMixin):
         Deserialisation of the sequence object will not include the annotation_db
         even if exclude_annotations=False.
         """
-        info: InfoClass | dict[str, Any] = {} if self.info is None else self.info
-        if info.get("Refs", None) is not None and "Refs" in info:
-            info.pop("Refs")
-
+        metadata = None if self._metadata is None else self._metadata.to_dict()
         data: dict[str, Any] = {
             "name": self.name,
             "seq": str(self),
             "moltype": self.moltype.label,
-            "info": info or None,
+            "metadata": metadata or None,
             "type": get_object_provenance(self),
             "version": __version__,
         }
@@ -386,6 +430,10 @@ class Sequence(AnnotatableMixin):
             data["seq"] = data.pop("seq")["init_args"]["seq"]
 
         moltype, seq = _moltype_seq_from_rich_dict(data)
+        # rich dicts written before metadata replaced info
+        legacy_info = data.pop("info", None)
+        if data.get("metadata") is None:
+            data["metadata"] = legacy_info
 
         return cls(moltype=moltype, seq=seq, **data)
 
@@ -575,7 +623,7 @@ class Sequence(AnnotatableMixin):
         return self.__class__(
             moltype=self.moltype,
             seq="".join(randomized_copy_list),
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def strip_degenerate(self) -> Self:
@@ -583,7 +631,7 @@ class Sequence(AnnotatableMixin):
         return self.__class__(
             moltype=self.moltype,
             seq=self.moltype.strip_degenerate(bytes(self)),
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def strip_bad(self) -> Self:
@@ -591,7 +639,7 @@ class Sequence(AnnotatableMixin):
         return self.__class__(
             moltype=self.moltype,
             seq=self.moltype.strip_bad(str(self)),
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def strip_bad_and_gaps(self) -> Self:
@@ -600,7 +648,7 @@ class Sequence(AnnotatableMixin):
         return self.__class__(
             moltype=self.moltype,
             seq=self.moltype.strip_bad_and_gaps(str(self)),
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def is_gapped(self) -> bool:
@@ -634,7 +682,7 @@ class Sequence(AnnotatableMixin):
         return self.__class__(
             moltype=self.moltype,
             seq=self.moltype.disambiguate(str(self), method),
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def degap(self) -> Self:
@@ -643,7 +691,7 @@ class Sequence(AnnotatableMixin):
             moltype=self.moltype,
             seq=self.moltype.degap(bytes(self)),
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
         )
         if self.has_annotation_db():
             result.annotation_db = self.annotation_db
@@ -956,7 +1004,7 @@ class Sequence(AnnotatableMixin):
             return self.__class__(
                 moltype=self.moltype,
                 seq=missing * len(self),
-                info=self.info,
+                metadata=self._metadata,
             )
         last_nongap = cast("int", last_nongap)
 
@@ -966,7 +1014,7 @@ class Sequence(AnnotatableMixin):
         return self.__class__(
             moltype=self.moltype,
             seq=prefix + mid + suffix,
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def _get_repr_settings(self) -> dict[str, int]:
@@ -1474,7 +1522,7 @@ class Sequence(AnnotatableMixin):
             seq=sv,
             name=self.name,
             check_seq=False,
-            info=self.info,
+            metadata=self._metadata,
             annotation_db=db,
         )
         new._repr_policy.update(self._repr_policy)
@@ -1536,7 +1584,7 @@ class Sequence(AnnotatableMixin):
             moltype=self.moltype,
             seq=data,
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
             annotation_offset=offset,
             annotation_db=db,
         )
@@ -1597,7 +1645,7 @@ class Sequence(AnnotatableMixin):
             moltype=self.moltype,
             seq="".join(segments),
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
         )
         if self.has_annotation_db():
             new.annotation_db = self.annotation_db
@@ -1642,7 +1690,7 @@ class Sequence(AnnotatableMixin):
             moltype=self.moltype,
             seq="".join(segments),
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def _mapped(self, segment_map: FeatureMap) -> Self:
@@ -1658,7 +1706,7 @@ class Sequence(AnnotatableMixin):
             moltype=self.moltype,
             seq=seq,
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
         )
 
     def __repr__(self) -> str:
@@ -1691,7 +1739,7 @@ class Sequence(AnnotatableMixin):
                 moltype=self.moltype,
                 seq=self._seq[index],
                 name=self.name,
-                info=self.info,
+                metadata=self._metadata,
             )
             stride = getattr(index, "step", 1) or 1
             preserve_offset = stride > 0
@@ -1841,7 +1889,7 @@ class Sequence(AnnotatableMixin):
             moltype=self.moltype,
             seq=gap.sub("", seq_str),
             name=self.get_name(),
-            info=self.info,
+            metadata=self._metadata,
         )
         indel_map = IndelMap(
             gap_pos=gap_pos,
@@ -2169,7 +2217,7 @@ class NucleicAcidSequenceBase(Sequence):
         new = self.__class__(
             moltype=self.moltype,
             seq=self.moltype.complement(bytes(self)),
-            info=self.info,
+            metadata=self._metadata,
         )
         new._repr_policy.update(self._repr_policy)
         return new
@@ -2186,7 +2234,7 @@ class NucleicAcidSequenceBase(Sequence):
             moltype=self.moltype,
             seq=self._seq[::-1],
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
             annotation_db=db,
         )
         new._repr_policy.update(self._repr_policy)
@@ -2277,7 +2325,7 @@ class NucleicAcidSequenceBase(Sequence):
             moltype=self.moltype,
             seq=str_s,
             name=self.name,
-            info=self.info,
+            metadata=self._metadata,
         )
         if self.has_annotation_db():
             result.annotation_db = self.annotation_db
