@@ -424,7 +424,15 @@ class align_to_ref(ComposableApp, cite=cite_cogent3):
             aln = global_pairwise(ref_seq, seq, **kwargs)
             pwise.append((seq.name, aln))
 
-        return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
+        align_params = {
+            "score_matrix": _nested_score_matrix(kwargs["S"]),
+            "insertion_penalty": kwargs["d"],
+            "extension_penalty": kwargs["e"],
+            "ref_seq": self._ref_name,
+        }
+        # the result shares an info object passed to it, so pass a copy
+        info = {**seqs.info, "align_params": align_params}
+        return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=info)
 
     T = SerialisableType | AlignedSeqsType
 

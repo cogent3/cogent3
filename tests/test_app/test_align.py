@@ -878,6 +878,23 @@ def test_smith_waterman_raises(seqs):
     assert isinstance(aln, NotCompleted)
 
 
+@pytest.mark.parametrize("ref_seq", ["Human", "longest"])
+def test_align_to_ref_records_own_params(seqs, ref_seq):
+    hky = align_app.progressive_align(model="HKY85")(seqs)
+    degapped = hky.degap()
+    aln = align_app.align_to_ref(ref_seq=ref_seq)(degapped)
+    params = aln.info["align_params"]
+    assert "model" not in params
+    assert params["ref_seq"] == "Human"
+    assert params["insertion_penalty"] == 20.0
+    assert params["extension_penalty"] == 2.0
+    assert params["score_matrix"]["A"]["T"] == -8
+    assert aln.info is not degapped.info
+    assert degapped.info["align_params"]["model"] == "HKY85"
+    # the input's lnL belongs to a different alignment
+    assert isinstance(get_app("cogent3_score")(aln), NotCompleted)
+
+
 def test_aln_two():
     """correctly recapitulates known case"""
     orig = make_aligned_seqs(
