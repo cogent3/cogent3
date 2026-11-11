@@ -1,8 +1,12 @@
 import json
 import os
 import pathlib
+import pickle
 import re
-from warnings import catch_warnings, filterwarnings
+import types
+from collections.abc import Mapping
+from typing import Any
+from warnings import catch_warnings, filterwarnings, simplefilter
 
 import numpy
 import pytest
@@ -25,8 +29,9 @@ from cogent3.core import sequence as c3_sequence
 from cogent3.core import seqview as c3_seqview
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
+from cogent3.core.info import Info
 from cogent3.core.location import FeatureMap, LostSpan, Span
-from cogent3.core.metadata import _NO_METADATA
+from cogent3.core.metadata import _NO_METADATA, MetaData
 from cogent3.core.slice_record import SliceRecord
 
 try:
@@ -2856,7 +2861,7 @@ def test_sequence_collection_to_rich_dict():
         "init_args": {
             "moltype": seqs.moltype.label,
             "name_map": seqs.name_map,
-            "info": seqs.info,
+            "metadata": {},
             "source": "unknown",
         },
     }
@@ -2874,7 +2879,7 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
         "init_args": {
             "moltype": seqs.moltype.label,
             "name_map": seqs.name_map,
-            "info": seqs.info,
+            "metadata": {},
             "source": "unknown",
         },
         "type": get_object_provenance(seqs),
@@ -6804,3 +6809,304 @@ def test_load_aligned_seqs_result_is_storage_branch(monkeypatch, tmp_path):
     got = load_aligned_seqs(path, moltype="dna")
     assert isinstance(got, c3_alignment.Alignment)
     assert got.names == ("a", "b")
+
+
+class _StoredMetadataMixin:
+    """storage reporting the metadata and path set on the instance only
+
+    Stores derived with cls(...) report no metadata, as new storage does.
+    """
+
+    __slots__ = ()
+
+    @property
+    def metadata(self) -> Mapping[str, Any]:
+        return getattr(self, "_md_view", _NO_METADATA)
+
+    @property
+    def path(self) -> pathlib.Path | None:
+        return getattr(self, "_md_path", None)
+
+    def set_metadata(
+        self, metadata: Mapping[str, Any], path: pathlib.Path | None = None
+    ) -> None:
+        self._md = dict(metadata)
+        self._md_view = types.MappingProxyType(self._md)
+        self._md_path = path
+
+    def __getstate__(self) -> dict[str, Any]:
+        names = {
+            name
+            for klass in type(self).__mro__
+            for name in getattr(klass, "__slots__", ())
+        }
+        names.discard("_md_view")
+        return {name: getattr(self, name) for name in names if hasattr(self, name)}
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        for name, value in state.items():
+            object.__setattr__(self, name, value)
+        if "_md" in state:
+            self._md_view = types.MappingProxyType(self._md)
+
+
+class _MetadataSeqsData(_StoredMetadataMixin, c3_seq_storage.SeqsData):
+    __slots__ = ("_md", "_md_path", "_md_view")
+
+
+class _MetadataAlignedSeqsData(_StoredMetadataMixin, c3_seq_storage.AlignedSeqsData):
+    __slots__ = ("_md", "_md_path", "_md_view")
+
+
+_CODON_SEQS = {"a": "ATGAAA", "b": "ATGCCC"}
+
+_makers = pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+
+
+@pytest.fixture(params=[True, False], ids=["unaligned", "aligned"])
+def unaligned(request):
+    return request.param
+
+
+def _make_stored_metadata_coll(unaligned, metadata, path=None, **kwargs):
+    klass = _MetadataSeqsData if unaligned else _MetadataAlignedSeqsData
+    store = klass.from_seqs(
+        data=_CODON_SEQS,
+        alphabet=c3_moltype.get_moltype("dna").most_degen_alphabet(),
+    )
+    store.set_metadata(metadata, path)
+    maker = (
+        c3_alignment.make_unaligned_seqs
+        if unaligned
+        else c3_alignment.make_aligned_seqs
+    )
+    return maker(store, moltype="dna", **kwargs)
+
+
+def _info_warning_files(record):
+    return [w.filename for w in record if "info" in str(w.message)]
+
+
+def test_metadata_reads_stored_layer(unaligned):
+    coll = _make_stored_metadata_coll(unaligned, {"status": "draft"})
+    assert coll._metadata is None
+    assert coll.metadata["status"] == "draft"
+    assert coll.metadata._stored is coll.storage.metadata
+
+
+@_makers
+def test_metadata_not_built_for_views(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna")
+    assert coll._metadata is None
+    assert coll.take_seqs(["a"])._metadata is None
+
+
+@_makers
+def test_collections_differing_in_metadata_are_equal(mk_cls):
+    one = mk_cls(_CODON_SEQS, moltype="dna", metadata={"k": 1})
+    two = mk_cls(_CODON_SEQS, moltype="dna", metadata={"k": 2})
+    assert one == two
+
+
+@_makers
+def test_view_metadata_edit_leaves_parent(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={"k": 0})
+    view = coll.take_seqs(["a"])
+    assert view.metadata.to_dict() == {"k": 0}
+    view.metadata["k"] = 1
+    assert coll.metadata.to_dict() == {"k": 0}
+
+
+def test_slice_metadata_edit_leaves_parent():
+    aln = c3_alignment.make_aligned_seqs(_CODON_SEQS, moltype="dna", metadata={"k": 0})
+    sliced = aln[2:5]
+    sliced.metadata["k"] = 1
+    assert aln.metadata["k"] == 0
+
+
+@_makers
+@pytest.mark.parametrize("method", ["degap", "get_translation", "add_seqs"])
+def test_derived_metadata_edit_leaves_parent(mk_cls, method):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={"k": 0, "p": {"m": 1}})
+    args = ({"c": "ATGTTT"},) if method == "add_seqs" else ()
+    got = getattr(coll, method)(*args)
+    assert got.metadata.to_dict() == {"k": 0, "p": {"m": 1}}
+    got.metadata["k"] = 1
+    got.metadata["p"]["m"] = 2
+    assert coll.metadata.to_dict() == {"k": 0, "p": {"m": 1}}
+
+
+@_makers
+def test_metadata_argument_is_not_changed(mk_cls):
+    metadata = {"source": "x.fa", "p": {"m": 1}}
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata=metadata)
+    coll.metadata["p"]["m"] = 2
+    assert metadata == {"source": "x.fa", "p": {"m": 1}}
+
+
+def test_metadata_argument_on_other_storage_is_connected(unaligned):
+    parent = _make_stored_metadata_coll(unaligned, {"status": "draft"})
+    maker = (
+        c3_alignment.make_unaligned_seqs
+        if unaligned
+        else c3_alignment.make_aligned_seqs
+    )
+    got = maker(_CODON_SEQS, moltype="dna", metadata=parent.metadata)
+    assert got.metadata["status"] == "draft"
+    assert got.metadata.modified
+    got.metadata["status"] = "final"
+    assert parent.metadata["status"] == "draft"
+
+
+@_makers
+def test_empty_metadata_argument_builds_nothing(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={})
+    assert coll._metadata is None
+
+
+def test_same_storage_metadata_without_changes_builds_nothing(unaligned):
+    coll = _make_stored_metadata_coll(unaligned, {"status": "draft"})
+    coll.metadata  # noqa: B018
+    assert coll.take_seqs(["a"])._metadata is None
+
+
+def test_unbound_metadata_argument_is_not_changed():
+    unbound = pickle.loads(pickle.dumps(MetaData(local={"k": 1})))
+    stored = unbound._stored
+    coll = c3_alignment.make_aligned_seqs(_CODON_SEQS, moltype="dna", metadata=unbound)
+    assert unbound._stored is stored
+    assert coll.metadata.to_dict() == {"k": 1}
+
+
+@_makers
+def test_invalid_metadata_raises_cleanly(mk_cls, monkeypatch):
+    import gc
+    import sys
+
+    unraisable = []
+    monkeypatch.setattr(sys, "unraisablehook", unraisable.append)
+    with pytest.raises(TypeError):
+        mk_cls(_CODON_SEQS, moltype="dna", metadata={1: 2})
+    gc.collect()
+    assert unraisable == []
+
+
+def test_select_translatable_leaves_input_metadata():
+    aln = c3_alignment.make_aligned_seqs(_CODON_SEQS, moltype="dna", metadata={"k": 1})
+    got = get_app("select_translatable")(aln)
+    assert "translation_errors" in got.metadata
+    assert aln.metadata.to_dict() == {"k": 1}
+
+
+@_makers
+def test_info_argument_warns_at_caller(mk_cls):
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        coll = mk_cls(_CODON_SEQS, moltype="dna", info={"k": 1})
+    assert _info_warning_files(record) == [__file__]
+    assert coll.metadata["k"] == 1
+
+
+@pytest.mark.parametrize(
+    ("cls", "store_cls"),
+    [
+        (c3_alignment.SequenceCollection, c3_seq_storage.SeqsData),
+        (c3_alignment.Alignment, c3_seq_storage.AlignedSeqsData),
+    ],
+)
+def test_constructor_info_argument_warns_at_caller(cls, store_cls):
+    mt = c3_moltype.get_moltype("dna")
+    store = store_cls.from_seqs(data=_CODON_SEQS, alphabet=mt.most_degen_alphabet())
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        coll = cls(seqs_data=store, moltype=mt, info={"k": 1})
+    assert _info_warning_files(record) == [__file__]
+    assert coll.metadata["k"] == 1
+
+
+@_makers
+def test_info_is_deprecated_alias(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={"k": 1})
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        got = coll.info
+    assert _info_warning_files(record) == [__file__]
+    assert got is coll.metadata
+
+
+def test_info_setter_replaces_contents(unaligned):
+    coll = _make_stored_metadata_coll(unaligned, {"status": "draft"})
+    with pytest.warns(DeprecationWarning, match="info"):
+        coll.info = {"k": 2}
+    assert isinstance(coll.metadata, MetaData)
+    assert coll.metadata.to_dict() == {"k": 2}
+
+
+def test_legacy_pickle_state_loads(unaligned):
+    mt = c3_moltype.get_moltype("dna")
+    alphabet = mt.most_degen_alphabet()
+    state = {
+        "moltype": mt,
+        "name_map": {"a": "a", "b": "b"},
+        "info": Info({"k": 1}),
+        "annotation_db": None,
+        "source": "x",
+    }
+    if unaligned:
+        cls = c3_alignment.SequenceCollection
+        state["seqs_data"] = c3_seq_storage.SeqsData.from_seqs(
+            data=_CODON_SEQS, alphabet=alphabet
+        )
+        state["is_reversed"] = False
+    else:
+        cls = c3_alignment.Alignment
+        state["seqs_data"] = c3_seq_storage.AlignedSeqsData.from_seqs(
+            data=_CODON_SEQS, alphabet=alphabet
+        )
+        state["slice_record"] = SliceRecord(parent_len=6)
+    coll = cls.__new__(cls)
+    coll.__setstate__(state)
+    assert coll.metadata["k"] == 1
+    assert "Refs" not in coll.metadata
+    assert coll.source == "x"
+    assert coll.to_dict() == _CODON_SEQS
+
+
+def test_pickle_keeps_stored_and_local_metadata(unaligned):
+    coll = _make_stored_metadata_coll(
+        unaligned, {"status": "draft", "p": {"m": 1, "x": 2}}
+    )
+    coll.metadata["p"]["m"] = 3
+    got = pickle.loads(pickle.dumps(coll))
+    assert got.metadata.to_dict() == {"status": "draft", "p": {"m": 3, "x": 2}}
+    assert got.metadata._stored is got.storage.metadata
+
+
+@_makers
+def test_rich_dict_round_trip_keeps_metadata(mk_cls):
+    metadata = {"k": 1, "p": {"m": "HKY85"}}
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata=metadata)
+    rd = coll.to_rich_dict()
+    assert "info" not in rd["init_args"]
+    assert rd["init_args"]["metadata"] == metadata
+    got = deserialise_object(coll.to_json())
+    assert got.metadata.to_dict() == metadata
+
+
+def test_rich_dict_includes_stored_metadata(unaligned):
+    coll = _make_stored_metadata_coll(unaligned, {"status": "draft"})
+    rd = coll.to_rich_dict()
+    assert rd["init_args"]["metadata"] == {"status": "draft"}
+    assert coll._metadata is None
+
+
+@_makers
+def test_rich_dict_legacy_info_key_loads_without_warning(mk_cls):
+    rd = json.loads(mk_cls(_CODON_SEQS, moltype="dna").to_json())
+    rd["init_args"].pop("metadata", None)
+    rd["init_args"]["info"] = {"k": 1}
+    with catch_warnings(record=True) as record:
+        simplefilter("always")
+        got = deserialise_object(rd)
+    assert _info_warning_files(record) == []
+    assert got.metadata["k"] == 1
