@@ -26,6 +26,7 @@ from cogent3.core import seqview as c3_seqview
 from cogent3.core.annotation import Feature
 from cogent3.core.annotation_db import GffAnnotationDb, load_annotations
 from cogent3.core.location import FeatureMap, LostSpan, Span
+from cogent3.core.metadata import _NO_METADATA
 from cogent3.core.slice_record import SliceRecord
 
 try:
@@ -234,6 +235,38 @@ def test_seqs_data_construction_wrong_alphabet(str_seqs_dict, rna_alphabet):
 def test_seqs_data_default_attributes(dna_sd: c3_seq_storage.SeqsData):
     assert dna_sd.names == ("seq1", "seq2", "seq3")
     assert isinstance(dna_sd.alphabet, c3_alphabet.CharAlphabet)
+
+
+@pytest.fixture(params=["SeqsData", "AlignedSeqsData"])
+def builtin_storage_cls(request):
+    return getattr(c3_seq_storage, request.param)
+
+
+def make_builtin_storage(storage_cls, dna_alphabet):
+    return storage_cls.from_seqs(
+        data={"seq1": "ACGT", "seq2": "AC-T"},
+        alphabet=dna_alphabet,
+    )
+
+
+def test_storage_metadata_is_shared_empty(builtin_storage_cls, dna_alphabet):
+    store1 = make_builtin_storage(builtin_storage_cls, dna_alphabet)
+    store2 = make_builtin_storage(builtin_storage_cls, dna_alphabet)
+    assert store1.metadata == {}
+    assert store1.metadata is store1.metadata
+    assert store1.metadata is store2.metadata
+    assert store1.metadata is _NO_METADATA
+
+
+def test_storage_metadata_is_not_abstract():
+    getter = c3_seq_storage.SeqsDataABC.metadata.fget
+    assert not getattr(getter, "__isabstractmethod__", False)
+
+
+def test_storage_metadata_is_read_only(builtin_storage_cls, dna_alphabet):
+    store = make_builtin_storage(builtin_storage_cls, dna_alphabet)
+    with pytest.raises(TypeError):
+        store.metadata["status"] = "draft"
 
 
 @pytest.mark.parametrize("seqid", ["seq1", "seq2"])
