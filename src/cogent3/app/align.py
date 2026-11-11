@@ -1,6 +1,7 @@
 import typing
 import warnings
 from bisect import bisect_left
+from collections.abc import Mapping
 
 from numpy import array, float64, isnan, maximum, triu_indices
 from scinexus import get_id_from_source
@@ -287,6 +288,15 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
         all_gaps[gap_pos] = gap_length
 
     return all_gaps
+
+
+def _nested_score_matrix(
+    score_matrix: Mapping[tuple[str, str], float],
+) -> dict[str, dict[str, float]]:
+    nested: dict[str, dict[str, float]] = {}
+    for (row, col), score in score_matrix.items():
+        nested.setdefault(row, {})[col] = score
+    return nested
 
 
 def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
@@ -718,7 +728,7 @@ class smith_waterman(ComposableApp, cite=cite_cogent3):
         )
 
         aln.info["align_params"] = {
-            "score_matrix": self._score_matrix,
+            "score_matrix": _nested_score_matrix(self._score_matrix),
             "insertion_penalty": self._insertion_penalty,
             "extension_penalty": self._extension_penalty,
             "sw_score": score,

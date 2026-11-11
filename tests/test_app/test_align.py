@@ -3,6 +3,7 @@ import pytest
 from numpy import log2
 from numpy.testing import assert_allclose
 from scinexus.composable import NotCompleted
+from scinexus.deserialise import deserialise_object
 
 from cogent3 import (
     get_app,
@@ -808,6 +809,20 @@ def test_smith_waterman_score(seqs):
         return_score=True,
     )
     assert got == expect
+
+
+def test_smith_waterman_result_json_round_trip(seqs):
+    aln = smith_waterman()(seqs.take_seqs(["Human", "Bandicoot"]))
+    got = deserialise_object(aln.to_json())
+    assert got.info["align_params"] == aln.info["align_params"]
+
+
+def test_smith_waterman_records_nested_score_matrix(seqs):
+    aln = smith_waterman()(seqs.take_seqs(["Human", "Bandicoot"]))
+    matrix = aln.info["align_params"]["score_matrix"]
+    assert matrix["A"]["T"] == -8
+    assert matrix["A"]["G"] == -1
+    assert matrix["A"]["A"] == 10
 
 
 @pytest.mark.parametrize(
