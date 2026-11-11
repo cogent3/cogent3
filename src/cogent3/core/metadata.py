@@ -1,5 +1,6 @@
 """Metadata attached to sequence collections and their storage."""
 
+import copy
 from collections.abc import Iterator, Mapping, MutableMapping
 from types import MappingProxyType
 from typing import Any, Final
@@ -22,10 +23,75 @@ _HIDDEN: Final = _Hidden()
 _MISSING: Final = object()
 
 
+_IMMUTABLE_SCALARS: Final = (str, bytes, int, float, complex, type(None))
+
+
 def _check_key(key: object) -> None:
     if not isinstance(key, str):
         msg = f"metadata keys must be str, not {type(key).__name__} {key!r}"
         raise TypeError(msg)
+
+
+def _copy_leaf(value: Any, stored: bool) -> Any:  # noqa: ANN401
+    if isinstance(value, MetaData):
+        return value.to_dict()
+    if stored and not isinstance(value, _IMMUTABLE_SCALARS):
+        return copy.deepcopy(value)
+    return value
+
+
+def _copy_value(value: Any, where: str, stored: bool = False) -> Any:  # noqa: ANN401
+    """Return a copy of value with every mapping a plain dict.
+
+    Lists and tuples are copied, a MetaData becomes its to_dict(). Other
+    objects are shared, or deep-copied when stored is True. Raises TypeError
+    naming the path to a mapping key that is not a str, unless stored is True,
+    and ValueError for a value that contains itself.
+    """
+    root: list[Any] = [None]
+    tuples: list[tuple[list[Any], Any, Any]] = []
+    stack: list[tuple[Any, Any, Any, str, frozenset[int]]] = [
+        (value, root, 0, where, frozenset()),
+    ]
+    while stack:
+        src, parent, slot, path, ancestors = stack.pop()
+        if isinstance(src, MetaData) or not (
+            isinstance(src, (Mapping, list)) or type(src) is tuple
+        ):
+            parent[slot] = _copy_leaf(src, stored)
+            continue
+        if id(src) in ancestors:
+            msg = f"metadata value {path} contains itself"
+            raise ValueError(msg)
+        inner = ancestors | {id(src)}
+        if isinstance(src, Mapping):
+            mapping: dict[str, Any] = {}
+            parent[slot] = mapping
+            for key, item in src.items():
+                if not stored and not isinstance(key, str):
+                    msg = f"metadata keys must be str, found {key!r} in {path}"
+                    raise TypeError(msg)
+                mapping[key] = None
+                stack.append((item, mapping, key, f"{path}.{key}", inner))
+            continue
+        sequence: list[Any] = [None] * len(src)
+        parent[slot] = sequence
+        if isinstance(src, tuple):
+            tuples.append((sequence, parent, slot))
+        stack.extend(
+            (item, sequence, index, f"{path}[{index}]", inner)
+            for index, item in enumerate(src)
+        )
+    # a tuple is built after its items, and items are created after their parent
+    for sequence, parent, slot in reversed(tuples):
+        parent[slot] = tuple(sequence)
+    return root[0]
+
+
+def _read_copy(value: Any) -> Any:  # noqa: ANN401
+    if isinstance(value, Mapping):
+        return MetaData(stored=value)
+    return _copy_value(value, "", stored=True)
 
 
 class MetaData(MutableMapping[str, Any]):
@@ -60,17 +126,28 @@ class MetaData(MutableMapping[str, Any]):
         if local:
             self.update(local)
 
+    @classmethod
+    def _sharing(cls, local: dict[str, Any]) -> "MetaData":
+        # edits through the result change local, which its owner holds
+        result = cls()
+        result._local = local
+        return result
+
     def __getitem__(self, key: str) -> Any:  # noqa: ANN401
         value = self._local.get(key, _MISSING)
         if value is _HIDDEN:
             raise KeyError(key)
-        if value is not _MISSING:
-            return value
-        return self._stored[key]
+        if value is _MISSING:
+            value = self._stored[key]
+            if isinstance(value, _IMMUTABLE_SCALARS):
+                return value
+            # one dict operation, so concurrent readers get the same copy
+            value = self._local.setdefault(key, _read_copy(value))
+        return MetaData._sharing(value) if type(value) is dict else value
 
     def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
         _check_key(key)
-        self._local[key] = value
+        self._local[key] = _copy_value(value, key)
 
     def __delitem__(self, key: str) -> None:
         if key in self._stored:
@@ -110,19 +187,34 @@ class MetaData(MutableMapping[str, Any]):
         for key in self._stored:
             local[key] = _HIDDEN
 
+    def setdefault(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
+        """Return md[key], first setting it to a copy of default if absent."""
+        if key not in self:
+            self[key] = default
+        return self[key]
+
     def to_dict(self) -> dict[str, Any]:
-        """Return the visible contents as a plain dict."""
-        local = self._local.copy()
-        result = {}
-        for key, stored_value in self._stored.items():
-            value = local.get(key, _MISSING)
-            if value is _MISSING:
-                result[key] = stored_value
-            elif value is not _HIDDEN:
-                result[key] = value
-        result.update(
-            (key, value)
-            for key, value in local.items()
-            if value is not _HIDDEN and key not in self._stored
-        )
+        """Return the visible contents as a plain nested dict, a copy."""
+        result: dict[str, Any] = {}
+        stack: list[tuple[MetaData, dict[str, Any]]] = [(self, result)]
+        while stack:
+            md, target = stack.pop()
+            local = md._local.copy()
+            stored = md._stored
+            visible = [
+                (key, local.get(key, value), key not in local)
+                for key, value in stored.items()
+                if local.get(key) is not _HIDDEN
+            ]
+            visible.extend(
+                (key, value, False)
+                for key, value in local.items()
+                if value is not _HIDDEN and key not in stored
+            )
+            for key, value, from_stored in visible:
+                if isinstance(value, MetaData):
+                    target[key] = {}
+                    stack.append((value, target[key]))
+                else:
+                    target[key] = _copy_value(value, key, stored=from_stored)
         return result
