@@ -386,3 +386,75 @@ def test_concurrent_reads_share_one_copy(monkeypatch):
     assert results[0] is not None
     assert results[0] is results[1]
     assert md.to_dict() == {"p": {"m": 1, "x": 2, "a": 0, "b": 1}}
+
+
+def test_attribute_read_nested():
+    md = make_md({"p": {"m": "HKY85"}})
+    assert md.p.m == "HKY85"
+
+
+def test_attribute_write_nested():
+    stored = {"p": {"m": "HKY85", "x": 1}}
+    md = make_md(stored)
+    md.p.m = "GTR"
+    md.n = 2
+    assert md.n == 2
+    assert md.to_dict() == {"p": {"m": "GTR", "x": 1}, "n": 2}
+    assert stored == {"p": {"m": "HKY85", "x": 1}}
+
+
+def test_attribute_on_local_dict():
+    md = make_md()
+    md.q = {"r": 1}
+    md.q.r = 2
+    assert md.q.r == 2
+    assert md.to_dict() == {"q": {"r": 2}}
+
+
+def test_missing_attribute():
+    md = make_md({"a": 1})
+    with pytest.raises(AttributeError):
+        _ = md.missing
+    assert md.get("missing") is None
+    assert not hasattr(md, "missing")
+
+
+def test_hidden_key_attribute_missing():
+    md = make_md({"a": 1})
+    del md.a
+    assert not hasattr(md, "a")
+    assert md.to_dict() == {}
+    with pytest.raises(AttributeError):
+        del md.a
+
+
+def test_underscore_names_not_keys():
+    md = make_md({"_p": 1})
+    assert md["_p"] == 1
+    with pytest.raises(AttributeError):
+        _ = md._p
+    with pytest.raises(AttributeError):
+        md._p = 2
+    assert md.to_dict() == {"_p": 1}
+
+
+@pytest.mark.parametrize("name", ["register", "mro"])
+def test_metaclass_names_are_keys(name):
+    md = make_md({name: 1})
+    assert getattr(md, name) == 1
+    setattr(md, name, 2)
+    assert md.to_dict() == {name: 2}
+    delattr(md, name)
+    assert md.to_dict() == {}
+
+
+@pytest.mark.parametrize("name", ["keys", "to_dict", "get", "update"])
+def test_method_names_only_by_index(name):
+    md = make_md({name: 1})
+    assert md[name] == 1
+    assert callable(getattr(md, name))
+    with pytest.raises(AttributeError):
+        setattr(md, name, 2)
+    with pytest.raises(AttributeError):
+        delattr(md, name)
+    assert md.to_dict() == {name: 1}

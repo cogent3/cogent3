@@ -1,6 +1,7 @@
 """Metadata attached to sequence collections and their storage."""
 
 import copy
+import functools
 from collections.abc import Iterator, Mapping, MutableMapping
 from types import MappingProxyType
 from typing import Any, Final
@@ -88,6 +89,20 @@ def _copy_value(value: Any, where: str, stored: bool = False) -> Any:  # noqa: A
     return root[0]
 
 
+@functools.cache
+def _class_attributes(cls: type) -> frozenset[str]:
+    # attribute lookup on an instance searches the MRO, not the metaclass
+    return frozenset(name for klass in cls.__mro__ for name in vars(klass))
+
+
+def _class_attribute_error(name: str) -> AttributeError:
+    return AttributeError(f"{name!r} is a MetaData attribute, use md[{name!r}]")
+
+
+def _no_key_error(name: str) -> AttributeError:
+    return AttributeError(f"MetaData has no key {name!r}")
+
+
 def _read_copy(value: Any) -> Any:  # noqa: ANN401
     if isinstance(value, Mapping):
         return MetaData(stored=value)
@@ -148,6 +163,33 @@ class MetaData(MutableMapping[str, Any]):
     def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
         _check_key(key)
         self._local[key] = _copy_value(value, key)
+
+    def __getattr__(self, name: str) -> Any:  # noqa: ANN401
+        if name.startswith("_"):
+            raise _no_key_error(name)
+        try:
+            return self[name]
+        except KeyError:
+            raise _no_key_error(name) from None
+
+    def __setattr__(self, name: str, value: Any) -> None:  # noqa: ANN401
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+        elif name in _class_attributes(type(self)):
+            raise _class_attribute_error(name)
+        else:
+            self[name] = value
+
+    def __delattr__(self, name: str) -> None:
+        if name.startswith("_"):
+            object.__delattr__(self, name)
+        elif name in _class_attributes(type(self)):
+            raise _class_attribute_error(name)
+        else:
+            try:
+                del self[name]
+            except KeyError:
+                raise _no_key_error(name) from None
 
     def __delitem__(self, key: str) -> None:
         if key in self._stored:
