@@ -39,6 +39,11 @@ class SequenceWriterBase(abc.ABC):
         return True
 
     @property
+    def saves_metadata(self) -> bool:
+        """True if the writer saves collection metadata"""
+        return False
+
+    @property
     @abc.abstractmethod
     def supported_suffixes(self) -> set[str]:
         """Return list of file suffixes this parser supports"""
