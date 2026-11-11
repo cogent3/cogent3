@@ -2,9 +2,12 @@
 
 import copy
 import functools
-from collections.abc import Iterator, Mapping, MutableMapping
+from collections.abc import Iterable, Iterator, Mapping, MutableMapping
 from types import MappingProxyType
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final, Self
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsKeysAndGetItem
 
 _NO_METADATA: Mapping[str, Any] = MappingProxyType({})
 
@@ -70,10 +73,12 @@ def _copy_value(value: Any, where: str, stored: bool = False) -> Any:  # noqa: A
             parent[slot] = mapping
             for key, item in src.items():
                 if not stored and not isinstance(key, str):
-                    msg = f"metadata keys must be str, found {key!r} in {path}"
+                    location = f"in {path}" if path else "at the top level"
+                    msg = f"metadata keys must be str, found {key!r} {location}"
                     raise TypeError(msg)
                 mapping[key] = None
-                stack.append((item, mapping, key, f"{path}.{key}", inner))
+                item_path = f"{path}.{key}" if path else key
+                stack.append((item, mapping, key, item_path, inner))
             continue
         sequence: list[Any] = [None] * len(src)
         parent[slot] = sequence
@@ -162,7 +167,55 @@ class MetaData(MutableMapping[str, Any]):
 
     def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
         _check_key(key)
+        current = self._local.get(key, _MISSING)
+        # md[key] |= other assigns md[key] back to itself
+        if isinstance(value, MetaData) and (
+            value is current or value._local is current
+        ):
+            return
         self._local[key] = _copy_value(value, key)
+
+    def __ior__(self, other: Mapping[str, Any]) -> Self:
+        """Merge other into this object.
+
+        Nested dicts are merged, and other's values win everywhere else.
+        """
+        if not isinstance(other, Mapping):
+            return NotImplemented
+        self._merge(_copy_value(other, ""))
+        return self
+
+    def _merge(self, incoming: dict[str, Any]) -> None:
+        # incoming is already a validated copy, so it is installed as it is
+        stack: list[tuple[MetaData, dict[str, Any]]] = [(self, incoming)]
+        while stack:
+            target, values = stack.pop()
+            for key, value in values.items():
+                if type(value) is dict and target._holds_dict(key):
+                    stack.append((target[key], value))
+                else:
+                    target._local[key] = value
+
+    def _holds_dict(self, key: str) -> bool:
+        # checks without reading, so a stored list is not copied only to be replaced
+        value = self._local.get(key, _MISSING)
+        if value is _MISSING:
+            value = self._stored.get(key)
+        return isinstance(value, (MetaData, Mapping))
+
+    def update(
+        self,
+        other: "SupportsKeysAndGetItem[str, Any] | Iterable[tuple[str, Any]]" = (),
+        /,
+        **kwargs: object,
+    ) -> None:
+        """Merge into this object as ``|=`` does.
+
+        Takes the same arguments as ``dict.update``.
+        """
+        incoming = _copy_value(other if isinstance(other, Mapping) else dict(other), "")
+        incoming.update(_copy_value(kwargs, ""))
+        self._merge(incoming)
 
     def __getattr__(self, name: str) -> Any:  # noqa: ANN401
         if name.startswith("_"):

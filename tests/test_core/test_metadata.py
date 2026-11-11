@@ -2,6 +2,7 @@ import functools
 import re
 import threading
 import typing
+import warnings
 from types import MappingProxyType
 
 import pytest
@@ -458,3 +459,117 @@ def test_method_names_only_by_index(name):
     with pytest.raises(AttributeError):
         delattr(md, name)
     assert md.to_dict() == {name: 1}
+
+
+def _merge_ior(md, other):
+    md |= other
+
+
+def _merge_update(md, other):
+    md.update(other)
+
+
+@pytest.fixture(params=[_merge_ior, _merge_update])
+def merge(request):
+    return request.param
+
+
+@pytest.mark.parametrize("as_local", [False, True])
+def test_merge_nested(merge, as_local):
+    value = {"p": {"m": 1, "x": 2, "q": {"a": 1, "b": 2}}}
+    md = make_md(local=value) if as_local else make_md(value)
+    merge(md, {"p": {"m": 3, "q": {"b": 3}}, "n": 4})
+    assert md.to_dict() == {"p": {"m": 3, "x": 2, "q": {"a": 1, "b": 3}}, "n": 4}
+
+
+def test_merge_replaces_non_dicts(merge):
+    md = make_md({"p": {"m": 1}, "a": 1})
+    merge(md, {"p": 5, "a": {"b": 1}})
+    assert md.to_dict() == {"p": 5, "a": {"b": 1}}
+
+
+def test_merge_into_nested_with_hidden_key(merge):
+    md = make_md({"p": {"m": 1, "x": 2}})
+    del md["p"]["x"]
+    merge(md, {"p": {"y": 1}})
+    assert md.to_dict() == {"p": {"m": 1, "y": 1}}
+
+
+def test_merge_metadata_not_shared(merge):
+    md1 = make_md({"p": {"m": 1, "l": [1]}})
+    md2 = make_md()
+    merge(md2, md1)
+    md2["p"]["m"] = "X"
+    md2["p"]["l"].append(2)
+    assert md1.to_dict() == {"p": {"m": 1, "l": [1]}}
+    assert md2.to_dict() == {"p": {"m": "X", "l": [1, 2]}}
+
+
+def test_merge_bad_key_leaves_unchanged(merge):
+    md = make_md({"p": {"m": 1}})
+    with pytest.raises(TypeError, match=re.escape("in p.q") + "$"):
+        merge(md, {"a": 1, "p": {"m": 2, "q": {1: 2}}})
+    assert md.to_dict() == {"p": {"m": 1}}
+
+
+def test_merge_bad_top_level_key_message(merge):
+    md = make_md()
+    with pytest.raises(TypeError, match=r"found 1 at the top level$"):
+        merge(md, {1: 2})
+
+
+class _NoDeepCopy:
+    def __deepcopy__(self, memo):
+        raise AssertionError(memo)
+
+
+def test_merge_dict_onto_stored_list_does_not_copy_it(merge):
+    md = make_md({"a": [_NoDeepCopy()]})
+    merge(md, {"a": {"b": 1}})
+    assert md.to_dict() == {"a": {"b": 1}}
+
+
+def test_set_list_edited_in_place_is_checked():
+    md = make_md(local={"a": []})
+    value = md["a"]
+    value.append({1: 2})
+    with pytest.raises(TypeError, match=re.escape("in a[0]") + "$"):
+        md["a"] = value
+
+
+def test_merge_does_not_warn(merge):
+    md = make_md({"p": {"m": 1}})
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        merge(md, {"p": {"m": 2}})
+
+
+def test_ior_returns_self():
+    md = make_md()
+    result = md.__ior__({"a": 1})
+    assert result is md
+
+
+def test_update_argument_forms():
+    md = make_md()
+    md.update([("a", 1)], b={"c": 2})
+    md.update(b={"d": 3})
+    assert md.to_dict() == {"a": 1, "b": {"c": 2, "d": 3}}
+
+
+def test_nested_ior_keeps_nested_object():
+    md = make_md({"p": {"m": 1, "x": 2}})
+    nested = md["p"]
+    md["p"] |= {"m": 3}
+    md.p |= {"y": 4}
+    assert md["p"] is nested
+    nested["z"] = 5
+    assert md.to_dict() == {"p": {"m": 3, "x": 2, "y": 4, "z": 5}}
+
+
+def test_nested_ior_on_local_dict_keeps_it():
+    md = make_md(local={"p": {"m": 1}})
+    nested = md["p"]
+    md["p"] |= {"m": 3}
+    nested["z"] = 5
+    assert md.to_dict() == {"p": {"m": 3, "z": 5}}
