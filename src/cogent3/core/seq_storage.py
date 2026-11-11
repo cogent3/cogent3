@@ -16,6 +16,7 @@ from cogent3.core.metadata import _NO_METADATA
 from cogent3.core.seqview import AlignedDataView, AlignedDataViewABC, SeqDataView
 
 if TYPE_CHECKING:  # pragma: no cover
+    import pathlib
     from collections.abc import Collection, Mapping
     from collections.abc import Sequence as PySeq
 
@@ -86,6 +87,11 @@ class SeqsDataABC(ABC):
         an empty mapping.
         """
         return _NO_METADATA
+
+    @property
+    def path(self) -> pathlib.Path | None:
+        """The file the storage reads, or None if it is not backed by a file."""
+        return None
 
     @abstractmethod
     def get_seq_array(

@@ -263,6 +263,16 @@ def test_storage_metadata_is_not_abstract():
     assert not getattr(getter, "__isabstractmethod__", False)
 
 
+def test_builtin_storage_path_is_none(builtin_storage_cls, dna_alphabet):
+    store = make_builtin_storage(builtin_storage_cls, dna_alphabet)
+    assert store.path is None
+
+
+def test_storage_path_is_not_abstract():
+    getter = c3_seq_storage.SeqsDataABC.path.fget
+    assert not getattr(getter, "__isabstractmethod__", False)
+
+
 def test_storage_metadata_is_read_only(builtin_storage_cls, dna_alphabet):
     store = make_builtin_storage(builtin_storage_cls, dna_alphabet)
     with pytest.raises(TypeError):
