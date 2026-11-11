@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from _typeshed import SupportsKeysAndGetItem
 
 _NO_METADATA: Mapping[str, Any] = MappingProxyType({})
+# an unpickled MetaData reads this as empty until bind() supplies its stored layer
+_UNBOUND: Final[Mapping[str, Any]] = MappingProxyType({})
 
 
 class _Hidden:
@@ -36,21 +38,27 @@ def _check_key(key: object) -> None:
         raise TypeError(msg)
 
 
-def _copy_leaf(value: Any, stored: bool) -> Any:  # noqa: ANN401
+def _copy_leaf(value: Any, copy_leaves: bool) -> Any:  # noqa: ANN401
     if isinstance(value, MetaData):
         return value.to_dict()
-    if stored and not isinstance(value, _IMMUTABLE_SCALARS):
+    if copy_leaves and not isinstance(value, _IMMUTABLE_SCALARS):
         return copy.deepcopy(value)
     return value
 
 
-def _copy_value(value: Any, where: str, stored: bool = False) -> Any:  # noqa: ANN401
+def _copy_value(
+    value: Any,  # noqa: ANN401
+    where: str,
+    *,
+    check_keys: bool = True,
+    copy_leaves: bool = False,
+) -> Any:  # noqa: ANN401
     """Return a copy of value with every mapping a plain dict.
 
     Lists and tuples are copied, a MetaData becomes its to_dict(). Other
-    objects are shared, or deep-copied when stored is True. Raises TypeError
-    naming the path to a mapping key that is not a str, unless stored is True,
-    and ValueError for a value that contains itself.
+    objects are shared, or deep-copied when copy_leaves is True. Raises
+    TypeError naming the path to a mapping key that is not a str when
+    check_keys is True, and ValueError for a value that contains itself.
     """
     root: list[Any] = [None]
     tuples: list[tuple[list[Any], Any, Any]] = []
@@ -62,7 +70,7 @@ def _copy_value(value: Any, where: str, stored: bool = False) -> Any:  # noqa: A
         if isinstance(src, MetaData) or not (
             isinstance(src, (Mapping, list)) or type(src) is tuple
         ):
-            parent[slot] = _copy_leaf(src, stored)
+            parent[slot] = _copy_leaf(src, copy_leaves)
             continue
         if id(src) in ancestors:
             msg = f"metadata value {path} contains itself"
@@ -72,7 +80,7 @@ def _copy_value(value: Any, where: str, stored: bool = False) -> Any:  # noqa: A
             mapping: dict[str, Any] = {}
             parent[slot] = mapping
             for key, item in src.items():
-                if not stored and not isinstance(key, str):
+                if check_keys and not isinstance(key, str):
                     location = f"in {path}" if path else "at the top level"
                     msg = f"metadata keys must be str, found {key!r} {location}"
                     raise TypeError(msg)
@@ -111,7 +119,7 @@ def _no_key_error(name: str) -> AttributeError:
 def _read_copy(value: Any) -> Any:  # noqa: ANN401
     if isinstance(value, Mapping):
         return MetaData(stored=value)
-    return _copy_value(value, "", stored=True)
+    return _copy_value(value, "", check_keys=False, copy_leaves=True)
 
 
 class MetaData(MutableMapping[str, Any]):
@@ -152,6 +160,116 @@ class MetaData(MutableMapping[str, Any]):
         result = cls()
         result._local = local
         return result
+
+    @classmethod
+    def connected(cls, other: "MetaData") -> "MetaData":
+        """Return metadata for new storage that keeps reading other's stored layer.
+
+        Other's local changes are copied. The result counts as modified when
+        it holds anything, because the new storage starts empty. Raises
+        ValueError if other is unbound.
+        """
+        if other._stored is _UNBOUND:
+            msg = "cannot connect to an unbound MetaData"
+            raise ValueError(msg)
+        result = other.__copy__()
+        result._inherited = True
+        return result
+
+    def bind(self, stored: Mapping[str, Any]) -> None:
+        """Set the stored layer of an unbound top-level MetaData.
+
+        An unpickled MetaData that is not connected is unbound and reads its
+        stored layer as empty until bound. Nested MetaData are bound with it.
+        Raises ValueError if this object already has a stored layer.
+        """
+        if self._stored is not _UNBOUND:
+            msg = "MetaData is already bound to a stored layer"
+            raise ValueError(msg)
+        self._stored = stored
+        self._bind_nested()
+
+    def _bind_nested(self) -> None:
+        stack: list[MetaData] = [self]
+        while stack:
+            md = stack.pop()
+            for key, value in md._local.copy().items():
+                if isinstance(value, MetaData):
+                    stored = md._stored.get(key)
+                    if not isinstance(stored, Mapping):
+                        stored = _NO_METADATA
+                    value._stored = stored
+                    stack.append(value)
+
+    @property
+    def modified(self) -> bool:
+        """True when to_dict() differs from what the owner's storage holds.
+
+        This differs from a collection's ``modified``, which says whether the
+        collection's view differs from its storage.
+        """
+        # connected metadata belongs to new storage, which starts empty
+        reference = {} if self._inherited else self._stored
+        try:
+            return bool(self._snapshot(copy_stored=False) != reference)
+        except Exception:  # noqa: BLE001
+            # values such as numpy arrays cannot be compared with !=
+            return True
+
+    def __eq__(self, other: object) -> bool:
+        """True when both read the same stored layer and have equal to_dict().
+
+        Unbound MetaData are equal only to themselves.
+        """
+        if not isinstance(other, MetaData):
+            return NotImplemented
+        if self is other:
+            return True
+        if self._stored is not other._stored or self._stored is _UNBOUND:
+            return False
+        try:
+            return bool(
+                self._snapshot(copy_stored=False) == other._snapshot(copy_stored=False)
+            )
+        except Exception:  # noqa: BLE001
+            return False
+
+    __hash__ = None  # type: ignore[assignment]
+
+    def __copy__(self) -> "MetaData":
+        result = type(self)(stored=self._stored)
+        result._inherited = self._inherited
+        stack: list[tuple[MetaData, MetaData]] = [(self, result)]
+        while stack:
+            source, target = stack.pop()
+            for key, value in source._local.copy().items():
+                if isinstance(value, MetaData):
+                    nested = MetaData(stored=value._stored)
+                    target._local[key] = nested
+                    stack.append((value, nested))
+                else:
+                    target._local[key] = _copy_value(value, key)
+        return result
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> "MetaData":
+        return self.__copy__()
+
+    def __getstate__(
+        self,
+    ) -> tuple[dict[str, Any] | None, dict[str, Any], bool]:
+        # a stored layer from storage is left out, since the owner rebinds it
+        stored = (
+            _copy_value(self._stored, "", check_keys=False) if self._inherited else None
+        )
+        return stored, self._local.copy(), self._inherited
+
+    def __setstate__(
+        self, state: tuple[dict[str, Any] | None, dict[str, Any], bool]
+    ) -> None:
+        stored, self._local, self._inherited = state
+        self._stored = _UNBOUND
+        if stored is not None:
+            self.bind(MappingProxyType(stored))
 
     def __getitem__(self, key: str) -> Any:  # noqa: ANN401
         value = self._local.get(key, _MISSING)
@@ -290,6 +408,11 @@ class MetaData(MutableMapping[str, Any]):
 
     def to_dict(self) -> dict[str, Any]:
         """Return the visible contents as a plain nested dict, a copy."""
+        return self._snapshot(copy_stored=True)
+
+    def _snapshot(self, copy_stored: bool) -> dict[str, Any]:
+        # sharing stored objects lets comparisons use the identity shortcut,
+        # so an untouched stored numpy array compares equal to itself
         result: dict[str, Any] = {}
         stack: list[tuple[MetaData, dict[str, Any]]] = [(self, result)]
         while stack:
@@ -310,6 +433,10 @@ class MetaData(MutableMapping[str, Any]):
                 if isinstance(value, MetaData):
                     target[key] = {}
                     stack.append((value, target[key]))
+                elif from_stored:
+                    target[key] = _copy_value(
+                        value, key, check_keys=False, copy_leaves=copy_stored
+                    )
                 else:
-                    target[key] = _copy_value(value, key, stored=from_stored)
+                    target[key] = _copy_value(value, key)
         return result

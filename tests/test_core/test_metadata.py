@@ -1,10 +1,13 @@
+import copy
 import functools
+import pickle
 import re
 import threading
 import typing
 import warnings
 from types import MappingProxyType
 
+import numpy
 import pytest
 
 from cogent3.core import metadata
@@ -573,3 +576,202 @@ def test_nested_ior_on_local_dict_keeps_it():
     md["p"] |= {"m": 3}
     nested["z"] = 5
     assert md.to_dict() == {"p": {"m": 3, "z": 5}}
+
+
+def test_reading_is_not_modified():
+    md = make_md({"p": {"m": 1}, "l": [1, 2]})
+    md["p"]
+    md["l"]
+    assert not md.modified
+
+
+def test_in_place_list_edit_is_modified():
+    stored = {"l": [1, 2]}
+    md = make_md(stored)
+    md["l"].append(3)
+    assert md.modified
+    assert stored == {"l": [1, 2]}
+
+
+@pytest.mark.parametrize(
+    "edit",
+    [
+        lambda md: md.__setitem__("b", 2),
+        lambda md: md.__delitem__("a"),
+        lambda md: md["p"].__setitem__("m", 2),
+    ],
+)
+def test_edits_are_modified(edit):
+    md = make_md({"a": 1, "p": {"m": 1}})
+    edit(md)
+    assert md.modified
+
+
+def test_equal_value_is_not_modified():
+    stored = MappingProxyType({"a": 1})
+    md1 = MetaData(stored=stored)
+    md2 = MetaData(stored=stored)
+    md1["a"] = 1
+    assert not md1.modified
+    assert md1 == md2
+
+
+class _RaisesOnEq:
+    def __eq__(self, other):
+        raise ValueError(other)
+
+    __hash__ = None
+
+
+def test_comparison_that_raises_is_modified():
+    md = make_md({"x": [_RaisesOnEq()]})
+    assert not md.modified
+    # reading copies the list into local, so the comparison reaches __eq__
+    md["x"]
+    assert md.modified
+
+
+def test_untouched_stored_array_is_not_modified():
+    md = make_md({"a": numpy.array([1, 2]), "p": {"b": numpy.array([3])}})
+    md["p"]
+    assert not md.modified
+    assert md == copy.copy(md)
+
+
+def test_connected_to_unbound_raises():
+    loaded = _round_trip(make_md({"a": 1}))
+    with pytest.raises(ValueError, match="unbound"):
+        MetaData.connected(loaded)
+
+
+def test_unbound_equal_only_to_itself():
+    first = _round_trip(make_md({"a": 1}))
+    second = _round_trip(make_md({"z": 9}))
+    assert first == first  # noqa: PLR0124
+    assert first != second
+
+
+def test_comparison_that_raises_is_not_equal():
+    stored = MappingProxyType({})
+    md1 = MetaData(stored=stored, local={"x": _RaisesOnEq()})
+    md2 = MetaData(stored=stored, local={"x": _RaisesOnEq()})
+    assert md1 != md2
+
+
+def test_not_equal_to_dict():
+    md = make_md({"a": 1})
+    assert md != md.to_dict()
+    assert not md == md.to_dict()  # noqa: SIM201
+
+
+def test_equality_needs_same_stored():
+    md1 = make_md({"a": 1})
+    md2 = make_md({"a": 1})
+    assert md1.to_dict() == md2.to_dict()
+    assert md1 != md2
+
+
+def test_not_hashable():
+    with pytest.raises(TypeError):
+        hash(make_md())
+
+
+@pytest.mark.parametrize("copier", [copy.copy, copy.deepcopy])
+def test_copy_shares_stored_and_separates_local(copier):
+    md = make_md({"p": {"m": 1}, "l": [1]}, {"q": {"r": 1}})
+    md["p"]["m"] = 2
+    del md["l"]
+    dup = copier(md)
+    assert dup == md
+    dup["p"]["m"] = 3
+    dup["q"]["r"] = 3
+    dup["l"] = [5]
+    assert md.to_dict() == {"p": {"m": 2}, "q": {"r": 1}}
+    assert dup.to_dict() == {"p": {"m": 3}, "q": {"r": 3}, "l": [5]}
+
+
+def _round_trip(md, protocol=pickle.HIGHEST_PROTOCOL):
+    return pickle.loads(pickle.dumps(md, protocol=protocol))  # noqa: S301
+
+
+@pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+def test_pickle_unbound_then_bind(protocol):
+    stored = MappingProxyType({"p": {"m": 1, "x": 2}, "a": 1, "b": 2})
+    md = MetaData(stored=stored)
+    md["p"]["m"] = 3
+    del md["a"]
+    md["c"] = [4]
+    loaded = _round_trip(md, protocol)
+    # an unbound MetaData reads its stored layer as empty
+    assert loaded.to_dict() == {"p": {"m": 3}, "c": [4]}
+    loaded.bind(stored)
+    assert loaded.to_dict() == {"p": {"m": 3, "x": 2}, "b": 2, "c": [4]}
+    assert loaded == md
+
+
+def test_bind_bound_raises():
+    md = make_md({"a": 1})
+    with pytest.raises(ValueError, match="bound"):
+        md.bind(MappingProxyType({}))
+
+
+def test_pickle_assigned_nested_value():
+    md1 = make_md({"p": {"m": "HKY85"}})
+    md2 = make_md()
+    md2["p"] = md1["p"]
+    md2["p"]["m"] = "X"
+    assert _round_trip(md2).to_dict() == {"p": {"m": "X"}}
+
+
+@pytest.mark.parametrize("copier", [copy.deepcopy, _round_trip])
+def test_hidden_key_survives(copier):
+    stored = MappingProxyType({"a": 1, "p": {"m": 1, "x": 2}})
+    md = MetaData(stored=stored)
+    del md["a"]
+    del md["p"]["x"]
+    dup = copier(md)
+    if copier is _round_trip:
+        dup.bind(stored)
+    assert dup.to_dict() == {"p": {"m": 1}}
+
+
+def test_connected_reads_parent_stored():
+    parent = make_md({"a": 1, "p": {"m": 1, "x": 2}})
+    parent["p"]["m"] = 2
+    parent["b"] = 3
+    child = MetaData.connected(parent)
+    assert child.to_dict() == parent.to_dict()
+    assert child.modified
+    child["p"]["x"] = 5
+    child["b"] = 6
+    assert parent.to_dict() == {"a": 1, "p": {"m": 2, "x": 2}, "b": 3}
+
+
+def test_connected_with_inherited_keys_hidden_is_not_modified():
+    child = MetaData.connected(make_md({"a": 1}))
+    del child["a"]
+    assert not child.modified
+
+
+def test_connected_with_empty_stored_and_no_changes_is_not_modified():
+    assert not MetaData.connected(make_md()).modified
+
+
+@pytest.mark.parametrize("protocol", range(pickle.HIGHEST_PROTOCOL + 1))
+def test_connected_survives_pickle(protocol):
+    parent = make_md({"a": 1, "p": {"m": 1, "x": 2}, "h": 0})
+    child = MetaData.connected(parent)
+    child["p"]["m"] = 3
+    del child["h"]
+    loaded = _round_trip(child, protocol)
+    assert loaded.to_dict() == {"a": 1, "p": {"m": 3, "x": 2}}
+    assert loaded.modified
+    loaded["p"]["x"] = 4
+    assert loaded.to_dict() == {"a": 1, "p": {"m": 3, "x": 4}}
+
+
+def test_connected_survives_copy():
+    child = MetaData.connected(make_md({"a": 1}))
+    dup = copy.deepcopy(child)
+    assert dup.modified
+    assert dup == child
