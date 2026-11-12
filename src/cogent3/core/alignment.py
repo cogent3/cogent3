@@ -4,6 +4,7 @@ import contextlib
 import copy
 import dataclasses
 import json
+import os
 import pathlib
 import re
 import types
@@ -587,13 +588,15 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         unchanged copy of its storage and its source names the storage's
         file. Then the saved source is the one that file records, or the
         file itself if it records none, so the source always names the
-        original data.
+        original data. A path-like source is saved as a string.
         """
         # reads the storage without building self._metadata
         metadata = self._metadata
         if metadata is None:
             metadata = MetaData(stored=self._seqs_data.metadata)
         result = metadata.to_dict()
+        if isinstance(source := result.get("source"), os.PathLike):
+            result["source"] = os.fsdecode(source)
         path = self._seqs_data.path
         if path is None or self.modified or not _names_file(result.get("source"), path):
             return result

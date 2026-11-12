@@ -7366,6 +7366,90 @@ def test_metadata_to_save_builtin_storage(mk_cls):
     assert coll.metadata_to_save() == {"source": "orig.fa"}
 
 
+_PATH_SOURCE = pathlib.Path("a.fa")
+
+
+def _builtin_coll(unaligned, metadata=None):
+    mt = c3_moltype.get_moltype("dna")
+    if unaligned:
+        cls, store_cls = c3_alignment.SequenceCollection, c3_seq_storage.SeqsData
+    else:
+        cls, store_cls = c3_alignment.Alignment, c3_seq_storage.AlignedSeqsData
+    store = store_cls.from_seqs(data=_CODON_SEQS, alphabet=mt.most_degen_alphabet())
+    return cls(seqs_data=store, moltype=mt, metadata=metadata)
+
+
+def _path_source_via_maker_metadata(unaligned):
+    maker = (
+        c3_alignment.make_unaligned_seqs
+        if unaligned
+        else c3_alignment.make_aligned_seqs
+    )
+    metadata = MetaData(local={"source": _PATH_SOURCE})
+    return maker(_CODON_SEQS, moltype="dna", metadata=metadata)
+
+
+def _path_source_via_constructor_dict(unaligned):
+    return _builtin_coll(unaligned, {"source": _PATH_SOURCE})
+
+
+def _path_source_via_constructor_metadata(unaligned):
+    return _builtin_coll(unaligned, MetaData(local={"source": _PATH_SOURCE}))
+
+
+def _path_source_via_setitem(unaligned):
+    coll = _builtin_coll(unaligned)
+    coll.metadata["source"] = _PATH_SOURCE
+    return coll
+
+
+def _path_source_via_update(unaligned):
+    coll = _builtin_coll(unaligned)
+    coll.metadata.update({"source": _PATH_SOURCE})
+    return coll
+
+
+@pytest.mark.parametrize(
+    "make_coll",
+    [
+        _path_source_via_maker_metadata,
+        _path_source_via_constructor_dict,
+        _path_source_via_constructor_metadata,
+        _path_source_via_setitem,
+        _path_source_via_update,
+    ],
+    ids=[
+        "maker_metadata",
+        "constructor_dict",
+        "constructor_metadata",
+        "setitem",
+        "update",
+    ],
+)
+def test_path_source_saved_as_str(unaligned, make_coll):
+    coll = make_coll(unaligned)
+    assert coll.metadata_to_save()["source"] == "a.fa"
+    got = deserialise_object(coll.to_json())
+    assert got.source == "a.fa"
+
+
+class _BytesPathLike:
+    def __fspath__(self):
+        return b"a.fa"
+
+
+def test_bytes_path_source_saved_as_str(unaligned):
+    coll = _builtin_coll(unaligned)
+    coll.metadata["source"] = _BytesPathLike()
+    assert coll.metadata_to_save()["source"] == "a.fa"
+
+
+def test_metadata_to_save_exact_copy_path_source(unaligned, tmp_path):
+    coll = _stored_source_coll(unaligned, tmp_path, {"source": "orig.fa"}, None)
+    coll.metadata["source"] = tmp_path / "x.c3h5"
+    assert coll.metadata_to_save()["source"] == "orig.fa"
+
+
 @_makers
 def test_legacy_rich_dict_info_drops_empty_refs(mk_cls):
     rd = json.loads(mk_cls(_CODON_SEQS, moltype="dna").to_json())
