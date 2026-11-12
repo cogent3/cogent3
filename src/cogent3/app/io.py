@@ -33,12 +33,14 @@ from scinexus.sqlite_data_store import DataStoreSqlite
 
 import cogent3
 from cogent3.core import moltype as c3_moltype
+from cogent3.core.metadata import MetaData
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
     make_pssm_from_tabular,
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.format.sequence import warn_if_metadata_unsaved
 
 from ._citations import cite_cogent3
 
@@ -491,8 +493,9 @@ class load_json(LoaderApp, cite=cite_cogent3):
         identifier, data, completed = load_record_from_json(data)
 
         result = deserialise_object(data)
-        if hasattr(result, "info"):
-            result.info["source"] = result.info.get("source", identifier)
+        if isinstance(getattr(result, "metadata", None), MetaData):
+            if not result.metadata.get("source"):
+                result.metadata["source"] = identifier
         else:
             try:
                 identifier = getattr(result, "source", identifier)
@@ -522,9 +525,10 @@ class load_db(LoaderApp, cite=cite_cogent3):
 
         # do we need to inject identifier attribute?
         result = self.deserialiser(data)
-        if not hasattr(result, "source") and hasattr(result, "info"):
-            src = Path(identifier.data_store.source) / identifier.unique_id
-            result.info["source"] = result.info.get("source", str(src))
+        if isinstance(getattr(result, "metadata", None), MetaData):
+            if not result.metadata.get("source"):
+                src = Path(identifier.data_store.source) / identifier.unique_id
+                result.metadata["source"] = str(src)
         else:
             with contextlib.suppress(AttributeError):
                 identifier = getattr(result, "source", identifier)
@@ -592,6 +596,7 @@ class write_seqs(WriterApp, cite=cite_cogent3):
         data_store: DataStoreABC,
         id_from_source: typing.Callable[[object], str | None] = get_unique_id,
         format_name: str = "fasta",
+        warn_unsaved_metadata: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -605,6 +610,9 @@ class write_seqs(WriterApp, cite=cite_cogent3):
             filename + compression suffixes.
         format_name
             sequence format
+        warn_unsaved_metadata
+            if True, emit a UserWarning when the format cannot save the
+            collection's metadata
 
         Examples
         --------
@@ -618,6 +626,7 @@ class write_seqs(WriterApp, cite=cite_cogent3):
             format_name=format_name.lower(),
         )
         self._id_from_source = id_from_source
+        self._warn_unsaved_metadata = warn_unsaved_metadata
 
     def main(
         self,
@@ -637,6 +646,10 @@ class write_seqs(WriterApp, cite=cite_cogent3):
                 data=data.to_json(),
             )
 
+        if self._warn_unsaved_metadata:
+            warn_if_metadata_unsaved(
+                data.metadata_to_save(), self._formatter, stacklevel=2
+            )
         data = self._formatter.formatted(data)
         return self.data_store.write(unique_id=identifier, data=data)
 

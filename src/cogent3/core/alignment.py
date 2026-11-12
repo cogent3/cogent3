@@ -4,6 +4,7 @@ import contextlib
 import copy
 import dataclasses
 import json
+import os
 import pathlib
 import re
 import types
@@ -44,8 +45,14 @@ from cogent3.core.annotation_db import (
     AnnotationDbABC,
     FeatureDataType,
 )
-from cogent3.core.info import Info as InfoClass
+from cogent3.core.info import Info, info_to_metadata
 from cogent3.core.location import FeatureMap, IndelMap, Strand
+from cogent3.core.metadata import (
+    _UNBOUND,
+    MetaData,
+    _info_arg_renamed,
+    _warn_info_attribute,
+)
 from cogent3.core.profile import PSSM, MotifCountsArray, MotifFreqsArray, load_pssm
 from cogent3.core.seq_storage import (
     AlignedSeqsData,
@@ -328,14 +335,80 @@ class Aligned(AnnotatableMixin):
 TSequenceOrAligned = TypeVar("TSequenceOrAligned", c3_sequence.Sequence, Aligned)
 
 
+def _owned_metadata(
+    value: Mapping[str, Any] | None, stored: Mapping[str, Any]
+) -> MetaData | None:
+    """Return the metadata owned by a collection whose storage holds stored."""
+    if value is None:
+        return None
+    if not isinstance(value, MetaData):
+        if isinstance(value, Info):
+            value = info_to_metadata(value)
+        return MetaData(stored=stored, local=value) if value else None
+    if value._stored is _UNBOUND:
+        result = copy.copy(value)
+        result.bind(stored)
+    elif value._stored is stored:
+        result = copy.copy(value)
+    else:
+        result = MetaData.connected(value)
+    if not result._local and (result._stored is stored or not result._stored):
+        return None
+    return result
+
+
+def _known_source(source: Any) -> Any:
+    # collections made before source moved into metadata recorded "unknown"
+    return None if source == "unknown" else source
+
+
+def _legacy_info_to_metadata(info: Mapping[str, Any] | None) -> dict[str, Any]:
+    # an Info always held Refs, so an empty one in data it wrote carries nothing
+    result = info_to_metadata(info or {})
+    if result.get("Refs") == {}:
+        del result["Refs"]
+    return result
+
+
+def _upgrade_legacy_kwargs(kwargs: dict[str, Any]) -> None:
+    # pickles and rich dicts written before metadata replaced info and source
+    if "info" in kwargs:
+        legacy_info = _legacy_info_to_metadata(kwargs.pop("info"))
+        if kwargs.get("metadata") is None:
+            kwargs["metadata"] = legacy_info
+    source = _known_source(kwargs.pop("source", None))
+    if source:
+        kwargs["metadata"] = {**(kwargs.get("metadata") or {}), "source": str(source)}
+
+
+def _source_to_set(source: PathType | None, metadata: Mapping[str, Any] | None) -> Any:
+    # a source in a plain mapping is stored as a string, as source= is
+    if source or metadata is None or isinstance(metadata, MetaData):
+        return source
+    return metadata.get("source")
+
+
+def _names_file(source: Any, path: pathlib.Path) -> bool:
+    if not isinstance(source, str):
+        return False
+    source_path = pathlib.Path(source)
+    # a bare file name, as the load apps record, matches by name
+    if source_path.name == source:
+        return source == path.name
+    try:
+        return source_path.expanduser().resolve() == path.resolve()
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
 class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
+    @_info_arg_renamed
     def __init__(
         self,
         *,
         seqs_data: SeqsDataABC | AlignedSeqsDataABC,
         moltype: c3_moltype.MolType[Any],
-        info: dict[str, Any] | InfoClass | None = None,
-        source: PathType | None = None,
+        metadata: Mapping[str, Any] | None = None,
         annotation_db: AnnotationDbABC | list[AnnotationDbABC] | None = None,
         name_map: Mapping[str, str] | None = None,
         is_reversed: bool = False,
@@ -347,10 +420,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             a SeqsDataABC or AlignedSeqsDataABC instance containg the sequence data
         moltype
             the molecular type of the sequences
-        info
-            additional information about the collection
-        source
-            the source of the sequence data
+        metadata
+            values for the collection's metadata, which are copied
         annotation_db
             a database of annotations for the sequences
         name_map
@@ -365,10 +436,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         name_map = name_map or {name: name for name in seqs_data.names}
         self._name_map = types.MappingProxyType(name_map)
         self._is_reversed = is_reversed
-        if not isinstance(info, InfoClass):
-            info = InfoClass(info) if info else InfoClass()
-        self.info = info
-        self.source = source
         self._repr_policy: dict[str, Any] = {
             "num_seqs": 10,
             "num_pos": 60,
@@ -378,6 +445,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
             annotation_db
         )
+        # after _annotation_db, which __del__ reads if invalid metadata raises
+        self._metadata = _owned_metadata(metadata, seqs_data.metadata)
         self._seqs: _IndexableSeqs[TSequenceOrAligned]
         self._post_init()
 
@@ -466,11 +535,80 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
         self._repr_policy.update(updates)
 
+    @property
+    def metadata(self) -> MetaData:
+        """The collection's metadata, a mutable mapping.
+
+        Values held by the storage are read through it. Changes apply to
+        this collection only, never to its storage.
+        """
+        if self._metadata is None:
+            self._metadata = MetaData(stored=self._seqs_data.metadata)
+        return self._metadata
+
+    @property
+    def info(self) -> MetaData:
+        """Deprecated alias of metadata."""
+        _warn_info_attribute()
+        return self.metadata
+
+    @info.setter
+    def info(self, value: Mapping[str, Any] | None) -> None:
+        _warn_info_attribute()
+        metadata = self.metadata
+        if value is metadata:
+            return
+        if isinstance(value, Info):
+            value = info_to_metadata(value)
+        new = value.to_dict() if isinstance(value, MetaData) else value or {}
+        metadata.clear()
+        metadata |= new
+
+    @property
+    def source(self) -> Any:
+        """Where the data came from, ``metadata["source"]``, or None if absent.
+
+        Setting None removes it.
+        """
+        if self._metadata is None:
+            return self._seqs_data.metadata.get("source")
+        return self._metadata.get("source")
+
+    @source.setter
+    def source(self, value: PathType | None) -> None:
+        if value is None:
+            self.metadata.pop("source", None)
+        else:
+            self.metadata["source"] = str(value)
+
+    def metadata_to_save(self) -> dict[str, Any]:
+        """Return the metadata that writing this collection saves.
+
+        This is ``metadata.to_dict()``, except when the collection is an
+        unchanged copy of its storage and its source names the storage's
+        file. Then the saved source is the one that file records, or the
+        file itself if it records none, so the source always names the
+        original data. A path-like source is saved as a string.
+        """
+        # reads the storage without building self._metadata
+        metadata = self._metadata
+        if metadata is None:
+            metadata = MetaData(stored=self._seqs_data.metadata)
+        result = metadata.to_dict()
+        if isinstance(source := result.get("source"), os.PathLike):
+            result["source"] = os.fsdecode(source)
+        path = self._seqs_data.path
+        if path is None or self.modified or not _names_file(result.get("source"), path):
+            return result
+        result["source"] = self._seqs_data.metadata.get("source") or str(path)
+        return result
+
     def __getstate__(self) -> dict[str, Any]:
         return self._get_init_kwargs()
 
     def __setstate__(self, state: dict[str, Any]) -> None:
         state["name_map"] = types.MappingProxyType(state.pop("name_map"))
+        _upgrade_legacy_kwargs(state)
         obj = self.__class__(**state)
 
         self.__dict__.update(obj.__dict__)
@@ -487,7 +625,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         self_init = self._get_init_kwargs()
         other_init = other._get_init_kwargs()
         for key, self_val in self_init.items():
-            if key in ("annotation_db", "slice_record"):
+            if key in ("annotation_db", "metadata", "slice_record"):
                 continue
             other_val = other_init.get(key)
             if self_val != other_val:
@@ -598,7 +736,11 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
     @abstractmethod
     def degap(
-        self, storage_backend: str | None = None, **kwargs: Any
+        self,
+        storage_backend: str | None = None,
+        *,
+        with_metadata: bool = True,
+        **kwargs: Any,
     ) -> SequenceCollection: ...
 
     @abstractmethod
@@ -608,6 +750,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self: ...
 
@@ -616,6 +760,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         self,
         gc: GeneticCodeTypes = 1,
         strict: bool = False,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self: ...
 
@@ -714,7 +860,12 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return fasta.formatted(self, block_size=block_size)
 
     def write(
-        self, filename: str, format_name: str | None = None, **kwargs: Any
+        self,
+        filename: str,
+        format_name: str | None = None,
+        *,
+        warn_unsaved_metadata: bool = False,
+        **kwargs: Any,
     ) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
@@ -724,6 +875,9 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             name of the sequence file
         format_name
             format of the sequence file
+        warn_unsaved_metadata
+            if True, emit a UserWarning when the format cannot save the
+            collection's metadata
 
         Notes
         -----
@@ -749,6 +903,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             file_suffix=suffix,
             unaligned_seqs=type(self) is SequenceCollection,
         )
+        if warn_unsaved_metadata:
+            from cogent3.format.sequence import warn_if_metadata_unsaved
+
+            warn_if_metadata_unsaved(self.metadata_to_save(), writer, stacklevel=3)
         _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
     def dotplot(
@@ -1032,6 +1190,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     def add_seqs(
         self,
         seqs: dict[str, str | bytes | NumpyIntArrayType],
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self:
         """Returns new collection with additional sequences.
@@ -1040,6 +1200,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         ----------
         seqs
             sequences to add
+        with_metadata
+            if False, the result has no metadata
+        kwargs
+            keyword arguments for the storage's add_seqs
         """
         assign_names = _SeqNamer()
         named_seqs = _make_name_seq_mapping(seqs, assign_names)
@@ -1059,8 +1223,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             seqs_data=seqs_data,
             moltype=self.moltype,
             name_map={**self._name_map, **name_map},
-            info=self.info,
-            source=self.source,
+            metadata=self._metadata_for(with_metadata, seqs_data),
             annotation_db=self._annotation_db,
         )
 
@@ -1098,13 +1261,43 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
         return self.__class__(**init_args)
 
-    def to_moltype(self, moltype: MolTypes) -> Self:
+    def _metadata_for(
+        self,
+        with_metadata: bool,
+        seqs_data: SeqsDataABC | AlignedSeqsDataABC | None,
+    ) -> MetaData | None:
+        # the metadata argument for a result whose storage is seqs_data, which
+        # is None when that storage is built elsewhere and so holds no metadata
+        if with_metadata:
+            if self._metadata is not None or seqs_data is self._seqs_data:
+                return self._metadata
+            # the constructor connects this to the new storage, or reduces it
+            # to None when the result reads the same storage
+            stored = self._seqs_data.metadata
+            return MetaData(stored=stored) if stored else None
+        if seqs_data is None:
+            return None
+        # the result can read storage holding metadata, so every key is hidden
+        hidden = MetaData(stored=seqs_data.metadata)
+        hidden.clear()
+        return hidden
+
+    def _unchanged(self, with_metadata: bool = True) -> Self:
+        # a new view rather than self, so editing the result's metadata
+        # never reaches self
+        kwargs = self._get_init_kwargs()
+        kwargs["metadata"] = self._metadata_for(with_metadata, self._seqs_data)
+        return self.__class__(**kwargs)
+
+    def to_moltype(self, moltype: MolTypes, *, with_metadata: bool = True) -> Self:
         """returns copy of self with changed moltype
 
         Parameters
         ----------
         moltype
             name of the new moltype, e.g, 'dna', 'rna'.
+        with_metadata
+            if False, the result has no metadata
 
         Notes
         -----
@@ -1113,7 +1306,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """
         mtype = c3_moltype.get_moltype(moltype)
         if mtype is self.moltype:
-            return self  # nothing to be done
+            return self._unchanged(with_metadata)
 
         alpha = mtype.most_degen_alphabet()
         try:
@@ -1127,16 +1320,17 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         init_kwargs = self._get_init_kwargs()
         init_kwargs["seqs_data"] = new_seqs_data
         init_kwargs["moltype"] = mtype
+        init_kwargs["metadata"] = self._metadata_for(with_metadata, new_seqs_data)
 
         return self.__class__(**init_kwargs)
 
-    def to_dna(self) -> Self:
+    def to_dna(self, *, with_metadata: bool = True) -> Self:
         """returns copy of self as a collection of DNA moltype seqs"""
-        return self.to_moltype("dna")
+        return self.to_moltype("dna", with_metadata=with_metadata)
 
-    def to_rna(self) -> Self:
+    def to_rna(self, *, with_metadata: bool = True) -> Self:
         """returns copy of self as a collection of RNA moltype seqs"""
-        return self.to_moltype("rna")
+        return self.to_moltype("rna", with_metadata=with_metadata)
 
     def has_terminal_stop(self, gc: GeneticCodeTypes = 1, strict: bool = False) -> bool:
         """Returns True if any sequence has a terminal stop codon.
@@ -1434,7 +1628,9 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         msg = "get_lengths not implemented yet"
         raise NotImplementedError(msg)
 
-    def pad_seqs(self, pad_length: int | None = None) -> Self:
+    def pad_seqs(
+        self, pad_length: int | None = None, *, with_metadata: bool = True
+    ) -> Self:
         """Returns copy in which sequences are padded with the gap character to same length.
 
         Parameters
@@ -1442,6 +1638,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         pad_length
             Length all sequences are to be padded to. Will pad to max sequence
             length if pad_length is None or less than max length.
+        with_metadata
+            if False, the result has no metadata
         """
 
         max_len = max(
@@ -1477,6 +1675,9 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             data=padded_seqs,
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
+        )
+        init_kwargs["metadata"] = self._metadata_for(
+            with_metadata, init_kwargs["seqs_data"]
         )
         init_kwargs["is_reversed"] = False
         return self.__class__(**init_kwargs)
@@ -1632,7 +1833,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return self.take_seqs_if(f)
 
     def drop_duplicated_seqs(self) -> Self:
-        """returns self without duplicated sequences
+        """returns a copy of self without duplicated sequences
 
         Notes
         -----
@@ -1640,7 +1841,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """
         dupes = self.duplicated_seqs()
         if not dupes:
-            return self
+            return self._unchanged()
 
         omit: list[str] = []
         for group in dupes:
@@ -1660,13 +1861,13 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
     Should be constructed using ``make_unaligned_seqs()``.
     """
 
+    @_info_arg_renamed
     def __init__(
         self,
         *,
         seqs_data: SeqsDataABC,
         moltype: c3_moltype.MolType[Any],
-        info: dict[str, Any] | InfoClass | None = None,
-        source: PathType | None = None,
+        metadata: Mapping[str, Any] | None = None,
         annotation_db: AnnotationDbABC | list[AnnotationDbABC] | None = None,
         name_map: Mapping[str, str] | None = None,
         is_reversed: bool = False,
@@ -1678,10 +1879,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             a SeqsDataABC or AlignedSeqsDataABC instance containg the sequence data
         moltype
             the molecular type of the sequences
-        info
-            additional information about the collection
-        source
-            the source of the sequence data
+        metadata
+            values for the collection's metadata, which are copied
         annotation_db
             a database of annotations for the sequences
         name_map
@@ -1695,8 +1894,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         super().__init__(
             seqs_data=seqs_data,
             moltype=moltype,
-            info=info,
-            source=source,
+            metadata=metadata,
             annotation_db=annotation_db,
             name_map=name_map,
             is_reversed=is_reversed,
@@ -1717,9 +1915,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
             "name_map": dict(self._name_map),
-            "info": self.info.copy(),
+            "metadata": self._metadata,
             "annotation_db": self._annotation_db,
-            "source": self.source,
             "is_reversed": self._is_reversed,
         }
 
@@ -1797,6 +1994,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         kwargs = self._get_init_kwargs()
         kwargs.pop("is_reversed", None)  # reversal is realised
         kwargs["moltype"] = self.moltype.label
+        kwargs["metadata"] = self.metadata_to_save()
         kwargs.pop("annotation_db", None)
         kwargs.pop(
             "offset",
@@ -1819,9 +2017,17 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         data: dict[str, Any],
     ) -> SequenceCollection:
         """returns a new instance from a rich dict"""
-        return make_unaligned_seqs(data["seqs"], **data["init_args"])
+        init_args = dict(data["init_args"])
+        _upgrade_legacy_kwargs(init_args)
+        return make_unaligned_seqs(data["seqs"], **init_args)
 
-    def degap(self, storage_backend: str | None = None, **kwargs: Any) -> Self:
+    def degap(
+        self,
+        storage_backend: str | None = None,
+        *,
+        with_metadata: bool = True,
+        **kwargs: Any,
+    ) -> Self:
         """returns collection sequences without gaps or missing characters.
 
         Parameters
@@ -1829,6 +2035,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         storage_backend
             name of the storage backend to use for the SeqsData object, defaults to
             cogent3 builtin.
+        with_metadata
+            if False, the result has no metadata
         kwargs
             keyword arguments for the storage driver
 
@@ -1855,6 +2063,9 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             alphabet=self._seqs_data.alphabet,
             check=False,
             **kwargs,
+        )
+        init_kwargs["metadata"] = self._metadata_for(
+            with_metadata, init_kwargs["seqs_data"]
         )
 
         return self.__class__(**init_kwargs)
@@ -2012,6 +2223,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self:
         """translate sequences from nucleic acid to protein
@@ -2028,6 +2241,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             whether to allow a stops in the translated sequence
         trim_stop
             exclude terminal stop codons if they exist
+        with_metadata
+            if False, the result has no metadata
         kwargs
             related to construction of the resulting object
 
@@ -2067,8 +2282,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             seqs_data=seqs_data,
             moltype=pep_moltype,
             name_map=self._name_map,
-            info=self.info,
-            source=self.source,
+            metadata=self._metadata_for(with_metadata, seqs_data),
             **kwargs,
         )
 
@@ -2076,6 +2290,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         self,
         gc: GeneticCodeTypes = 1,
         strict: bool = False,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self:
         """Removes any terminal stop codons from the sequences
@@ -2087,9 +2303,11 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             or name, defaults to standard code
         strict
             If True, raises an exception if a seq length not divisible by 3
+        with_metadata
+            if False, the result has no metadata
         """
         if not self.has_terminal_stop(gc=gc, strict=strict):
-            return self
+            return self._unchanged(with_metadata)
 
         new_seqs = {
             self.name_map[cast("str", s.name)]: s.trim_stop_codon(
@@ -2106,6 +2324,9 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             alphabet=self._seqs_data.alphabet,
             offset=self._seqs_data.offset,
             check=False,
+        )
+        init_kwargs["metadata"] = self._metadata_for(
+            with_metadata, init_kwargs["seqs_data"]
         )
         init_kwargs["annotation_db"] = self._annotation_db
         return self.__class__(**init_kwargs)
@@ -2549,6 +2770,7 @@ class Alignment(CollectionBase[Aligned]):
     Should be constructed using ``make_aligned_seqs()``.
     """
 
+    @_info_arg_renamed
     def __init__(
         self,
         seqs_data: AlignedSeqsDataABC,
@@ -2575,10 +2797,9 @@ class Alignment(CollectionBase[Aligned]):
             "seqs_data": self._seqs_data,
             "moltype": self.moltype,
             "name_map": dict(self._name_map),
-            "info": self.info.copy(),
+            "metadata": self._metadata,
             "annotation_db": self._annotation_db,
             "slice_record": self._slice_record,
-            "source": self.source,
         }
 
     def _make_aligned(self, seqid: str) -> Aligned:
@@ -2606,6 +2827,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = self._get_init_kwargs()
         kwargs["seqs_data"] = data
+        kwargs["metadata"] = self._metadata_for(True, data)
         kwargs.pop("slice_record", None)
         kwargs.pop("annotation_db", None)
         return self.__class__(**kwargs)
@@ -2751,6 +2973,11 @@ class Alignment(CollectionBase[Aligned]):
 
         return new
 
+    def _unchanged(self, with_metadata: bool = True) -> Self:
+        new = super()._unchanged(with_metadata)
+        new._array_seqs = self._array_seqs
+        return new
+
     def to_phylip(self) -> str:
         """
         Return collection in PHYLIP format and mapping to sequence ids
@@ -2793,6 +3020,7 @@ class Alignment(CollectionBase[Aligned]):
         kwargs = self._get_init_kwargs()
         kwargs.pop("slice_record")  # slice is realised
         kwargs["moltype"] = self.moltype.label
+        kwargs["metadata"] = self.metadata_to_save()
         kwargs.pop("annotation_db", None)  # we dont serialise the annotation db
         kwargs.pop(
             "offset",
@@ -2810,8 +3038,10 @@ class Alignment(CollectionBase[Aligned]):
 
     @classmethod
     def from_rich_dict(cls, data: dict[str, Any]) -> Alignment:
-        data["init_args"].pop("annotation_db", None)
-        return make_aligned_seqs(data["seqs"], **data["init_args"])
+        init_args = dict(data["init_args"])
+        init_args.pop("annotation_db", None)
+        _upgrade_legacy_kwargs(init_args)
+        return make_aligned_seqs(data["seqs"], **init_args)
 
     def to_html(
         self,
@@ -3060,7 +3290,11 @@ class Alignment(CollectionBase[Aligned]):
         return "\n".join(result)
 
     def degap(
-        self, storage_backend: str | None = None, **kwargs: Any
+        self,
+        storage_backend: str | None = None,
+        *,
+        with_metadata: bool = True,
+        **kwargs: Any,
     ) -> SequenceCollection:
         """returns collection sequences without gaps or missing characters.
 
@@ -3069,6 +3303,8 @@ class Alignment(CollectionBase[Aligned]):
         storage_backend
             name of the storage backend to use for the SeqsData object, defaults to
             cogent3 builtin.
+        with_metadata
+            if False, the result has no metadata
         kwargs
             keyword arguments for the storage driver
 
@@ -3097,7 +3333,12 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs["annotation_db"] = self._annotation_db
         kwargs["storage_backend"] = storage_backend
-        return make_unaligned_seqs(data, moltype=self.moltype, info=self.info, **kwargs)
+        return make_unaligned_seqs(
+            data,
+            moltype=self.moltype,
+            metadata=self._metadata_for(with_metadata, None),
+            **kwargs,
+        )
 
     def get_gapped_seq(
         self,
@@ -3136,6 +3377,8 @@ class Alignment(CollectionBase[Aligned]):
         incomplete_ok: bool = False,
         include_stop: bool = False,
         trim_stop: bool = True,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self:
         if not self.moltype.is_nucleic:
@@ -3145,7 +3388,10 @@ class Alignment(CollectionBase[Aligned]):
         if not trim_stop or include_stop:
             seqs = self
         else:
-            seqs = self.trim_stop_codons(gc=gc, strict=not incomplete_ok)
+            # only the sequences of this intermediate are used
+            seqs = self.trim_stop_codons(
+                gc=gc, strict=not incomplete_ok, with_metadata=False
+            )
 
         translated: dict[str, NumpyIntArrayType] = {}
         for seqname in seqs.names:
@@ -3172,8 +3418,7 @@ class Alignment(CollectionBase[Aligned]):
             seqs_data=seqs_data,
             moltype=pep_moltype,
             name_map=self._name_map,
-            info=self.info,
-            source=self.source,
+            metadata=self._metadata_for(with_metadata, seqs_data),
             **kwargs,
         )
 
@@ -3181,13 +3426,15 @@ class Alignment(CollectionBase[Aligned]):
         self,
         gc: GeneticCodeTypes = 1,
         strict: bool = False,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self:
         from cogent3.core.genetic_code import get_code
 
         # refactor: array   # noqa: ERA001, RUF100
         if not self.has_terminal_stop(gc=gc, strict=strict):
-            return self
+            return self._unchanged(with_metadata)
 
         # define a regex for finding stop codons followed by terminal gaps
         gc = get_code(gc)
@@ -3210,6 +3457,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         init_kwargs = self._get_init_kwargs()
         init_kwargs["seqs_data"] = seqs_data
+        init_kwargs["metadata"] = self._metadata_for(with_metadata, seqs_data)
         init_kwargs.pop("slice_record", None)
         init_kwargs |= kwargs
         return self.__class__(**init_kwargs)
@@ -3730,6 +3978,8 @@ class Alignment(CollectionBase[Aligned]):
         self,
         cols: list[int] | NumpyIntArrayType,
         negate: bool = False,
+        *,
+        with_metadata: bool = True,
     ) -> Self:
         """Returns new Alignment containing only specified positions.
 
@@ -3739,6 +3989,8 @@ class Alignment(CollectionBase[Aligned]):
             list of column indices to keep
         negate
             if True, all columns except those in cols are kept
+        with_metadata
+            if False, the result has no metadata
         """
         # refactor: array - use array operations throughout method
         if negate:
@@ -3755,15 +4007,22 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = self._get_init_kwargs()
         kwargs["seqs_data"] = seqs_data
+        kwargs["metadata"] = self._metadata_for(with_metadata, seqs_data)
         kwargs.pop("annotation_db", None)
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
 
     def take_positions_if(
-        self, f: Callable[[PySeq[str]], bool], negate: bool = False
+        self,
+        f: Callable[[PySeq[str]], bool],
+        negate: bool = False,
+        *,
+        with_metadata: bool = True,
     ) -> Self:
         """Returns new Alignment containing cols where f(col) is True."""
-        return self.take_positions(self.get_position_indices(f, negate=negate))
+        return self.take_positions(
+            self.get_position_indices(f, negate=negate), with_metadata=with_metadata
+        )
 
     def get_gap_array(self, include_ambiguity: bool = True) -> npt.NDArray[numpy.bool]:
         """returns bool array with gap state True, False otherwise
@@ -4089,13 +4348,17 @@ class Alignment(CollectionBase[Aligned]):
         names = [name for name, count in gap_counts.items() if count <= cutoff]
         return self.take_seqs(cast("list[str]", names))
 
-    def get_degapped_relative_to(self, name: str) -> Self:
+    def get_degapped_relative_to(
+        self, name: str, *, with_metadata: bool = True
+    ) -> Self:
         """Remove all columns with gaps in sequence with given name.
 
         Parameters
         ----------
         name
             sequence name
+        with_metadata
+            if False, the result has no metadata
 
         Notes
         -----
@@ -4118,6 +4381,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = self._get_init_kwargs()
         kwargs["seqs_data"] = new_seq_data
+        kwargs["metadata"] = self._metadata_for(with_metadata, new_seq_data)
         kwargs.pop("annotation_db", None)
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
@@ -4167,7 +4431,9 @@ class Alignment(CollectionBase[Aligned]):
             for pos in range(start, end, step):
                 yield self[pos : pos + window]
 
-    def gapped_by_map(self, keep: FeatureMap, **kwargs: Any) -> Self:
+    def gapped_by_map(
+        self, keep: FeatureMap, *, with_metadata: bool = True, **kwargs: Any
+    ) -> Self:
         # refactor: docstring   # noqa: ERA001, RUF100
         # TODO: kath, not explicitly tested
         seqs: dict[str, NumpyIntArrayType] = {}
@@ -4181,6 +4447,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         init_kwargs = self._get_init_kwargs()
         init_kwargs.pop("annotation_db", None)
+        init_kwargs["metadata"] = self._metadata_for(with_metadata, seqs_data)
         init_kwargs |= kwargs
         init_kwargs["seqs_data"] = seqs_data
         init_kwargs.pop("slice_record", None)
@@ -4191,6 +4458,8 @@ class Alignment(CollectionBase[Aligned]):
         predicate: Callable[[list[Aligned]], bool],
         motif_length: int = 1,
         drop_remainder: bool = True,
+        *,
+        with_metadata: bool = True,
         **kwargs: Any,
     ) -> Self:
         """The alignment positions where predicate(column) is true.
@@ -4206,6 +4475,8 @@ class Alignment(CollectionBase[Aligned]):
         drop_remainder
             If length is not modulo motif_length, allow dropping the terminal
             remaining columns
+        with_metadata
+            if False, the result has no metadata
         """
         # refactor: type hint for predicate
         length = len(self)
@@ -4224,9 +4495,15 @@ class Alignment(CollectionBase[Aligned]):
 
         indices = numpy.where(kept)[0]
 
-        return self.take_positions(indices.tolist())
+        return self.take_positions(indices.tolist(), with_metadata=with_metadata)
 
-    def no_degenerates(self, motif_length: int = 1, allow_gap: bool = False) -> Self:
+    def no_degenerates(
+        self,
+        motif_length: int = 1,
+        allow_gap: bool = False,
+        *,
+        with_metadata: bool = True,
+    ) -> Self:
         """returns new alignment without degenerate characters
 
         Parameters
@@ -4238,6 +4515,8 @@ class Alignment(CollectionBase[Aligned]):
             whether gaps are allowed or whether they are treated as a degenerate
             character (latter is default, as most evolutionary modelling treats
             gaps as N).
+        with_metadata
+            if False, the result has no metadata
         """
         if self.moltype.degen_alphabet is None:
             msg = (
@@ -4278,6 +4557,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = self._get_init_kwargs()
         kwargs["seqs_data"] = aligned_seqs_data
+        kwargs["metadata"] = self._metadata_for(with_metadata, aligned_seqs_data)
         kwargs.pop("annotation_db", None)
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
@@ -4325,6 +4605,8 @@ class Alignment(CollectionBase[Aligned]):
         self,
         allowed_gap_frac: float | None = None,
         motif_length: int = 1,
+        *,
+        with_metadata: bool = True,
     ) -> Self:
         """Returns new alignment where all cols (motifs) have <= allowed_gap_frac gaps.
 
@@ -4339,12 +4621,14 @@ class Alignment(CollectionBase[Aligned]):
             set's the "column" width, e.g. setting to 3 corresponds to codons.
             A motif that includes a gap at any position is included in the
             counting.
+        with_metadata
+            if False, the result has no metadata
         """
         alpha = self.moltype.most_degen_alphabet()
         gap_index = alpha.gap_index
         missing_index = alpha.missing_index
         if not gap_index and not missing_index:
-            return self
+            return self._unchanged(with_metadata)
         gap_index = cast("int", gap_index)
         allowed_num = (
             self.num_seqs - 1
@@ -4373,6 +4657,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = self._get_init_kwargs()
         kwargs["seqs_data"] = aligned_seqs_data
+        kwargs["metadata"] = self._metadata_for(with_metadata, aligned_seqs_data)
         # slice record now needs to be reset since we likely have disjoint positions
         kwargs.pop("slice_record", None)
         return self.__class__(**kwargs)
@@ -4387,6 +4672,7 @@ class Alignment(CollectionBase[Aligned]):
             [int, int | None, int | None], NumpyIntArrayType
         ] = numpy.random.randint,
         permutation: Callable[[int], NumpyIntArrayType] = numpy.random.permutation,
+        with_metadata: bool = True,
     ) -> Self:
         """Returns random sample of positions from self, e.g. to bootstrap.
 
@@ -4403,6 +4689,8 @@ class Alignment(CollectionBase[Aligned]):
         permutation
             function to generate a random permutation of positions, default is
             numpy.permutation
+        with_metadata
+            if False, the result has no metadata
 
         Notes
         -----
@@ -4442,7 +4730,7 @@ class Alignment(CollectionBase[Aligned]):
                     (loc + 1) * motif_length,
                 )
 
-        return self.take_positions(positions)
+        return self.take_positions(positions, with_metadata=with_metadata)
 
     def quick_tree(
         self,
@@ -4909,8 +5197,21 @@ class Alignment(CollectionBase[Aligned]):
         self,
         other: SequenceCollection,
         aa_to_codon: bool = True,
+        *,
+        with_metadata: bool = True,
     ) -> Self:
-        """applies gaps in self to ungapped sequences"""
+        """applies gaps in self to ungapped sequences
+
+        Parameters
+        ----------
+        other
+            ungapped sequences with the same names as self
+        aa_to_codon
+            if True, self is protein and other is nucleic, otherwise the reverse
+        with_metadata
+            if False, the result has no metadata. Otherwise it has the
+            metadata of self, not of other
+        """
         assert set(other.names) == set(self.names), "Names must match"
         if aa_to_codon and not all(
             (not self.moltype.is_nucleic, other.moltype.is_nucleic),
@@ -4953,6 +5254,7 @@ class Alignment(CollectionBase[Aligned]):
         init_args.pop("slice_record")  # slice is realised
         init_args["moltype"] = other.moltype
         init_args["seqs_data"] = seq_data
+        init_args["metadata"] = self._metadata_for(with_metadata, seq_data)
         init_args["annotation_db"] = (
             other.annotation_db if other.has_annotation_db() else None
         )
@@ -4965,8 +5267,13 @@ class Alignment(CollectionBase[Aligned]):
             kwargs["annotation_db"] = copy.deepcopy(self._annotation_db)
         return self.__class__(**kwargs)
 
-    def deepcopy(self, **kwargs: Any) -> Self:
+    def deepcopy(self, *, with_metadata: bool = True, **kwargs: Any) -> Self:
         """returns deep copy of self
+
+        Parameters
+        ----------
+        with_metadata
+            if False, the result has no metadata
 
         Notes
         -----
@@ -4996,6 +5303,7 @@ class Alignment(CollectionBase[Aligned]):
             alphabet=self.moltype.most_degen_alphabet(),
         )
         kwargs["seqs_data"] = new_seqs_data
+        kwargs["metadata"] = self._metadata_for(with_metadata, new_seqs_data)
         kwargs["slice_record"] = (
             SliceRecord(parent_len=new_seqs_data.align_len, step=-1)
             if self._slice_record.is_reversed
@@ -5009,6 +5317,8 @@ class Alignment(CollectionBase[Aligned]):
         mask_char: str = "?",
         shadow: bool = False,
         seqid: str | None = None,
+        *,
+        with_metadata: bool = True,
     ) -> Self:
         """returns an alignment with regions replaced by mask_char
 
@@ -5023,6 +5333,8 @@ class Alignment(CollectionBase[Aligned]):
             If True, masks everything but the biotypes
         seqid
             name of sequence to mask, defaults to all
+        with_metadata
+            if False, the result has no metadata
         """
         # by doing numpy.array(seq), this method applies the slice_record
         # and modifies the underlying sequence data. We therefore split
@@ -5047,6 +5359,7 @@ class Alignment(CollectionBase[Aligned]):
         )
         init = self._get_init_kwargs()
         init["seqs_data"] = seq_data
+        init["metadata"] = self._metadata_for(with_metadata, seq_data)
         # we have to drop the slice record since we have changed the data
         init["slice_record"] = None
         return self.__class__(**init)
@@ -5602,6 +5915,7 @@ def make_unaligned_storage(
     return klass.from_seqs(**sd_kwargs)
 
 
+@_info_arg_renamed
 def make_unaligned_seqs(
     data: Mapping[str, str | bytes | NumpyIntArrayType]
     | list[str | bytes | NumpyIntArrayType]
@@ -5609,7 +5923,7 @@ def make_unaligned_seqs(
     *,
     moltype: MolTypes,
     label_to_name: Callable[[str], str] | None = None,
-    info: dict[str, Any] | None = None,
+    metadata: Mapping[str, Any] | None = None,
     source: PathType | None = None,
     annotation_db: AnnotationDbABC | None = None,
     offset: dict[str, int] | None = None,
@@ -5629,11 +5943,12 @@ def make_unaligned_seqs(
         string representation of the moltype, e.g., 'dna', 'protein'.
     label_to_name
         function for converting original names into other names.
-    info
-        a dict from which to make an info object
+    metadata
+        values for the collection's metadata. A plain mapping is copied, a
+        MetaData is passed to the collection as it is
     source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
+        origins of this data. Converted to a string and stored as
+        metadata["source"], replacing any source in metadata.
     annotation_db
         annotation database to attach to the collection
     offset
@@ -5674,19 +5989,18 @@ def make_unaligned_seqs(
             msg = f"Setting offset is not supported for {data=}"
             raise ValueError(msg)
 
-        info = info if isinstance(info, dict) else {}
-        source = str(source) if source else str(info.pop("source", "unknown"))
         seqs = SequenceCollection(
             seqs_data=data,
             moltype=moltype,
-            info=info,
+            metadata=metadata,
             annotation_db=annotation_db,
-            source=source,
             name_map=name_map,
             is_reversed=is_reversed,
         )
         if label_to_name:
             seqs = seqs.renamed_seqs(label_to_name)
+        if source := _source_to_set(source, metadata):
+            seqs.source = source
         return seqs
 
     if len(data) == 0:
@@ -5717,7 +6031,7 @@ def make_unaligned_seqs(
     return make_unaligned_seqs(
         seqs_data,
         moltype=moltype,
-        info=info,
+        metadata=metadata,
         source=source,
         annotation_db=annotation_db,
         name_map=name_map,
@@ -5745,14 +6059,14 @@ def deserialise_old_to_new_type_seqcoll(
     """deserialise old type SequenceCollection as a new type collection"""
     moltype_name: MolTypes = data["moltype"]
     moltype_name = "text" if moltype_name == "bytes" else moltype_name
-    info_data = data["info"]
+    info_data = _legacy_info_to_metadata(data["info"])
     source = info_data.pop("source", None)
     seq_data = {
         seqid: record["seq"]["init_args"]["seq"]
         for seqid, record in data["seqs"].items()
     }
     return make_unaligned_seqs(
-        seq_data, moltype=moltype_name, info=info_data, source=source
+        seq_data, moltype=moltype_name, metadata=info_data, source=_known_source(source)
     )
 
 
@@ -5808,6 +6122,7 @@ def make_aligned_storage(
     return klass.from_seqs(**asd_kwargs)
 
 
+@_info_arg_renamed
 def make_aligned_seqs(
     data: Mapping[str, str | bytes | NumpyIntArrayType]
     | list[str | bytes | NumpyIntArrayType]
@@ -5815,7 +6130,7 @@ def make_aligned_seqs(
     *,
     moltype: MolTypes,
     label_to_name: Callable[[str], str] | None = None,
-    info: dict[str, Any] | None = None,
+    metadata: Mapping[str, Any] | None = None,
     source: PathType | None = None,
     annotation_db: AnnotationDbABC | None = None,
     offset: dict[str, int] | None = None,
@@ -5835,11 +6150,12 @@ def make_aligned_seqs(
         string representation of the moltype, e.g., 'dna', 'protein'.
     label_to_name
         function for converting original names into other names.
-    info
-        a dict from which to make an info object
+    metadata
+        values for the collection's metadata. A plain mapping is copied, a
+        MetaData is passed to the collection as it is
     source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
+        origins of this data. Converted to a string and stored as
+        metadata["source"], replacing any source in metadata.
     annotation_db
         annotation database to attach to the collection
     offset
@@ -5878,20 +6194,19 @@ def make_aligned_seqs(
             msg = f"Setting offset is not supported for {data=}"
             raise ValueError(msg)
 
-        info = info if isinstance(info, dict) else {}
-        source = str(source) if source else str(info.pop("source", "unknown"))
         sr = SliceRecord(parent_len=data.align_len, step=-1) if is_reversed else None
         aln = Alignment(
             seqs_data=data,
             moltype=moltype,
-            info=info,
-            source=source,
+            metadata=metadata,
             annotation_db=annotation_db,
             name_map=name_map,
             slice_record=sr,
         )
         if label_to_name:
             aln = aln.renamed_seqs(label_to_name)
+        if source := _source_to_set(source, metadata):
+            aln.source = source
         return aln
 
     if len(data) == 0:
@@ -5932,7 +6247,7 @@ def make_aligned_seqs(
     return make_aligned_seqs(
         seqs_data,
         moltype=moltype,
-        info=info,
+        metadata=metadata,
         annotation_db=annotation_db,
         source=source,
         name_map=name_map,
@@ -5959,8 +6274,8 @@ def deserialise_array_align_to_new_type_alignment(
     """deserialise old type ArrayAlignment as a new type alignment."""
     moltype_name: MolTypes = data["moltype"]
     moltype_name = "text" if moltype_name == "bytes" else moltype_name
-    info_data: dict[str, Any] = data["info"]
-    source = info_data.pop("source", None) if info_data else None
+    info_data = _legacy_info_to_metadata(data["info"])
+    source = info_data.pop("source", None)
 
     seq_data: dict[str, str | bytes | NumpyIntArrayType] = {}
     for seqid, record in data["seqs"].items():
@@ -5972,7 +6287,7 @@ def deserialise_array_align_to_new_type_alignment(
         seq_data[seqid] = seq
 
     return make_aligned_seqs(
-        seq_data, moltype=moltype_name, info=info_data, source=source
+        seq_data, moltype=moltype_name, metadata=info_data, source=_known_source(source)
     )
 
 
@@ -5986,7 +6301,7 @@ def deserialise_alignment_to_new_type_alignment(
     moltype_name: MolTypes = data["moltype"]
     mt = get_moltype(moltype_name)
     alpha = mt.most_degen_alphabet()
-    info_data = data["info"]
+    info_data = _legacy_info_to_metadata(data["info"])
     source = info_data.pop("source", None)
 
     seqs: dict[str, NumpyIntArrayType] = {}
@@ -6000,4 +6315,6 @@ def deserialise_alignment_to_new_type_alignment(
         gaps[name] = imap.array
 
     asd = AlignedSeqsData.from_seqs_and_gaps(seqs=seqs, gaps=gaps, alphabet=alpha)
-    return make_aligned_seqs(asd, moltype=moltype_name, info=info_data, source=source)
+    return make_aligned_seqs(
+        asd, moltype=moltype_name, metadata=info_data, source=_known_source(source)
+    )

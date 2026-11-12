@@ -104,6 +104,7 @@ doc = [
     # gated as in the test group: dev includes doc, so an ungated requirement
     # here stops uv building the project environment at all
     "piqtree>=0.8.0; python_version > '3.11' and python_version <= '3.14' and ((sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
+    "quarto-cli",
     "quartodoc",
     # quartodoc 0.11.1 requires only griffe>=0.33, but griffe 2 dropped the
     # allow_section_blank_line argument it passes to parse_numpy

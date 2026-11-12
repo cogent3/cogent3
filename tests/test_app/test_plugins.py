@@ -19,6 +19,13 @@ from cogent3.app import (
     get_app,
 )
 from cogent3.core.table import Table
+from cogent3.format.sequence import (
+    FastaWriter,
+    GdeWriter,
+    PamlWriter,
+    PhylipWriter,
+    SequenceWriterBase,
+)
 
 
 @pytest.fixture
@@ -369,6 +376,28 @@ def test_registered_formatters_exist(seq_formatter):
     get_formatter = cogent3._plugin.get_seq_format_writer_plugin
     # this should not fail
     _ = get_formatter(format_name=seq_formatter)
+
+
+@pytest.mark.parametrize(
+    "writer_cls",
+    [FastaWriter, GdeWriter, PamlWriter, PhylipWriter],
+)
+def test_builtin_writers_do_not_save_metadata(writer_cls):
+    assert writer_cls().saves_metadata is False
+
+
+class MinimalWriter(SequenceWriterBase):
+    @property
+    def name(self) -> str:
+        return "minimal"
+
+    @property
+    def supported_suffixes(self) -> set[str]:
+        return {"min"}
+
+
+def test_writer_subclass_defaults_to_not_saving_metadata():
+    assert MinimalWriter().saves_metadata is False
 
 
 def test_available_seq_formats_returns_table():

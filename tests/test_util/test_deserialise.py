@@ -674,7 +674,11 @@ def test_deserialise_old_to_new_type_alignment_1():
     got_prov = get_object_provenance(got)
     assert got_prov == "cogent3.core.alignment.Alignment"
     assert got.source == "15"
-    assert "source" not in got.info
+    assert got.metadata.to_dict() == {
+        "seed": "758_443154_73021",
+        "fg_edge": "73021",
+        "source": "15",
+    }
 
 
 def test_deserialise_old_to_new_type_alignment_2():
@@ -774,8 +778,8 @@ def test_deserialise_old_to_new_type_alignment_2():
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
     assert got_prov == "cogent3.core.alignment.Alignment"
-    assert got.source == "unknown"
-    assert "source" not in got.info
+    assert got.source is None
+    assert "source" not in got.metadata
 
 
 def test_deserialise_old_to_new_type_seqcoll():
@@ -843,8 +847,8 @@ def test_deserialise_old_to_new_type_seqcoll():
     got = deserialise_object(rd)
     got_prov = get_object_provenance(got)
     assert got_prov == "cogent3.core.alignment.SequenceCollection"
-    assert got.source == "unknown"
-    assert "source" not in got.info
+    assert got.source is None
+    assert "source" not in got.metadata
 
 
 moltype_old_class_map = {

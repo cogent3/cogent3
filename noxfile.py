@@ -16,6 +16,7 @@ _typed_modules = [
     "src/cogent3/core/annotation.py",
     "src/cogent3/core/genetic_code.py",
     "src/cogent3/core/location.py",
+    "src/cogent3/core/metadata.py",
     "src/cogent3/core/moltype.py",
     "src/cogent3/core/seq_storage.py",
     "src/cogent3/core/sequence.py",

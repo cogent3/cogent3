@@ -1,9 +1,13 @@
+import copy
 import json
 import os
 import pathlib
+import pickle
 import re
 import typing
+import warnings
 from pickle import dumps
+from types import MappingProxyType
 
 import numpy
 import pytest
@@ -17,6 +21,8 @@ from cogent3.core import genetic_code as c3_genetic_code
 from cogent3.core import moltype as c3_moltype
 from cogent3.core import sequence as c3_sequence
 from cogent3.core import slice_record as c3_slice_record
+from cogent3.core.info import Info
+from cogent3.core.metadata import MetaData
 
 
 def close_dbs(*objs):
@@ -94,7 +100,7 @@ def test_sequence_copy(moltype):
     assert got_annot1 is not annot1
     assert got_annot2 is not annot2
     assert got.name == s.name
-    assert got.info == s.info
+    assert got.metadata.to_dict() == s.metadata.to_dict()
     assert str(got) == str(s)
     assert got.moltype == s.moltype
     annot1_slice = str(annot1.get_slice())
@@ -2423,7 +2429,7 @@ def test_to_rich_dict():
         "name": "seq1",
         "seq": s,
         "moltype": r.moltype.label,
-        "info": None,
+        "metadata": None,
         "type": get_object_provenance(r),
         "version": __version__,
         "annotation_offset": 0,
@@ -2450,7 +2456,7 @@ def test_sequence_to_json():
         "name": "seq1",
         "seq": data,
         "moltype": dna.label,
-        "info": None,
+        "metadata": None,
         "type": get_object_provenance(r),
         "version": __version__,
         "annotation_offset": 0,
@@ -3313,6 +3319,40 @@ def test_sequence_write_json(tmp_path):
     assert got == seq.to_rich_dict()
 
 
+def test_sequence_write_warn_unsaved_metadata(tmp_path):
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": 1})
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        seq.write(tmp_path / "seq.fasta", warn_unsaved_metadata=True)
+    got = [w for w in record if "metadata" in str(w.message)]
+    assert len(got) == 1
+    assert got[0].category is UserWarning
+    assert "'k'" in str(got[0].message)
+    assert got[0].filename == __file__
+
+
+@pytest.mark.parametrize(
+    ("filename", "kwargs"),
+    [
+        ("seq.fasta", {}),
+        ("seq.json", {"warn_unsaved_metadata": True}),
+    ],
+    ids=["default", "json"],
+)
+def test_sequence_write_unsaved_metadata_silent(tmp_path, filename, kwargs):
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": 1})
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        seq.write(tmp_path / filename, **kwargs)
+
+
+def test_sequence_write_empty_metadata_silent(tmp_path):
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        seq.write(tmp_path / "seq.fasta", warn_unsaved_metadata=True)
+
+
 @pytest.mark.parametrize("transform", [str, pathlib.Path])
 def test_sequence_write_home_dir(HOME_TMP_DIR, transform):
     # write to a "~/" home directory style path
@@ -3368,3 +3408,189 @@ def test_load_seq_storage_only_parser_raises(monkeypatch, tmp_path):
     path.write_text("dummy")
     with pytest.raises(ValueError):
         cogent3.load_seq(path, moltype="dna")
+
+
+def _make_seq_with_info(info):
+    return cogent3.make_seq("ACGT", name="s", moltype="dna", info=info)
+
+
+def _moltype_make_seq_with_info(info):
+    return c3_moltype.DNA.make_seq(seq="ACGT", name="s", info=info)
+
+
+def _sequence_with_info(info):
+    return c3_sequence.DnaSequence(moltype=c3_moltype.DNA, seq="ACGT", info=info)
+
+
+@pytest.mark.parametrize(
+    "make",
+    [_make_seq_with_info, _moltype_make_seq_with_info, _sequence_with_info],
+)
+def test_info_argument_warns_at_caller(make):
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        seq = make({"k": 1})
+    assert [w.filename for w in record] == [__file__]
+    assert seq.metadata.to_dict() == {"k": 1}
+
+
+def test_info_object_argument_drops_empty_refs():
+    with pytest.warns(DeprecationWarning, match="info"):
+        seq = cogent3.make_seq("ACGT", moltype="dna", info=Info({"k": 1}))
+    assert seq.metadata.to_dict() == {"k": 1}
+
+
+def test_info_object_with_refs_becomes_plain_dicts():
+    seq = cogent3.make_seq(
+        "ACGU",
+        moltype="rna",
+        metadata=Info({"k": 1, "Refs": {"rRNA": ["AF027020"]}}),
+    )
+    got = seq.metadata.to_dict()
+    assert got == {"Refs": {"rRNA": ["AF027020"]}, "k": 1}
+    assert type(got["Refs"]) is dict
+
+
+@pytest.mark.parametrize("refs", [0, None, {}])
+def test_falsy_refs_in_plain_dict_kept(refs):
+    seq = cogent3.make_seq("ACGT", moltype="dna", metadata={"Refs": refs})
+    assert seq.metadata.to_dict() == {"Refs": refs}
+
+
+def test_metadata_argument_does_not_warn():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        seq = cogent3.make_seq("ACGT", moltype="dna", metadata={"k": 1})
+    assert seq.metadata.to_dict() == {"k": 1}
+
+
+def test_metadata_argument_is_copied():
+    value = {"p": {"m": 1}}
+    seq = cogent3.make_seq("ACGT", moltype="dna", metadata=value)
+    seq.metadata["p"]["m"] = 2
+    assert value == {"p": {"m": 1}}
+
+
+def test_metadata_object_argument_reads_no_stored_layer():
+    stored = MappingProxyType({"a": 1})
+    source = MetaData(stored=stored, local={"b": 2})
+    seq = cogent3.make_seq("ACGT", moltype="dna", metadata=source)
+    seq.metadata["a"] = 5
+    assert seq.metadata.to_dict() == {"a": 5, "b": 2}
+    assert source.to_dict() == {"a": 1, "b": 2}
+
+
+def test_metadata_starts_empty():
+    seq = cogent3.make_seq("ACGT", moltype="dna")
+    assert seq.metadata.to_dict() == {}
+    seq.metadata["k"] = 1
+    assert seq.metadata.to_dict() == {"k": 1}
+
+
+def test_metadata_has_no_setter():
+    seq = cogent3.make_seq("ACGT", moltype="dna")
+    with pytest.raises(AttributeError):
+        seq.metadata = {"k": 1}
+
+
+def test_info_is_deprecated_alias():
+    seq = cogent3.make_seq("ACGT", moltype="dna", metadata={"k": 1})
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        info = seq.info
+    assert [w.filename for w in record] == [__file__]
+    assert info is seq.metadata
+
+
+def test_info_setter_replaces_contents():
+    seq = cogent3.make_seq("ACGT", moltype="dna", metadata={"k": 1})
+    md = seq.metadata
+    with pytest.warns(DeprecationWarning, match="info"):
+        seq.info = Info({"a": 2})
+    assert seq.metadata is md
+    assert md.to_dict() == {"a": 2}
+
+
+@pytest.mark.parametrize(
+    "derive",
+    [
+        lambda s: s.degap(),
+        lambda s: s.rc(),
+        lambda s: s[1:3],
+        lambda s: s.copy(),
+        lambda s: s.to_moltype("rna"),
+        lambda s: s.strip_bad(),
+    ],
+)
+def test_derived_sequence_metadata_is_separate(derive):
+    seq = cogent3.make_seq("AC-GT", moltype="dna", metadata={"k": 1, "p": {"m": 1}})
+    derived = derive(seq)
+    assert derived.metadata.to_dict() == {"k": 1, "p": {"m": 1}}
+    derived.metadata["k"] = 2
+    derived.metadata["p"]["m"] = 2
+    assert seq.metadata.to_dict() == {"k": 1, "p": {"m": 1}}
+
+
+def test_to_rich_dict_leaves_metadata_unchanged():
+    seq = cogent3.make_seq(
+        "ACGT", moltype="dna", metadata={"k": 1, "Refs": {"rRNA": ["X1"]}}
+    )
+    got = seq.to_rich_dict()
+    assert got["metadata"] == {"k": 1, "Refs": {"rRNA": ["X1"]}}
+    got["metadata"]["k"] = 9
+    assert seq.metadata.to_dict() == {"k": 1, "Refs": {"rRNA": ["X1"]}}
+    assert "info" not in got
+
+
+def test_rich_dict_round_trip_keeps_metadata():
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": [1]})
+    got = deserialise_object(seq.to_json())
+    assert got.metadata.to_dict() == {"k": [1]}
+
+
+def test_from_rich_dict_reads_legacy_info():
+    data = cogent3.make_seq("ACGT", name="s", moltype="dna").to_rich_dict()
+    del data["metadata"]
+    data["info"] = {"k": 1}
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        got = deserialise_object(json.dumps(data))
+    assert got.metadata.to_dict() == {"k": 1}
+
+
+def test_from_rich_dict_prefers_metadata_to_info():
+    data = cogent3.make_seq(
+        "ACGT", name="s", moltype="dna", metadata={"m": 2}
+    ).to_rich_dict()
+    data["info"] = {"k": 1}
+    got = deserialise_object(json.dumps(data))
+    assert got.metadata.to_dict() == {"m": 2}
+
+
+def test_pickle_keeps_metadata():
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"p": {"m": 1}})
+    got = pickle.loads(pickle.dumps(seq))  # noqa: S301
+    assert got.metadata.to_dict() == {"p": {"m": 1}}
+    assert got.metadata == seq.metadata
+    got.metadata["p"]["m"] = 2
+    assert seq.metadata.to_dict() == {"p": {"m": 1}}
+
+
+def test_copy_copy_does_not_share_metadata():
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": 1})
+    dup = copy.copy(seq)
+    dup.metadata["k"] = 2
+    assert seq.metadata.to_dict() == {"k": 1}
+
+
+def test_old_pickle_state_with_info_slot():
+    # state as pickled before info was renamed, applied the way pickle does
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna")
+    dict_state, slots = seq.__reduce_ex__(2)[2]
+    slots = {k: v for k, v in slots.items() if k != "_metadata"}
+    slots["info"] = Info({"k": 1})
+    old = c3_sequence.DnaSequence.__new__(c3_sequence.DnaSequence)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        old.__setstate__((dict_state, slots))
+    assert str(old) == "ACGT"
+    assert old.name == "s"
+    assert old.metadata.to_dict() == {"k": 1}

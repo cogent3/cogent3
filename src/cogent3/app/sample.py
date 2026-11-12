@@ -987,8 +987,7 @@ class omit_bad_seqs(ComposableApp, cite=cite_cogent3):
 
 
 class omit_duplicated(ComposableApp, cite=cite_cogent3):
-    """Removes redundant sequences, recording dropped sequences in
-    seqs.info.dropped."""
+    """Removes redundant sequences."""
 
     def __init__(
         self,

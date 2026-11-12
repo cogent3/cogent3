@@ -12,9 +12,11 @@ from scinexus.misc import extend_docstring_from
 import cogent3.core.alphabet as c3_alphabet
 import cogent3.core.sequence as c3_sequence
 from cogent3.core.location import IndelMap
+from cogent3.core.metadata import _NO_METADATA
 from cogent3.core.seqview import AlignedDataView, AlignedDataViewABC, SeqDataView
 
 if TYPE_CHECKING:  # pragma: no cover
+    import pathlib
     from collections.abc import Collection, Mapping
     from collections.abc import Sequence as PySeq
 
@@ -75,6 +77,21 @@ class SeqsDataABC(ABC):
     @property
     @abstractmethod
     def offset(self) -> dict[str, int]: ...
+
+    @property
+    def metadata(self) -> Mapping[str, Any]:
+        """Metadata held by the storage, as a read-only mapping.
+
+        Nested values must not be mutated. The mapping stays valid after
+        any backing file is closed. Storage that holds no metadata returns
+        an empty mapping.
+        """
+        return _NO_METADATA
+
+    @property
+    def path(self) -> pathlib.Path | None:
+        """The file the storage reads, or None if it is not backed by a file."""
+        return None
 
     @abstractmethod
     def get_seq_array(

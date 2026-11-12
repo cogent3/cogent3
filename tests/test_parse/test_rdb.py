@@ -1,6 +1,7 @@
 # test_rdb.py
 """Unit test for RDB Parser"""
 
+import warnings
 from unittest import TestCase
 
 import cogent3
@@ -186,17 +187,19 @@ class RdbParserTests(GenericRdbTest):
         assert len(res) == 1
         first = res[0]
         assert first == cogent3.make_seq(seq="AGUCAUCUAGAUHCAUHC", moltype="rna")
-        assert first.info == Info(
-            {"Species": "H.Sapiens", "OriginalSeq": "AGUCAUCUAGAUHCAUHC"},
-        )
+        assert first.metadata.to_dict() == {
+            "Species": "H.Sapiens",
+            "OriginalSeq": "AGUCAUCUAGAUHCAUHC",
+        }
 
         res = list(RdbParser(self.multiline))
         assert len(res) == 1
         first = res[0]
         assert first == cogent3.make_seq(seq="AGUCAUUAGAUHCAUHC", moltype="rna")
-        assert first.info == Info(
-            {"Species": "H.Sapiens", "OriginalSeq": "AGUCAUUAGAUHCAUHC"},
-        )
+        assert first.metadata.to_dict() == {
+            "Species": "H.Sapiens",
+            "OriginalSeq": "AGUCAUUAGAUHCAUHC",
+        }
 
     def test_multiple_constructor_bad(self):
         """RdbParser should complain or skip bad records w/ constructor"""
@@ -207,49 +210,45 @@ class RdbParserTests(GenericRdbTest):
         a, b = f
 
         assert a == "ACU"
-        assert a.info == Info({"Species": "mit", "OriginalSeq": "ACT"})
+        assert a.metadata.to_dict() == {"Species": "mit", "OriginalSeq": "ACT"}
         assert b == "AAA"
-        assert b.info == Info({"Species": "pla", "OriginalSeq": "AAA"})
+        assert b.metadata.to_dict() == {"Species": "pla", "OriginalSeq": "AAA"}
 
     def test_full(self):
         """RdbParser: full data, valid and invalid"""
         # when only good record, should work independent of strict
         r1 = cogent3.make_seq(
             "-??GG-UGAA--CGCU---ACGU-N???---",
-            info=Info(
-                {
-                    "Species": "unidentified Thermus OPB AF027020",
-                    "Refs": {"rRNA": ["AF027020"]},
-                    "OriginalSeq": "-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---",
-                },
-            ),
+            metadata={
+                "Species": "unidentified Thermus OPB AF027020",
+                "Refs": {"rRNA": ["AF027020"]},
+                "OriginalSeq": "-o[oGG-U{G}AA--C^GC]U---ACGU-Nooo---",
+            },
             moltype="rna",
         )
         r2 = cogent3.make_seq(
             "---CGAUCG--UAUACG-N???-",
-            info=Info(
-                {
-                    "Species": "Thermus silvanus X84211",
-                    "Refs": {"rRNA": ["X84211"]},
-                    "OriginalSeq": "---CGAU[C(G){--UA}U]ACG-Nooo-",
-                },
-            ),
+            metadata={
+                "Species": "Thermus silvanus X84211",
+                "Refs": {"rRNA": ["X84211"]},
+                "OriginalSeq": "---CGAU[C(G){--UA}U]ACG-Nooo-",
+            },
             moltype="rna",
         )
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split("\n"), strict=True))
         assert len(obs) == 2
         assert obs[0] == r1
         assert str(obs[0]) == str(r1)
-        assert obs[0].info == r1.info
+        assert obs[0].metadata.to_dict() == r1.metadata.to_dict()
         assert obs[1] == r2
         assert str(obs[1]) == str(r2)
-        assert obs[1].info == r2.info
+        assert obs[1].metadata.to_dict() == r2.metadata.to_dict()
 
         obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split("\n"), strict=False))
         assert len(obs) == 2
         assert obs[0] == r1
         assert str(obs[0]) == str(r1)
-        assert obs[0].info == r1.info
+        assert obs[0].metadata.to_dict() == r1.metadata.to_dict()
 
         # when strict, should raise error on invalid record
         f = RdbParser(RDB_LINES_GOOD_BAD.split("\n"), strict=True)
@@ -259,10 +258,25 @@ class RdbParserTests(GenericRdbTest):
         assert len(obs) == 2
         assert obs[0] == r1
         assert str(obs[0]) == str(r1)
-        assert obs[0].info == r1.info
+        assert obs[0].metadata.to_dict() == r1.metadata.to_dict()
         assert obs[1] == r2
         assert str(obs[1]) == str(r2)
-        assert obs[1].info == r2.info
+        assert obs[1].metadata.to_dict() == r2.metadata.to_dict()
+
+    def test_does_not_use_info(self):
+        """RdbParser builds sequences without the deprecated info argument"""
+        for strict in (True, False):
+            with warnings.catch_warnings(record=True) as record:
+                warnings.simplefilter("always")
+                obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split("\n"), strict=strict))
+            info_warnings = [
+                w
+                for w in record
+                if issubclass(w.category, DeprecationWarning)
+                and "info" in str(w.message)
+            ]
+            assert len(obs) == 2
+            assert info_warnings == []
 
 
 RDB_LINES_ONLY_GOOD = """acc:AF027020

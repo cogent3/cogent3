@@ -126,7 +126,7 @@ def RdbParser(
 
     This function returns proper RnaSequence objects when possible. It strips
     out the secondary structure information, and it replaces 'o' by '?'. The
-    original sequence is stored in the info dictionary under 'OriginalSeq'.
+    original sequence is stored in the sequence's metadata under 'OriginalSeq'.
     If the original sequence is the desired end product, use MinimalRdbParser.
     """
     for header, sequence in MinimalRdbParser(lines, strict=strict):
@@ -137,7 +137,7 @@ def RdbParser(
         if strict:
             # need to do error checking while constructing info and sequence
             try:
-                yield RNA.make_seq(seq=clean_seq, info=info)
+                yield RNA.make_seq(seq=clean_seq, metadata=info)
             except AlphabetError:
                 msg = f"Sequence construction failed on record with reference {info.Refs}."
                 raise RecordError(
@@ -146,7 +146,7 @@ def RdbParser(
         else:
             # not strict: just skip any record that raises an exception
             try:
-                yield RNA.make_seq(seq=clean_seq, info=info)
+                yield RNA.make_seq(seq=clean_seq, metadata=info)
             except Exception:
                 continue
 

@@ -37,6 +37,11 @@ from .typing import (
 get_data_source = get_id_from_source()
 
 
+def _result_source(aln: AlignedSeqsType) -> str:
+    # result classes require a source, which a collection made in memory lacks
+    return get_data_source(aln) or "unknown"
+
+
 def _config_rules(param_rules, lower, upper, overwrite=False):
     """fill the bounds in `param_rules` whenever no bound defined for a parameter"""
     param_rules = deepcopy(param_rules)
@@ -437,7 +442,7 @@ class model(ComposableApp, cite=cite_cogent3):
         result = model_result(
             name=self.name,
             stat=sum,
-            source=get_data_source(aln),
+            source=_result_source(aln),
             evaluation_limit=evaluation_limit,
         )
         if not self._split_codons:
@@ -554,7 +559,7 @@ class _ModelCollectionBase:
         try:
             null = self.null(aln)
         except ValueError:
-            msg = f"Hypothesis null had bounds error {get_data_source(aln)}"
+            msg = f"Hypothesis null had bounds error {_result_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         if not null:
@@ -563,7 +568,7 @@ class _ModelCollectionBase:
         try:
             alts = list(self._initialised_alt(null, aln))
         except ValueError:
-            msg = f"Hypothesis alt had bounds error {get_data_source(aln)}"
+            msg = f"Hypothesis alt had bounds error {_result_source(aln)}"
             return NotCompleted("ERROR", self, msg, source=aln)
 
         # check if any did not complete
@@ -583,7 +588,7 @@ class model_collection(_ModelCollectionBase, ComposableApp, cite=cite_cogent3):
     """Fits a collection of models."""
 
     def _make_result(self, aln: AlignedSeqsType) -> ModelCollectionResultType:
-        return model_collection_result(source=get_data_source(aln))
+        return model_collection_result(source=_result_source(aln))
 
 
 class hypothesis(_ModelCollectionBase, ComposableApp, cite=cite_cogent3):
@@ -591,7 +596,7 @@ class hypothesis(_ModelCollectionBase, ComposableApp, cite=cite_cogent3):
 
     def _make_result(self, aln: AlignedSeqsType) -> HypothesisResultType:
         return hypothesis_result(
-            name_of_null=self.null.name, source=get_data_source(aln)
+            name_of_null=self.null.name, source=_result_source(aln)
         )
 
 
@@ -623,7 +628,7 @@ class bootstrap(ComposableApp, cite=cite_cogent3):
     T = Union[SerialisableType, BootstrapResultType]
 
     def main(self, aln: AlignedSeqsType) -> T:
-        result = bootstrap_result(get_data_source(aln))
+        result = bootstrap_result(_result_source(aln))
         try:
             obs = self._hyp(aln)
             if not obs:
@@ -632,7 +637,7 @@ class bootstrap(ComposableApp, cite=cite_cogent3):
             return NotCompleted("ERROR", str(self._hyp), err.args[0])
         result.observed = obs
         self._null = obs.null
-        self._inpath = get_data_source(aln)
+        self._inpath = _result_source(aln)
 
         map_fun = parallel.imap if self._parallel else map
         sym_results = [r for r in map_fun(self._fit_sim, range(self._num_reps)) if r]
@@ -1023,7 +1028,7 @@ class natsel_zhang(ComposableApp, cite=cite_cogent3):
 
         result = hypothesis_result(
             name_of_null=null_result.name,
-            source=get_data_source(aln),
+            source=_result_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result
@@ -1180,7 +1185,7 @@ class natsel_sitehet(ComposableApp, cite=cite_cogent3):
 
         result = hypothesis_result(
             name_of_null=null_result.name,
-            source=get_data_source(aln),
+            source=_result_source(aln),
         )
         result.update({alt_result.name: alt_result, null_result.name: null_result})
         return result

@@ -754,7 +754,8 @@ def rich_parser(
     Parameters
     ----------
     info_excludes
-        a series of fields to be excluded from the Info object
+        a series of fields to be excluded from the sequence's
+        metadata["genbank_record"]
     moltype
         a MolType instance, such as PROTEIN, DNA. Default is ASCII.
     skip_contigs
@@ -769,7 +770,6 @@ def rich_parser(
     """
     kwargs.pop("converter", None)
     from cogent3.core.annotation_db import GenbankAnnotationDb
-    from cogent3.core.info import Info
     from cogent3.core.moltype import get_moltype
 
     info_excludes = info_excludes or ["sequence", "features"]
@@ -780,7 +780,7 @@ def rich_parser(
         converter=default_seq_converter,
         convert_features=feature_parser,
     ):
-        info = {
+        record = {
             label: value
             for label, value in list(rec.items())
             if label not in info_excludes
@@ -794,11 +794,10 @@ def rich_parser(
         else:
             rec_moltype = moltype
 
-        info = Info(genbank_record=info)
         try:
             seq = rec_moltype.make_seq(
                 seq=rec["sequence"].upper(),
-                info=info,
+                metadata={"genbank_record": record},
                 name=rec["locus"],
             )
         except KeyError:

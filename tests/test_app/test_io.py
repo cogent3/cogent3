@@ -5,6 +5,7 @@ import pathlib
 import pickle
 import shutil
 import tempfile
+import warnings
 
 import numpy
 import pytest
@@ -103,6 +104,32 @@ def test_write_seqs(fasta_dir, tmp_dir):
     )
     writer = io_app.write_seqs(out_data_store, format_name="fasta")
     wrote = writer(seqs[0], identifier=datamember.unique_id)
+    assert isinstance(wrote, DataMember)
+
+
+def test_write_seqs_warn_unsaved_metadata(DATA_DIR, tmp_dir):
+    seqs = cogent3.load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
+    out_dstore = DataStoreDirectory(tmp_dir / "out", mode=Mode.w, suffix="fasta")
+    writer = io_app.write_seqs(
+        out_dstore, format_name="fasta", warn_unsaved_metadata=True
+    )
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        wrote = writer(seqs)
+    assert isinstance(wrote, DataMember)
+    got = [w for w in record if "metadata" in str(w.message)]
+    assert len(got) == 1
+    assert got[0].category is UserWarning
+    assert "source" in str(got[0].message)
+
+
+def test_write_seqs_unsaved_metadata_silent_by_default(DATA_DIR, tmp_dir):
+    seqs = cogent3.load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
+    out_dstore = DataStoreDirectory(tmp_dir / "out", mode=Mode.w, suffix="fasta")
+    writer = io_app.write_seqs(out_dstore, format_name="fasta")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        wrote = writer(seqs)
     assert isinstance(wrote, DataMember)
 
 
@@ -497,8 +524,62 @@ def test_load_db_prefer_source_attr(tmp_dir):
     # this old style rich dict will
     loader = io_app.load_db()
     got = loader(data_store[0])  # pylint: disable=not-callable
-    assert "source" not in got.info
+    assert got.source == "blah.1.2.fa"
+    assert got.metadata.to_dict() == {"demo": "dummy", "source": "blah.1.2.fa"}
     data_store.close()
+
+
+def _info_deprecations(record):
+    return [
+        w
+        for w in record
+        if issubclass(w.category, DeprecationWarning) and "info" in str(w.message)
+    ]
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        cogent3.make_unaligned_seqs({"a": "ACGG", "b": "GGC"}, moltype="dna"),
+        cogent3.make_unaligned_seqs(
+            {"a": "ACGG", "b": "GGC"}, moltype="dna", metadata={"source": None}
+        ),
+        cogent3.make_seq("ACGG", name="a", moltype="dna", metadata={"k": 1}),
+    ],
+    ids=["collection", "none_source", "sequence"],
+)
+def test_load_db_sets_missing_source(tmp_dir, data):
+    from scinexus.sqlite_data_store import DataStoreSqlite
+
+    path = tmp_dir / "test.sqlitedb"
+    data_store = DataStoreSqlite(path, mode="w")
+    member = io_app.write_db(data_store=data_store)(data, identifier="x")
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        got = io_app.load_db()(member)
+    assert _info_deprecations(record) == []
+    expect = str(pathlib.Path(data_store.source) / member.unique_id)
+    assert got.metadata["source"] == expect
+    data_store.close()
+
+
+@pytest.mark.parametrize(
+    ("source", "expect"),
+    [(None, "delme"), ("orig.fa", "orig.fa")],
+)
+def test_load_json_collection_source(tmp_dir, source, expect):
+    from scinexus.data_store import make_record_for_json
+
+    seqs = cogent3.make_unaligned_seqs(
+        {"a": "ACGG", "b": "GGC"}, moltype="dna", source=source
+    )
+    outpath = tmp_dir / "delme.json"
+    outpath.write_text(json.dumps(make_record_for_json("delme", seqs, True)))
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        got = io_app.load_json()(outpath)
+    assert _info_deprecations(record) == []
+    assert got.source == expect
 
 
 def test_write_read_db_not_completed(tmp_dir):

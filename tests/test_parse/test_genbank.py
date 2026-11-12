@@ -2,6 +2,7 @@
 
 import io
 import pathlib
+import warnings
 from unittest import TestCase
 
 import pytest
@@ -515,6 +516,23 @@ def test_rich_parser_info(rich_gb):
     assert "genbank_record" in rich_gb.info
     assert rich_gb.info.genbank_record["locus"] == rich_gb.name
     close_dbs(rich_gb)
+
+
+def test_rich_parser_metadata():
+    with (
+        warnings.catch_warnings(record=True) as record,
+        open("data/annotated_seq.gb") as infile,
+    ):
+        warnings.simplefilter("always")
+        seq = next(s for _, s in genbank.rich_parser(infile, just_seq=True))
+    info_warnings = [
+        w
+        for w in record
+        if issubclass(w.category, DeprecationWarning) and "info" in str(w.message)
+    ]
+    assert info_warnings == []
+    assert list(seq.metadata) == ["genbank_record"]
+    assert seq.metadata["genbank_record"]["locus"] == seq.name
 
 
 def test_rich_genbank_just_seq():

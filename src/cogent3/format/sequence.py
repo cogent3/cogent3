@@ -3,7 +3,8 @@ import contextlib
 import os
 import pathlib
 import typing
-from collections.abc import Callable
+import warnings
+from collections.abc import Callable, Mapping
 
 from cogent3.format import clustal, fasta, gde, paml, phylip
 from cogent3.parse.record import FileFormatError
@@ -37,6 +38,11 @@ class SequenceWriterBase(abc.ABC):
     def supports_aligned(self) -> bool:
         """True if the writer supports aligned sequences"""
         return True
+
+    @property
+    def saves_metadata(self) -> bool:
+        """True if the writer saves collection metadata"""
+        return False
 
     @property
     @abc.abstractmethod
@@ -78,6 +84,23 @@ class SequenceWriterBase(abc.ABC):
         with atomic_write(path, mode="wt") as f:
             f.write(output)
         return path
+
+
+def warn_if_metadata_unsaved(
+    metadata: Mapping[str, typing.Any], writer: typing.Any, *, stacklevel: int
+) -> None:
+    """Emit a UserWarning if writer does not save the non-empty metadata.
+
+    A writer without a ``saves_metadata`` attribute is treated as not saving
+    metadata. ``stacklevel`` is passed to ``warnings.warn``.
+    """
+    if not metadata or getattr(writer, "saves_metadata", False):
+        return
+    msg = (
+        f"the {writer.name!r} format does not save metadata, "
+        f"so these keys are not written: {sorted(metadata)}"
+    )
+    warnings.warn(msg, UserWarning, stacklevel=stacklevel)
 
 
 class FastaWriter(SequenceWriterBase):

@@ -1,6 +1,7 @@
 import typing
 import warnings
 from bisect import bisect_left
+from collections.abc import Mapping
 
 from numpy import array, float64, isnan, maximum, triu_indices
 from scinexus import get_id_from_source
@@ -18,6 +19,7 @@ from cogent3.app import dist
 from cogent3.app.tree import interpret_tree_arg
 from cogent3.core.alignment import Aligned
 from cogent3.core.location import gap_coords_to_map
+from cogent3.core.metadata import _info_arg_renamed
 from cogent3.core.moltype import MolTypeLiteral, get_moltype
 from cogent3.evolve.models import get_model
 from cogent3.evolve.pairwise_distance_numba import (
@@ -289,7 +291,24 @@ def _gaps_for_injection(other_seq_gaps: dict, refseq_gaps: dict, seqlen: int) ->
     return all_gaps
 
 
-def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
+def _nested_score_matrix(
+    score_matrix: Mapping[tuple[str, str], float],
+) -> dict[str, dict[str, float]]:
+    nested: dict[str, dict[str, float]] = {}
+    for (row, col), score in score_matrix.items():
+        nested.setdefault(row, {})[col] = score
+    return nested
+
+
+def _fill_missing_metadata(result, seqs) -> None:
+    # the result's own keys describe the new alignment, so an input key with
+    # the same name, such as an earlier run's align_params, is not copied
+    for key, value in seqs.metadata.items():
+        result.metadata.setdefault(key, value)
+
+
+@_info_arg_renamed
+def pairwise_to_multiple(pwise, ref_seq, moltype, metadata=None):
     """
     turns pairwise alignments to a reference into a multiple alignment
 
@@ -302,8 +321,8 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
         The sequence common in all pairwise alignments
     moltype
         molecular type for the returned alignment
-    info
-        info object
+    metadata
+        values for the alignment's metadata, which are copied
 
     Returns
     -------
@@ -330,9 +349,9 @@ def pairwise_to_multiple(pwise, ref_seq, moltype, info=None):
             other_seq = Aligned.from_map_and_aligned_data_view(m, other_seq.data)
 
         aligned.append(other_seq)
-    return cogent3.make_aligned_seqs(aligned, moltype=moltype, info=info).to_moltype(
-        moltype=moltype,
-    )
+    return cogent3.make_aligned_seqs(
+        aligned, moltype=moltype, metadata=metadata
+    ).to_moltype(moltype=moltype)
 
 
 class align_to_ref(ComposableApp, cite=cite_cogent3):
@@ -414,7 +433,17 @@ class align_to_ref(ComposableApp, cite=cite_cogent3):
             aln = global_pairwise(ref_seq, seq, **kwargs)
             pwise.append((seq.name, aln))
 
-        return pairwise_to_multiple(pwise, ref_seq, self._moltype, info=seqs.info)
+        align_params = {
+            "score_matrix": _nested_score_matrix(kwargs["S"]),
+            "insertion_penalty": kwargs["d"],
+            "extension_penalty": kwargs["e"],
+            "ref_seq": self._ref_name,
+        }
+        result = pairwise_to_multiple(
+            pwise, ref_seq, self._moltype, metadata={"align_params": align_params}
+        )
+        _fill_missing_metadata(result, seqs)
+        return result
 
     T = SerialisableType | AlignedSeqsType
 
@@ -458,7 +487,7 @@ class progressive_align(ComposableApp, cite=cite_cogent3):
             callable that will build a tree from unaligned collection. If not
             provided, estimated ONCE via constructing a crude alignment. In the
             case of callable, or not provided, the computed guide tree is stored
-            in the returned alignment.info['guide_tree'].
+            in the returned alignment.metadata['align_params']['guide_tree'].
         unique_guides : bool
             whether each alignment requires a new guide tree
         indel_rate : float
@@ -611,14 +640,10 @@ class progressive_align(ComposableApp, cite=cite_cogent3):
                 result, tree = tree_align(self._model, seqs, **kwargs)
                 if self._moltype and self._moltype != result.moltype:
                     result = result.to_moltype(self._moltype)
-
-                result.info.update(seqs.info)
             except ValueError as err:
                 # probably an internal stop
                 return NotCompleted("ERROR", self, err.args[0], source=source)
-        if hasattr(result, "source"):
-            # new type amendment during transition
-            result.source = source
+        _fill_missing_metadata(result, seqs)
         return result
 
 
@@ -628,7 +653,7 @@ class smith_waterman(ComposableApp, cite=cite_cogent3):
     Notes
     -----
     It records the score of the alignment (in addition to all other the
-    parameter values) as "sw_score" in ``alignment.info['align_params']``.
+    parameter values) as "sw_score" in ``alignment.metadata['align_params']``.
     """
 
     def __init__(
@@ -717,12 +742,13 @@ class smith_waterman(ComposableApp, cite=cite_cogent3):
             return_score=True,
         )
 
-        aln.info["align_params"] = {
-            "score_matrix": self._score_matrix,
+        aln.metadata["align_params"] = {
+            "score_matrix": _nested_score_matrix(self._score_matrix),
             "insertion_penalty": self._insertion_penalty,
             "extension_penalty": self._extension_penalty,
             "sw_score": score,
         }
+        _fill_missing_metadata(aln, seqs)
         return aln.to_moltype(self.moltype)
 
 
@@ -816,7 +842,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     The cogent3 tree_align algorithm is a progressive-HMM. It records
     the log-likelihood of the alignment (in addition to all other
     the parameter values, including the guide tree) in
-    ``alignment.info['align_params']``. This can be used as a measure of
+    ``alignment.metadata['align_params']``. This can be used as a measure of
     alignment quality.
 
     The instance must have been aligned using cogent3 tree_align. In addition,
@@ -847,7 +873,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
     cogent3 log-likelihood alignment score.
 
     >>> scorer = get_app("cogent3_score")
-    >>> app = aligner + score
+    >>> app = aligner + scorer
     >>> result = app(aln)
     >>> print(result)
     -130.47375615734916
@@ -861,7 +887,7 @@ def cogent3_score(aln: AlignedSeqsType) -> float:
             source=aln,
         )
 
-    align_params = aln.info.get("align_params", {})
+    align_params = aln.metadata.get("align_params", {})
     return align_params.get(
         "lnL",
         NotCompleted(
