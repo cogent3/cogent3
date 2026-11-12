@@ -7359,3 +7359,90 @@ def test_metadata_to_save_non_str_source(unaligned, tmp_path):
 def test_metadata_to_save_builtin_storage(mk_cls):
     coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
     assert coll.metadata_to_save() == {"source": "orig.fa"}
+
+
+@_makers
+def test_legacy_rich_dict_info_drops_empty_refs(mk_cls):
+    rd = json.loads(mk_cls(_CODON_SEQS, moltype="dna").to_json())
+    rd["init_args"].pop("metadata")
+    rd["init_args"]["info"] = {"Refs": {}, "k": 1}
+    got = deserialise_object(rd)
+    assert got.metadata.to_dict() == {"k": 1}
+
+
+@_makers
+def test_legacy_rich_dict_info_keeps_refs_values(mk_cls):
+    rd = json.loads(mk_cls(_CODON_SEQS, moltype="dna").to_json())
+    rd["init_args"].pop("metadata")
+    rd["init_args"]["info"] = {"Refs": {"GenBank": ["X1"]}, "k": 1}
+    got = deserialise_object(rd)
+    assert got.metadata.to_dict() == {"Refs": {"GenBank": ["X1"]}, "k": 1}
+
+
+def _old_seq_record(name, seq):
+    return {
+        "name": name,
+        "seq": {"init_args": {"seq": seq, "seqid": name, "step": 1}},
+        "moltype": "dna",
+        "info": None,
+        "type": "cogent3.core.sequence.DnaSequence",
+    }
+
+
+def _old_seqcoll():
+    return {
+        "seqs": {n: _old_seq_record(n, s) for n, s in _CODON_SEQS.items()},
+        "moltype": "dna",
+        "info": {"Refs": {}, "source": "x.fa", "k": 1},
+        "type": "cogent3.core.alignment.SequenceCollection",
+        "version": "2025.5.8a9",
+    }
+
+
+def _old_array_alignment():
+    data = _old_seqcoll()
+    data["seqs"] = {n: {"seq": s} for n, s in _CODON_SEQS.items()}
+    data["type"] = "cogent3.core.alignment.ArrayAlignment"
+    return data
+
+
+def _old_alignment():
+    data = _old_seqcoll()
+    data["seqs"] = {
+        n: {
+            "seq_init": _old_seq_record(n, s),
+            "map_init": {
+                "gap_pos": [],
+                "cum_gap_lengths": [],
+                "termini_unknown": False,
+                "parent_length": len(s),
+                "type": "cogent3.core.location.IndelMap",
+                "version": "2025.5.8a9",
+            },
+        }
+        for n, s in _CODON_SEQS.items()
+    }
+    data["type"] = "cogent3.core.alignment.Alignment"
+    return data
+
+
+@pytest.mark.parametrize(
+    "make_old", [_old_seqcoll, _old_array_alignment, _old_alignment]
+)
+def test_legacy_deserialisers_normalise_info(make_old):
+    data = make_old()
+    got = deserialise_object(data)
+    assert got.metadata.to_dict() == {"k": 1, "source": "x.fa"}
+    assert got.source == "x.fa"
+    assert data["info"] == {"Refs": {}, "source": "x.fa", "k": 1}
+
+
+@pytest.mark.parametrize(
+    "make_old", [_old_seqcoll, _old_array_alignment, _old_alignment]
+)
+def test_legacy_deserialisers_without_info(make_old):
+    data = make_old()
+    data["info"] = None
+    got = deserialise_object(data)
+    assert got.metadata.to_dict() == {}
+    assert got.source is None

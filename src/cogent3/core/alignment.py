@@ -361,17 +361,23 @@ def _known_source(source: Any) -> Any:
     return None if source == "unknown" else source
 
 
+def _legacy_info_to_metadata(info: Mapping[str, Any] | None) -> dict[str, Any]:
+    # an Info always held Refs, so an empty one in data it wrote carries nothing
+    result = info_to_metadata(info or {})
+    if result.get("Refs") == {}:
+        del result["Refs"]
+    return result
+
+
 def _upgrade_legacy_kwargs(kwargs: dict[str, Any]) -> None:
     # pickles and rich dicts written before metadata replaced info and source
-    legacy_info = kwargs.pop("info", None)
-    if kwargs.get("metadata") is None:
-        kwargs["metadata"] = legacy_info
+    if "info" in kwargs:
+        legacy_info = _legacy_info_to_metadata(kwargs.pop("info"))
+        if kwargs.get("metadata") is None:
+            kwargs["metadata"] = legacy_info
     source = _known_source(kwargs.pop("source", None))
     if source:
-        metadata = kwargs["metadata"]
-        if isinstance(metadata, Info):
-            metadata = info_to_metadata(metadata)
-        kwargs["metadata"] = {**(metadata or {}), "source": str(source)}
+        kwargs["metadata"] = {**(kwargs.get("metadata") or {}), "source": str(source)}
 
 
 def _source_to_set(source: PathType | None, metadata: Mapping[str, Any] | None) -> Any:
@@ -5876,7 +5882,7 @@ def deserialise_old_to_new_type_seqcoll(
     """deserialise old type SequenceCollection as a new type collection"""
     moltype_name: MolTypes = data["moltype"]
     moltype_name = "text" if moltype_name == "bytes" else moltype_name
-    info_data = data["info"]
+    info_data = _legacy_info_to_metadata(data["info"])
     source = info_data.pop("source", None)
     seq_data = {
         seqid: record["seq"]["init_args"]["seq"]
@@ -6091,8 +6097,8 @@ def deserialise_array_align_to_new_type_alignment(
     """deserialise old type ArrayAlignment as a new type alignment."""
     moltype_name: MolTypes = data["moltype"]
     moltype_name = "text" if moltype_name == "bytes" else moltype_name
-    info_data: dict[str, Any] = data["info"]
-    source = info_data.pop("source", None) if info_data else None
+    info_data = _legacy_info_to_metadata(data["info"])
+    source = info_data.pop("source", None)
 
     seq_data: dict[str, str | bytes | NumpyIntArrayType] = {}
     for seqid, record in data["seqs"].items():
@@ -6118,7 +6124,7 @@ def deserialise_alignment_to_new_type_alignment(
     moltype_name: MolTypes = data["moltype"]
     mt = get_moltype(moltype_name)
     alpha = mt.most_degen_alphabet()
-    info_data = data["info"]
+    info_data = _legacy_info_to_metadata(data["info"])
     source = info_data.pop("source", None)
 
     seqs: dict[str, NumpyIntArrayType] = {}
