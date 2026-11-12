@@ -204,6 +204,50 @@ def test_load_h5seqs_from_data_store(tmp_path, app_name, maker, format_name):
     assert got.source == member.unique_id
 
 
+@pytest.mark.parametrize(
+    ("app_name", "maker", "suffix"),
+    [
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5a"),
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5s"),
+        ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
+    ],
+)
+def test_load_h5seqs_format_from_suffix(tmp_path, app_name, maker, suffix):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "ACGT", "b": "ACGG"}
+    maker(data, moltype="dna").write(tmp_path / f"demo.{suffix}")
+    loader = get_app(app_name, moltype="dna")
+    path = str(tmp_path / f"demo.{suffix}")
+    got = loader(path)
+    assert got.to_dict() == data
+    assert got.source == path
+    member = DataStoreDirectory(tmp_path, suffix=suffix)[0]
+    got = loader(member)
+    assert got.to_dict() == data
+    assert got.source == member.unique_id
+
+
+@pytest.mark.parametrize("app_name", ["load_aligned", "load_unaligned"])
+@pytest.mark.parametrize("suffix", ["txt", ""])
+def test_load_unknown_suffix_needs_format_name(tmp_path, app_name, suffix):
+    path = tmp_path / f"demo.{suffix}".rstrip(".")
+    path.write_text(">a\nACGT\n>b\nACGG\n")
+    got = get_app(app_name, moltype="dna")(path)
+    assert isinstance(got, NotCompleted)
+    assert "Unknown parser" in got.message
+    got = get_app(app_name, moltype="dna", format_name="fasta")(path)
+    assert got.to_dict() == {"a": "ACGT", "b": "ACGG"}
+
+
+def test_load_unaligned_from_suffix_keeps_role_error(tmp_path):
+    pytest.importorskip("cogent3_h5seqs")
+    path = tmp_path / "demo.c3h5a"
+    cogent3.make_aligned_seqs({"a": "ACGT", "b": "ACGG"}, moltype="dna").write(path)
+    got = get_app("load_unaligned", moltype="dna")(path)
+    assert isinstance(got, NotCompleted)
+    assert "does not support parsing unaligned" in got.message
+
+
 def test_load_aligned_rejects_unaligned_only_format():
     pytest.importorskip("cogent3_h5seqs")
     with pytest.raises(ValueError, match="does not support parsing aligned"):
