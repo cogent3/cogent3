@@ -171,8 +171,8 @@ def get_fourfold_degenerate_sets(
 
 class select_translatable(ComposableApp, cite=cite_cogent3):
     """Selects translatable sequences by identifying the most likely reading
-    frame. Sequences are truncated to modulo 3. seqs.info has a
-    translation_errors entry."""
+    frame. Sequences are truncated to modulo 3. The result's
+    metadata["translation_errors"] lists the excluded sequences."""
 
     def __init__(
         self,
@@ -272,7 +272,7 @@ class select_translatable(ComposableApp, cite=cite_cogent3):
     def main(self, seqs: SeqsCollectionType) -> T:
         """returns the translatable sequences from seqs.
 
-        translation errors are stroed in the info object"""
+        translation errors are stored in the result's metadata"""
         source = get_data_source(seqs)
         seqs = seqs.degap()
         if self._moltype and self._moltype != seqs.moltype:
@@ -301,9 +301,9 @@ class select_translatable(ComposableApp, cite=cite_cogent3):
 
         if translatable:
             translatable = cogent3.make_unaligned_seqs(
-                translatable, moltype=self._moltype, info=seqs.info, source=source
+                translatable, moltype=self._moltype, metadata=seqs.metadata.to_dict()
             )
-            translatable.info["translation_errors"] = error_log
+            translatable.metadata["translation_errors"] = error_log
         else:
             translatable = NotCompleted(
                 "FAIL", self, " ".join(error_log), source=source

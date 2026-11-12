@@ -1,3 +1,5 @@
+import warnings
+
 import pytest
 from scinexus.composable import NotCompleted
 
@@ -187,3 +189,44 @@ def test_select_translatable_exclude_internal_stop():
 def test_select_translatable_invalid_frame(frame):
     with pytest.raises(AssertionError):
         _ = select_translatable(frame=frame)
+
+
+_TRANSLATABLE = {
+    "s1": "ATGCCAGCTCATTAC",
+    "stop": "ATGTGATAAATGCCC",
+}
+
+
+@pytest.fixture(params=["aligned", "unaligned"])
+def loaded_seqs(request, tmp_path):
+    path = tmp_path / "seqs.fasta"
+    cogent3.make_unaligned_seqs(_TRANSLATABLE, moltype="dna").write(path)
+    loader = (
+        cogent3.load_aligned_seqs
+        if request.param == "aligned"
+        else cogent3.load_unaligned_seqs
+    )
+    seqs = loader(path, moltype="dna")
+    seqs.metadata["user"] = 1
+    return seqs
+
+
+def test_select_translatable_does_not_use_info(loaded_seqs):
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        got = select_translatable(frame=1)(loaded_seqs)
+    assert not isinstance(got, NotCompleted)
+    info_warnings = [
+        w
+        for w in record
+        if issubclass(w.category, DeprecationWarning) and "info" in str(w.message)
+    ]
+    assert info_warnings == []
+
+
+def test_select_translatable_metadata(loaded_seqs):
+    got = select_translatable(frame=1)(loaded_seqs)
+    assert got.metadata["user"] == 1
+    assert got.metadata["translation_errors"] == [["stop", "internal stop in stop"]]
+    assert got.source == loaded_seqs.source
+    assert "translation_errors" not in loaded_seqs.metadata
