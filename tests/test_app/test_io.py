@@ -186,6 +186,24 @@ def test_load_aligned_h5seqs(tmp_path, format_name):
     assert got.to_dict() == data
 
 
+@pytest.mark.parametrize(
+    ("app_name", "maker", "format_name"),
+    [
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5a"),
+        ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
+    ],
+)
+def test_load_h5seqs_from_data_store(tmp_path, app_name, maker, format_name):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "ACGT", "b": "ACGG"}
+    maker(data, moltype="dna").write(tmp_path / f"demo.{format_name}")
+    member = DataStoreDirectory(tmp_path, suffix=format_name)[0]
+    loader = get_app(app_name, moltype="dna", format_name=format_name)
+    got = loader(member)
+    assert got.to_dict() == data
+    assert got.source == member.unique_id
+
+
 def test_load_aligned_rejects_unaligned_only_format():
     pytest.importorskip("cogent3_h5seqs")
     with pytest.raises(ValueError, match="does not support parsing aligned"):

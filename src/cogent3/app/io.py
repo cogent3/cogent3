@@ -20,6 +20,7 @@ from scinexus.composable import (
 )
 from scinexus.data_store import (
     READONLY,
+    DataMember,
     DataStoreABC,
     DataStoreDirectory,
     Mode,
@@ -286,6 +287,12 @@ def _(path: str) -> os.PathLike:
     return _read_it(Path(path))
 
 
+def _file_path(path: typing.Any) -> typing.Any:
+    if isinstance(path, DataMember) and isinstance(path.data_store, DataStoreDirectory):
+        return Path(path.data_store.source) / path.unique_id
+    return path
+
+
 def _load_seqs(
     path: str | Path,
     coll_maker: type,
@@ -297,7 +304,7 @@ def _load_seqs(
         data = data.splitlines()
         data = dict(iter(parser.loader(data)))
     else:
-        data = parser.loader(path)
+        data = parser.loader(_file_path(path))
     unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
     return coll_maker(data, moltype=moltype, source=unique_id)
 
