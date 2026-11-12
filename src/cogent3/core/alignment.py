@@ -1232,6 +1232,11 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
         return self.__class__(**init_args)
 
+    def _unchanged(self) -> Self:
+        # a new view rather than self, so editing the result's metadata
+        # never reaches self
+        return self.__class__(**self._get_init_kwargs())
+
     def to_moltype(self, moltype: MolTypes) -> Self:
         """returns copy of self with changed moltype
 
@@ -1247,7 +1252,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """
         mtype = c3_moltype.get_moltype(moltype)
         if mtype is self.moltype:
-            return self  # nothing to be done
+            return self._unchanged()
 
         alpha = mtype.most_degen_alphabet()
         try:
@@ -1766,7 +1771,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return self.take_seqs_if(f)
 
     def drop_duplicated_seqs(self) -> Self:
-        """returns self without duplicated sequences
+        """returns a copy of self without duplicated sequences
 
         Notes
         -----
@@ -1774,7 +1779,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """
         dupes = self.duplicated_seqs()
         if not dupes:
-            return self
+            return self._unchanged()
 
         omit: list[str] = []
         for group in dupes:
@@ -2221,7 +2226,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             If True, raises an exception if a seq length not divisible by 3
         """
         if not self.has_terminal_stop(gc=gc, strict=strict):
-            return self
+            return self._unchanged()
 
         new_seqs = {
             self.name_map[cast("str", s.name)]: s.trim_stop_codon(
@@ -2883,6 +2888,11 @@ class Alignment(CollectionBase[Aligned]):
 
         return new
 
+    def _unchanged(self) -> Self:
+        new = super()._unchanged()
+        new._array_seqs = self._array_seqs
+        return new
+
     def to_phylip(self) -> str:
         """
         Return collection in PHYLIP format and mapping to sequence ids
@@ -3323,7 +3333,7 @@ class Alignment(CollectionBase[Aligned]):
 
         # refactor: array   # noqa: ERA001, RUF100
         if not self.has_terminal_stop(gc=gc, strict=strict):
-            return self
+            return self._unchanged()
 
         # define a regex for finding stop codons followed by terminal gaps
         gc = get_code(gc)
@@ -4480,7 +4490,7 @@ class Alignment(CollectionBase[Aligned]):
         gap_index = alpha.gap_index
         missing_index = alpha.missing_index
         if not gap_index and not missing_index:
-            return self
+            return self._unchanged()
         gap_index = cast("int", gap_index)
         allowed_num = (
             self.num_seqs - 1

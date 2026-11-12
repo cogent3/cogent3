@@ -1730,7 +1730,8 @@ def test_trim_stop_codons_no_stop(gc, seqs, mk_cls):
     data = {f"s{i}": s for i, s in enumerate(seqs)}
     seqs = mk_cls(data, moltype="dna")
     got = seqs.trim_stop_codons(gc=gc)
-    assert got is seqs
+    assert got is not seqs
+    assert got == seqs
 
 
 @pytest.mark.parametrize(
@@ -2300,7 +2301,8 @@ def test_sequence_collection_to_moltype_same_moltype(moltype, mk_cls):
     data = {"s1": "ACGTT", "s2": "ACCTT"}
     seqs = mk_cls(data, moltype=moltype)
     got = seqs.to_moltype(moltype=moltype)
-    assert got is seqs
+    assert got is not seqs
+    assert got == seqs
 
 
 @pytest.mark.parametrize(
@@ -5196,13 +5198,14 @@ def test_omit_gap_pos():
 
 
 def test_omit_gap_pos_no_gap_moltype():
-    """if moltype does not support gap, just returns self"""
+    """if moltype does not support gap, returns an unchanged copy"""
     aln = c3_alignment.make_aligned_seqs(
         {"a": "--A-BC-", "b": "-CB-A--", "c": "--D-EF-"},
         moltype="bytes",
     )
     got = aln.omit_gap_pos()
-    assert got is aln
+    assert got is not aln
+    assert got == aln
 
 
 @pytest.fixture(scope="session")
@@ -6382,7 +6385,8 @@ def test_drop_duplicated_seqs_no_dupes(mk_cls):
     }
     seqcoll = mk_cls(data, moltype="dna")
     got = seqcoll.drop_duplicated_seqs()
-    assert got is seqcoll
+    assert got is not seqcoll
+    assert got == seqcoll
 
 
 @pytest.fixture
@@ -7446,3 +7450,47 @@ def test_legacy_deserialisers_without_info(make_old):
     got = deserialise_object(data)
     assert got.metadata.to_dict() == {}
     assert got.source is None
+
+
+_NOTHING_TO_DO = {
+    "to_moltype": lambda c: c.to_moltype(c.moltype.label),
+    "drop_duplicated_seqs": lambda c: c.drop_duplicated_seqs(),
+    "trim_stop_codons": lambda c: c.trim_stop_codons(),
+}
+
+
+@_makers
+@pytest.mark.parametrize("method", list(_NOTHING_TO_DO))
+def test_nothing_to_do_result_has_own_metadata(mk_cls, method):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={"p": {"m": 1}})
+    got = _NOTHING_TO_DO[method](coll)
+    assert got is not coll
+    assert got.metadata.to_dict() == {"p": {"m": 1}}
+    got.metadata["p"]["m"] = 2
+    got.metadata["new"] = 1
+    assert coll.metadata.to_dict() == {"p": {"m": 1}}
+
+
+def test_omit_gap_pos_no_gap_result_has_own_metadata():
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": "AB", "b": "BA"}, moltype="bytes", metadata={"p": {"m": 1}}
+    )
+    got = aln.omit_gap_pos()
+    assert got is not aln
+    got.metadata["p"]["m"] = 2
+    assert aln.metadata.to_dict() == {"p": {"m": 1}}
+
+
+def test_nothing_to_do_keeps_array_seqs_cache():
+    aln = c3_alignment.make_aligned_seqs(_CODON_SEQS, moltype="dna")
+    cached = aln.array_seqs
+    assert aln.trim_stop_codons()._array_seqs is cached
+
+
+def test_nothing_to_do_keeps_stored_metadata(unaligned):
+    coll = _make_stored_metadata_coll(unaligned, {"status": "draft"})
+    got = coll.trim_stop_codons()
+    assert got is not coll
+    assert got.metadata["status"] == "draft"
+    got.metadata["status"] = "final"
+    assert coll.metadata["status"] == "draft"
