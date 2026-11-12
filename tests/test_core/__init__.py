@@ -7,7 +7,6 @@ __all__ = [
     "test_core_standalone",
     "test_features",
     "test_genetic_code",
-    "test_info",
     "test_location",
     "test_maps",
     "test_moltype",
