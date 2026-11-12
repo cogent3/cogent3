@@ -2863,7 +2863,6 @@ def test_sequence_collection_to_rich_dict():
             "moltype": seqs.moltype.label,
             "name_map": seqs.name_map,
             "metadata": {},
-            "source": "unknown",
         },
     }
     assert got == expect
@@ -2881,7 +2880,6 @@ def test_sequence_collection_to_rich_dict_reversed_seqs():
             "moltype": seqs.moltype.label,
             "name_map": seqs.name_map,
             "metadata": {},
-            "source": "unknown",
         },
         "type": get_object_provenance(seqs),
         "version": __version__,
@@ -7176,3 +7174,188 @@ def test_loader_json_keeps_recorded_source(mk_cls, loader, tmp_path):
     coll.write(path)
     got = loader(path, moltype="dna")
     assert got.source == "orig.fa"
+
+
+@_makers
+def test_source_absent_is_none(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna")
+    assert coll.source is None
+    assert "source" not in coll.metadata
+    assert "source" not in coll.to_rich_dict()["init_args"]["metadata"]
+
+
+@_makers
+def test_source_is_metadata_source(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source=pathlib.Path("orig.fa"))
+    assert coll.source == "orig.fa"
+    assert coll.metadata["source"] == "orig.fa"
+    coll.metadata["source"] = "other.fa"
+    assert coll.source == "other.fa"
+
+
+@_makers
+def test_source_setter(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    coll.source = pathlib.Path("other.fa")
+    assert coll.metadata["source"] == "other.fa"
+    coll.source = None
+    assert "source" not in coll.metadata
+    coll.source = None
+    assert coll.source is None
+
+
+@_makers
+def test_source_argument_wins_over_metadata_source(mk_cls):
+    metadata = MetaData(local={"source": "a.fa"})
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata=metadata, source="b.fa")
+    assert coll.source == "b.fa"
+    assert metadata["source"] == "a.fa"
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={"source": "a.fa"})
+    assert coll.source == "a.fa"
+
+
+@_makers
+def test_source_in_plain_metadata_is_str(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", metadata={"source": pathlib.Path("a.fa")})
+    assert coll.source == "a.fa"
+    assert json.loads(coll.to_json())["init_args"]["metadata"]["source"] == "a.fa"
+
+
+@pytest.mark.parametrize(
+    ("cls", "store_cls"),
+    [
+        (c3_alignment.SequenceCollection, c3_seq_storage.SeqsData),
+        (c3_alignment.Alignment, c3_seq_storage.AlignedSeqsData),
+    ],
+)
+def test_constructor_takes_no_source(cls, store_cls):
+    mt = c3_moltype.get_moltype("dna")
+    store = store_cls.from_seqs(data=_CODON_SEQS, alphabet=mt.most_degen_alphabet())
+    with pytest.raises(TypeError):
+        cls(seqs_data=store, moltype=mt, source="x.fa")
+
+
+@_makers
+def test_init_kwargs_exclude_source(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    assert "source" not in coll._get_init_kwargs()
+
+
+@_makers
+@pytest.mark.parametrize(
+    "derive",
+    [
+        lambda c: c.degap(),
+        lambda c: c.take_seqs(["a"]),
+        lambda c: c.rc(),
+        lambda c: c.renamed_seqs(str.upper),
+        lambda c: c.get_translation(),
+    ],
+)
+def test_derived_collections_keep_source(mk_cls, derive):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    assert derive(coll).source == "orig.fa"
+
+
+@_makers
+@pytest.mark.parametrize("source", [None, "unknown"])
+def test_legacy_rich_dict_unknown_source_dropped(mk_cls, source):
+    rd = json.loads(mk_cls(_CODON_SEQS, moltype="dna").to_json())
+    rd["init_args"]["source"] = source
+    got = deserialise_object(rd)
+    assert got.source is None
+    assert "source" not in got.metadata
+
+
+@_makers
+def test_legacy_rich_dict_source_kept(mk_cls):
+    rd = json.loads(mk_cls(_CODON_SEQS, moltype="dna").to_json())
+    rd["init_args"]["source"] = "x.fa"
+    got = deserialise_object(rd)
+    assert got.source == "x.fa"
+
+
+@pytest.mark.parametrize(("legacy", "expect"), [("x.fa", "x.fa"), ("unknown", None)])
+def test_legacy_pickle_state_source(unaligned, legacy, expect):
+    coll = _make_stored_metadata_coll(unaligned, {})
+    state = coll.__getstate__()
+    state["source"] = legacy
+    state["info"] = Info({"k": 1})
+    state.pop("metadata")
+    got = type(coll).__new__(type(coll))
+    got.__setstate__(state)
+    assert got.source == expect
+    assert got.metadata["k"] == 1
+
+
+def _stored_source_coll(unaligned, tmp_path, stored, source):
+    path = tmp_path / "x.c3h5"
+    return _make_stored_metadata_coll(unaligned, stored, path=path, source=source)
+
+
+@pytest.mark.parametrize(
+    "as_source",
+    [str, lambda p: p.name],
+    ids=["absolute", "file_name"],
+)
+def test_metadata_to_save_exact_copy(unaligned, tmp_path, as_source):
+    source = as_source(tmp_path / "x.c3h5")
+    coll = _stored_source_coll(
+        unaligned, tmp_path, {"source": "orig.fa", "k": 1}, source
+    )
+    assert coll.metadata_to_save() == {"source": "orig.fa", "k": 1}
+    assert coll.to_rich_dict()["init_args"]["metadata"]["source"] == "orig.fa"
+    assert coll.source == source
+
+
+def test_metadata_to_save_relative_source(unaligned, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path.parent)
+    source = f"{tmp_path.name}/x.c3h5"
+    coll = _stored_source_coll(unaligned, tmp_path, {"source": "orig.fa"}, source)
+    assert coll.metadata_to_save()["source"] == "orig.fa"
+
+
+def test_metadata_to_save_exact_copy_without_recorded_source(unaligned, tmp_path):
+    path = tmp_path / "x.c3h5"
+    coll = _stored_source_coll(unaligned, tmp_path, {}, str(path))
+    assert coll.metadata_to_save()["source"] == str(path)
+
+
+@pytest.mark.parametrize(
+    "derive",
+    [
+        lambda c: c.take_seqs(["a"]),
+        lambda c: c.rc(),
+        lambda c: c.to_moltype("rna"),
+        lambda c: c.renamed_seqs(str.upper),
+    ],
+    ids=["take_seqs", "rc", "to_moltype", "renamed_seqs"],
+)
+def test_metadata_to_save_changed_collection(unaligned, tmp_path, derive):
+    path = tmp_path / "x.c3h5"
+    coll = _stored_source_coll(unaligned, tmp_path, {"source": "orig.fa"}, str(path))
+    assert derive(coll).metadata_to_save()["source"] == str(path)
+
+
+def test_metadata_to_save_other_source(unaligned, tmp_path):
+    coll = _stored_source_coll(
+        unaligned, tmp_path, {"source": "orig.fa"}, "https://x.org/x.c3h5"
+    )
+    assert coll.metadata_to_save()["source"] == "https://x.org/x.c3h5"
+
+
+def test_metadata_to_save_unresolvable_source(unaligned, tmp_path):
+    coll = _stored_source_coll(unaligned, tmp_path, {"source": "orig.fa"}, "a/\0b")
+    assert coll.metadata_to_save()["source"] == "a/\0b"
+
+
+def test_metadata_to_save_non_str_source(unaligned, tmp_path):
+    coll = _stored_source_coll(unaligned, tmp_path, {"source": "orig.fa"}, None)
+    coll.metadata["source"] = 5
+    assert coll.metadata_to_save()["source"] == 5
+
+
+@_makers
+def test_metadata_to_save_builtin_storage(mk_cls):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    assert coll.metadata_to_save() == {"source": "orig.fa"}

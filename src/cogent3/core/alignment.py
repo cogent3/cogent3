@@ -356,11 +356,42 @@ def _owned_metadata(
     return result
 
 
-def _rename_legacy_info(kwargs: dict[str, Any]) -> None:
-    # pickles and rich dicts written before metadata replaced info
+def _known_source(source: Any) -> Any:
+    # collections made before source moved into metadata recorded "unknown"
+    return None if source == "unknown" else source
+
+
+def _upgrade_legacy_kwargs(kwargs: dict[str, Any]) -> None:
+    # pickles and rich dicts written before metadata replaced info and source
     legacy_info = kwargs.pop("info", None)
     if kwargs.get("metadata") is None:
         kwargs["metadata"] = legacy_info
+    source = _known_source(kwargs.pop("source", None))
+    if source:
+        metadata = kwargs["metadata"]
+        if isinstance(metadata, Info):
+            metadata = info_to_metadata(metadata)
+        kwargs["metadata"] = {**(metadata or {}), "source": str(source)}
+
+
+def _source_to_set(source: PathType | None, metadata: Mapping[str, Any] | None) -> Any:
+    # a source in a plain mapping is stored as a string, as source= is
+    if source or metadata is None or isinstance(metadata, MetaData):
+        return source
+    return metadata.get("source")
+
+
+def _names_file(source: Any, path: pathlib.Path) -> bool:
+    if not isinstance(source, str):
+        return False
+    source_path = pathlib.Path(source)
+    # a bare file name, as the load apps record, matches by name
+    if source_path.name == source:
+        return source == path.name
+    try:
+        return source_path.expanduser().resolve() == path.resolve()
+    except (OSError, RuntimeError, ValueError):
+        return False
 
 
 class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
@@ -371,7 +402,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         seqs_data: SeqsDataABC | AlignedSeqsDataABC,
         moltype: c3_moltype.MolType[Any],
         metadata: Mapping[str, Any] | None = None,
-        source: PathType | None = None,
         annotation_db: AnnotationDbABC | list[AnnotationDbABC] | None = None,
         name_map: Mapping[str, str] | None = None,
         is_reversed: bool = False,
@@ -385,8 +415,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             the molecular type of the sequences
         metadata
             values for the collection's metadata, which are copied
-        source
-            the source of the sequence data
         annotation_db
             a database of annotations for the sequences
         name_map
@@ -401,7 +429,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         name_map = name_map or {name: name for name in seqs_data.names}
         self._name_map = types.MappingProxyType(name_map)
         self._is_reversed = is_reversed
-        self.source = source
         self._repr_policy: dict[str, Any] = {
             "num_seqs": 10,
             "num_pos": 60,
@@ -530,19 +557,49 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         metadata.clear()
         metadata |= new
 
-    def _metadata_dict(self) -> dict[str, Any]:
+    @property
+    def source(self) -> Any:
+        """Where the data came from, ``metadata["source"]``, or None if absent.
+
+        Setting None removes it.
+        """
+        if self._metadata is None:
+            return self._seqs_data.metadata.get("source")
+        return self._metadata.get("source")
+
+    @source.setter
+    def source(self, value: PathType | None) -> None:
+        if value is None:
+            self.metadata.pop("source", None)
+        else:
+            self.metadata["source"] = str(value)
+
+    def metadata_to_save(self) -> dict[str, Any]:
+        """Return the metadata that writing this collection saves.
+
+        This is ``metadata.to_dict()``, except when the collection is an
+        unchanged copy of its storage and its source names the storage's
+        file. Then the saved source is the one that file records, or the
+        file itself if it records none, so the source always names the
+        original data.
+        """
         # reads the storage without building self._metadata
         metadata = self._metadata
         if metadata is None:
             metadata = MetaData(stored=self._seqs_data.metadata)
-        return metadata.to_dict()
+        result = metadata.to_dict()
+        path = self._seqs_data.path
+        if path is None or self.modified or not _names_file(result.get("source"), path):
+            return result
+        result["source"] = self._seqs_data.metadata.get("source") or str(path)
+        return result
 
     def __getstate__(self) -> dict[str, Any]:
         return self._get_init_kwargs()
 
     def __setstate__(self, state: dict[str, Any]) -> None:
         state["name_map"] = types.MappingProxyType(state.pop("name_map"))
-        _rename_legacy_info(state)
+        _upgrade_legacy_kwargs(state)
         obj = self.__class__(**state)
 
         self.__dict__.update(obj.__dict__)
@@ -1132,7 +1189,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             moltype=self.moltype,
             name_map={**self._name_map, **name_map},
             metadata=self._metadata,
-            source=self.source,
             annotation_db=self._annotation_db,
         )
 
@@ -1739,7 +1795,6 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         seqs_data: SeqsDataABC,
         moltype: c3_moltype.MolType[Any],
         metadata: Mapping[str, Any] | None = None,
-        source: PathType | None = None,
         annotation_db: AnnotationDbABC | list[AnnotationDbABC] | None = None,
         name_map: Mapping[str, str] | None = None,
         is_reversed: bool = False,
@@ -1753,8 +1808,6 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             the molecular type of the sequences
         metadata
             values for the collection's metadata, which are copied
-        source
-            the source of the sequence data
         annotation_db
             a database of annotations for the sequences
         name_map
@@ -1769,7 +1822,6 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             seqs_data=seqs_data,
             moltype=moltype,
             metadata=metadata,
-            source=source,
             annotation_db=annotation_db,
             name_map=name_map,
             is_reversed=is_reversed,
@@ -1792,7 +1844,6 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             "name_map": dict(self._name_map),
             "metadata": self._metadata,
             "annotation_db": self._annotation_db,
-            "source": self.source,
             "is_reversed": self._is_reversed,
         }
 
@@ -1870,7 +1921,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
         kwargs = self._get_init_kwargs()
         kwargs.pop("is_reversed", None)  # reversal is realised
         kwargs["moltype"] = self.moltype.label
-        kwargs["metadata"] = self._metadata_dict()
+        kwargs["metadata"] = self.metadata_to_save()
         kwargs.pop("annotation_db", None)
         kwargs.pop(
             "offset",
@@ -1894,7 +1945,7 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
     ) -> SequenceCollection:
         """returns a new instance from a rich dict"""
         init_args = dict(data["init_args"])
-        _rename_legacy_info(init_args)
+        _upgrade_legacy_kwargs(init_args)
         return make_unaligned_seqs(data["seqs"], **init_args)
 
     def degap(self, storage_backend: str | None = None, **kwargs: Any) -> Self:
@@ -2144,7 +2195,6 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
             moltype=pep_moltype,
             name_map=self._name_map,
             metadata=self._metadata,
-            source=self.source,
             **kwargs,
         )
 
@@ -2655,7 +2705,6 @@ class Alignment(CollectionBase[Aligned]):
             "metadata": self._metadata,
             "annotation_db": self._annotation_db,
             "slice_record": self._slice_record,
-            "source": self.source,
         }
 
     def _make_aligned(self, seqid: str) -> Aligned:
@@ -2870,7 +2919,7 @@ class Alignment(CollectionBase[Aligned]):
         kwargs = self._get_init_kwargs()
         kwargs.pop("slice_record")  # slice is realised
         kwargs["moltype"] = self.moltype.label
-        kwargs["metadata"] = self._metadata_dict()
+        kwargs["metadata"] = self.metadata_to_save()
         kwargs.pop("annotation_db", None)  # we dont serialise the annotation db
         kwargs.pop(
             "offset",
@@ -2890,7 +2939,7 @@ class Alignment(CollectionBase[Aligned]):
     def from_rich_dict(cls, data: dict[str, Any]) -> Alignment:
         init_args = dict(data["init_args"])
         init_args.pop("annotation_db", None)
-        _rename_legacy_info(init_args)
+        _upgrade_legacy_kwargs(init_args)
         return make_aligned_seqs(data["seqs"], **init_args)
 
     def to_html(
@@ -3255,7 +3304,6 @@ class Alignment(CollectionBase[Aligned]):
             moltype=pep_moltype,
             name_map=self._name_map,
             metadata=self._metadata,
-            source=self.source,
             **kwargs,
         )
 
@@ -5716,8 +5764,8 @@ def make_unaligned_seqs(
         values for the collection's metadata. A plain mapping is copied, a
         MetaData is passed to the collection as it is
     source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
+        origins of this data. Converted to a string and stored as
+        metadata["source"], replacing any source in metadata.
     annotation_db
         annotation database to attach to the collection
     offset
@@ -5758,25 +5806,18 @@ def make_unaligned_seqs(
             msg = f"Setting offset is not supported for {data=}"
             raise ValueError(msg)
 
-        if metadata is not None and not isinstance(metadata, MetaData):
-            metadata = (
-                info_to_metadata(metadata)
-                if isinstance(metadata, Info)
-                else dict(metadata)
-            )
-            source = source or metadata.pop("source", None)
-        source = str(source) if source else "unknown"
         seqs = SequenceCollection(
             seqs_data=data,
             moltype=moltype,
             metadata=metadata,
             annotation_db=annotation_db,
-            source=source,
             name_map=name_map,
             is_reversed=is_reversed,
         )
         if label_to_name:
             seqs = seqs.renamed_seqs(label_to_name)
+        if source := _source_to_set(source, metadata):
+            seqs.source = source
         return seqs
 
     if len(data) == 0:
@@ -5842,7 +5883,7 @@ def deserialise_old_to_new_type_seqcoll(
         for seqid, record in data["seqs"].items()
     }
     return make_unaligned_seqs(
-        seq_data, moltype=moltype_name, metadata=info_data, source=source
+        seq_data, moltype=moltype_name, metadata=info_data, source=_known_source(source)
     )
 
 
@@ -5930,8 +5971,8 @@ def make_aligned_seqs(
         values for the collection's metadata. A plain mapping is copied, a
         MetaData is passed to the collection as it is
     source
-        origins of this data, defaults to 'unknown'. Converted to a string
-        and added to info["source"].
+        origins of this data. Converted to a string and stored as
+        metadata["source"], replacing any source in metadata.
     annotation_db
         annotation database to attach to the collection
     offset
@@ -5970,26 +6011,19 @@ def make_aligned_seqs(
             msg = f"Setting offset is not supported for {data=}"
             raise ValueError(msg)
 
-        if metadata is not None and not isinstance(metadata, MetaData):
-            metadata = (
-                info_to_metadata(metadata)
-                if isinstance(metadata, Info)
-                else dict(metadata)
-            )
-            source = source or metadata.pop("source", None)
-        source = str(source) if source else "unknown"
         sr = SliceRecord(parent_len=data.align_len, step=-1) if is_reversed else None
         aln = Alignment(
             seqs_data=data,
             moltype=moltype,
             metadata=metadata,
-            source=source,
             annotation_db=annotation_db,
             name_map=name_map,
             slice_record=sr,
         )
         if label_to_name:
             aln = aln.renamed_seqs(label_to_name)
+        if source := _source_to_set(source, metadata):
+            aln.source = source
         return aln
 
     if len(data) == 0:
@@ -6070,7 +6104,7 @@ def deserialise_array_align_to_new_type_alignment(
         seq_data[seqid] = seq
 
     return make_aligned_seqs(
-        seq_data, moltype=moltype_name, metadata=info_data, source=source
+        seq_data, moltype=moltype_name, metadata=info_data, source=_known_source(source)
     )
 
 
@@ -6099,5 +6133,5 @@ def deserialise_alignment_to_new_type_alignment(
 
     asd = AlignedSeqsData.from_seqs_and_gaps(seqs=seqs, gaps=gaps, alphabet=alpha)
     return make_aligned_seqs(
-        asd, moltype=moltype_name, metadata=info_data, source=source
+        asd, moltype=moltype_name, metadata=info_data, source=_known_source(source)
     )

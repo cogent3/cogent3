@@ -497,7 +497,8 @@ def test_load_db_prefer_source_attr(tmp_dir):
     # this old style rich dict will
     loader = io_app.load_db()
     got = loader(data_store[0])  # pylint: disable=not-callable
-    assert "source" not in got.info
+    assert got.source == "blah.1.2.fa"
+    assert got.metadata.to_dict() == {"demo": "dummy", "source": "blah.1.2.fa"}
     data_store.close()
 
 
