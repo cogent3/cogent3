@@ -72,7 +72,7 @@ def test_infers_source():
     source = pathlib.Path("path/blah.fasta")
     aln = cogent3.make_aligned_seqs(
         {"A": "ACGT"},
-        info={"random_key": 1234},
+        metadata={"random_key": 1234},
         moltype="dna",
         source=str(source),
     )

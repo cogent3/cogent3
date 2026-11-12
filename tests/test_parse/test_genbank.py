@@ -511,10 +511,10 @@ def test_moltype_overrides(moltype, rich_gb):
     close_dbs(rich_gb, got_2)
 
 
-def test_rich_parser_info(rich_gb):
-    """seq.info stores genbank_record"""
-    assert "genbank_record" in rich_gb.info
-    assert rich_gb.info.genbank_record["locus"] == rich_gb.name
+def test_rich_parser_metadata_record(rich_gb):
+    """seq.metadata stores genbank_record"""
+    assert "genbank_record" in rich_gb.metadata
+    assert rich_gb.metadata.genbank_record["locus"] == rich_gb.name
     close_dbs(rich_gb)
 
 

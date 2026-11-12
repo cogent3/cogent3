@@ -569,9 +569,9 @@ def test_cogent3_score(aln):
 def test_cogent3_score_missing(aln, del_all_params):
     get_score = get_app("cogent3_score")
     if del_all_params:
-        aln.info.pop("align_params")
+        aln.metadata.pop("align_params")
     else:
-        aln.info["align_params"].pop("lnL")
+        aln.metadata["align_params"].pop("lnL")
     score = get_score(aln)  # pylint: disable=not-callable
     assert isinstance(score, NotCompleted)
 
@@ -799,7 +799,7 @@ def test_smith_waterman_score(seqs):
         moltype="dna",
     )
     aln = aligner(coll)  # pylint: disable=not-callable
-    got = aln.info["align_params"]["sw_score"]
+    got = aln.metadata["align_params"]["sw_score"]
     s = make_dna_scoring_dict(10, -1, -8)
     insertion = 20
     extension = 2
@@ -817,12 +817,12 @@ def test_smith_waterman_score(seqs):
 def test_smith_waterman_result_json_round_trip(seqs):
     aln = smith_waterman()(seqs.take_seqs(["Human", "Bandicoot"]))
     got = deserialise_object(aln.to_json())
-    assert got.info["align_params"] == aln.info["align_params"]
+    assert got.metadata["align_params"] == aln.metadata["align_params"]
 
 
 def test_smith_waterman_records_nested_score_matrix(seqs):
     aln = smith_waterman()(seqs.take_seqs(["Human", "Bandicoot"]))
-    matrix = aln.info["align_params"]["score_matrix"]
+    matrix = aln.metadata["align_params"]["score_matrix"]
     assert matrix["A"]["T"] == -8
     assert matrix["A"]["G"] == -1
     assert matrix["A"]["A"] == 10
@@ -886,14 +886,14 @@ def test_align_to_ref_records_own_params(seqs, ref_seq):
     hky = align_app.progressive_align(model="HKY85")(seqs)
     degapped = hky.degap()
     aln = align_app.align_to_ref(ref_seq=ref_seq)(degapped)
-    params = aln.info["align_params"]
+    params = aln.metadata["align_params"]
     assert "model" not in params
     assert params["ref_seq"] == "Human"
     assert params["insertion_penalty"] == 20.0
     assert params["extension_penalty"] == 2.0
     assert params["score_matrix"]["A"]["T"] == -8
-    assert aln.info is not degapped.info
-    assert degapped.info["align_params"]["model"] == "HKY85"
+    assert aln.metadata is not degapped.metadata
+    assert degapped.metadata["align_params"]["model"] == "HKY85"
     # the input's lnL belongs to a different alignment
     assert isinstance(get_app("cogent3_score")(aln), NotCompleted)
 
