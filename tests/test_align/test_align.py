@@ -168,10 +168,10 @@ def _test_aln_standard(seqs, model=dna_model, param_vals=None, **kw):
     assert aln.moltype is model.moltype
 
     # assert the returned alignment has the correct parameter values in the
-    # align.info object.
+    # aln.metadata object.
     if param_vals:
         for param, val in param_vals:
-            assert aln.info.align_params[param] == val
+            assert aln.metadata.align_params[param] == val
 
 
 def _test_aln_hirschberg(seqs, **kw):
@@ -240,12 +240,12 @@ def test_progressive_est_tree():
     assert aln.to_dict() == expect
 
 
-def test_align_info():
-    """alignment info object has parameter values"""
+def test_align_metadata():
+    """alignment metadata has parameter values"""
     aln = make_aln(
         {"A": "GCCTCGG", "B": "GCCTCGG", "C": "GCCTCGGAAACGT", "D": "AAACGT"},
     )
-    assert aln.info["align_params"]["lnL"] < 0
+    assert aln.metadata["align_params"]["lnL"] < 0
 
 
 def test_progressive_params(_test_aln):

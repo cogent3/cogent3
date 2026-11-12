@@ -126,7 +126,7 @@ class TestModel(TestCase):
             "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
             "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
         }
-        aln = make_aligned_seqs(_data, moltype="dna", info={"source": "blah"})
+        aln = make_aligned_seqs(_data, moltype="dna", metadata={"source": "blah"})
         result = mod_coll(aln)
         assert result["F81"].lf.lnL < result["HKY85"].lf.lnL < result["GTR"].lf.lnL
 

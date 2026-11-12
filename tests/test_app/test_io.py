@@ -514,7 +514,7 @@ def test_load_db_prefer_source_attr(tmp_dir):
     seqs = cogent3.make_unaligned_seqs(
         {"a": "ACGG", "b": "GGC"},
         moltype="dna",
-        info={"demo": "dummy"},
+        metadata={"demo": "dummy"},
         source="blah.1.2.fa",
     )
     writer = io_app.write_db(data_store=data_store)
@@ -660,7 +660,7 @@ def seqs():
     return make_unaligned_seqs(
         {"a": "ACGG", "b": "GGC"},
         moltype="dna",
-        info={"source": "dummy/blah.1.2.fa"},
+        metadata={"source": "dummy/blah.1.2.fa"},
     )
 
 

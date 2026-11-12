@@ -150,11 +150,11 @@ def framed_seqs(DATA_DIR, request):
     frame = None if request.param is None else request.param + 1
     for k, s in data.items():
         data[k] = prefix + s
-    return cogent3.make_unaligned_seqs(data, moltype="dna", info={"frame": frame})
+    return cogent3.make_unaligned_seqs(data, moltype="dna", metadata={"frame": frame})
 
 
 def test_select_translatable_with_frame_terminal_stop(framed_seqs):
-    frame = framed_seqs.info.frame
+    frame = framed_seqs.metadata.frame
     sl = slice(None, None) if frame is None else slice(frame - 1, None)
     expect = {s.name: str(s[sl]) for s in framed_seqs.seqs}
     app = select_translatable(frame=frame, trim_terminal_stop=False)
@@ -163,7 +163,7 @@ def test_select_translatable_with_frame_terminal_stop(framed_seqs):
 
 
 def test_select_translatable_with_frame_no_stop(framed_seqs):
-    frame = framed_seqs.info.frame
+    frame = framed_seqs.metadata.frame
     sl = slice(None, -3) if frame is None else slice(frame - 1, -3)
     expect = {s.name: str(s[sl]) for s in framed_seqs.seqs}
     app = select_translatable(frame=frame, trim_terminal_stop=True)
