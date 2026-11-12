@@ -7233,6 +7233,7 @@ def test_source_in_plain_metadata_is_str(mk_cls):
         (c3_alignment.Alignment, c3_seq_storage.AlignedSeqsData),
     ],
 )
+@pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_constructor_takes_no_source(cls, store_cls):
     mt = c3_moltype.get_moltype("dna")
     store = store_cls.from_seqs(data=_CODON_SEQS, alphabet=mt.most_degen_alphabet())

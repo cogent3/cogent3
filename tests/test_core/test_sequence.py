@@ -3594,3 +3594,10 @@ def test_old_pickle_state_with_info_slot():
     assert str(old) == "ACGT"
     assert old.name == "s"
     assert old.metadata.to_dict() == {"k": 1}
+
+
+@pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
+def test_failed_construction_del_is_silent():
+    dna = c3_moltype.get_moltype("dna")
+    with pytest.raises(TypeError):
+        c3_sequence.DnaSequence(dna, "ACGT", source="x.fa")

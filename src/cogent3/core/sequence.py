@@ -307,7 +307,7 @@ class Sequence(AnnotatableMixin):
         self._metadata = _owned_metadata(metadata)
 
     def __del__(self):
-        if self._annotation_db:
+        if getattr(self, "_annotation_db", None):
             self._annotation_db = None
 
     def __str__(self) -> str:

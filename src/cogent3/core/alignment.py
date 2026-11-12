@@ -445,7 +445,6 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         self._annotation_db: list[AnnotationDbABC] = self._init_annot_db_value(
             annotation_db
         )
-        # after _annotation_db, which __del__ reads if invalid metadata raises
         self._metadata = _owned_metadata(metadata, seqs_data.metadata)
         self._seqs: _IndexableSeqs[TSequenceOrAligned]
         self._post_init()
@@ -636,7 +635,7 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return not self == other
 
     def __del__(self):
-        if self._annotation_db:
+        if getattr(self, "_annotation_db", None):
             self._annotation_db = None
 
     @property
