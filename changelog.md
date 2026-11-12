@@ -1,4 +1,165 @@
 
+<a id='changelog-2026.11.13'></a>
+# Changes in release "2026.11.13"
+
+## API
+
+- Sequences have a `metadata` attribute, a mutable mapping that supports
+  nested indexing (`seq.metadata["p"]["m"]`) and attribute access
+  (`seq.metadata.p.m`). A sequence derived from another one (e.g. slicing,
+  `rc()`, `degap()`) gets its own copy. Keys must be strings at every depth,
+  including in dicts inside lists. Any other key type raises `TypeError`.
+- `.metadata` is a `MetaData`, not a dict. It equals only another `MetaData`
+  with the same contents. Nested dicts come back as `MetaData` too, so
+  `aln.metadata["align_params"] == {...}` is `False`. Compare
+  `aln.metadata["align_params"].to_dict()` instead.
+- `MetaData` differs from the `Info` object that `.info` used to return.
+  Reading or deleting a missing key raises `KeyError`, where `info["x"]`
+  returned `None` and `del info["x"]` did nothing. Reading a missing
+  attribute raises `AttributeError`, where `info.x` returned `None`. Use
+  `md.get("x")` to get `None` for a missing key.
+- `Sequence.to_rich_dict()` writes a `"metadata"` key in place of `"info"`,
+  and includes a non-empty `Refs`, which it previously dropped. It no longer
+  removes `Refs` from the sequence itself. `from_rich_dict` still reads the
+  old `"info"` key.
+- `SequenceCollection` and `Alignment` have a `metadata` attribute, a mutable
+  mapping that reads any metadata the storage holds and keeps changes local
+  to the collection. Views (`take_seqs()`, slicing, `rc()` and the like) and
+  derived collections (`degap()`, `get_translation()`, `add_seqs()`) get
+  their own copy, so changing it no longer changes the original. The dict
+  passed as `metadata=` is copied and no longer has `"source"` removed from
+  it.
+- Metadata does not affect `==` between collections.
+- `to_rich_dict()` of a collection writes a `"metadata"` key in place of
+  `"info"`. `from_rich_dict` can still read the old `"info"` key.
+- `load_seq`, `load_unaligned_seqs` and `load_aligned_seqs` take a `metadata`
+  argument. `load_seq` no longer adds `"source"` to the dict passed to it.
+- A collection's `.source` is `metadata["source"]`. It is `None` when there
+  is no source, where it used to be `"unknown"`. Setting it to `None`
+  removes it. Old JSON and pickles that record `"unknown"` load with no
+  source. Views and derived collections, including `degap()`, keep the
+  source of the collection they were made from.
+- The `SequenceCollection` and `Alignment` constructors no longer take
+  `source`. Use `make_unaligned_seqs(source=)` or `make_aligned_seqs(source=)`.
+- Because `.source` can now be `None`, the writer apps return `NotCompleted`
+  for data with no source unless given an `identifier`. Results of the model
+  fitting apps still record `"unknown"` for such data.
+- New `metadata_to_save()` on collections returns the metadata a writer
+  saves. For an unchanged copy of a stored file, its `"source"` is the source
+  that file records, or the file itself, so a saved file always names the
+  original data. Anything else, including the result of `rc()` or
+  `to_moltype()`, saves the source of the collection it was made from.
+- Collections loaded from JSON or pickles written by earlier releases no
+  longer carry the empty `Refs` key that `Info` always recorded. A non-empty
+  `Refs` is kept as an ordinary nested dict. Loading such data no longer
+  removes `"source"` from the data passed in.
+- `to_moltype` to the collection's own moltype, `drop_duplicated_seqs` with
+  no duplicates, `trim_stop_codons` with no stop codon to trim, and
+  `Alignment.omit_gap_pos` for a moltype without a gap character now return
+  a new collection equal to the original, instead of the original itself.
+  Editing the result's metadata no longer changes the original. As with any
+  other new collection, a feature taken from the original cannot be used to
+  slice the result.
+- Methods that build a collection on new storage take a keyword-only
+  `with_metadata` argument: `add_seqs`, `to_moltype`,
+  `to_dna`, `to_rna`, `pad_seqs`, `degap`, `get_translation` and
+  `trim_stop_codons` on both collection types, and on `Alignment` also
+  `take_positions`, `take_positions_if`, `filtered`, `sample`,
+  `get_degapped_relative_to`, `gapped_by_map`, `no_degenerates`,
+  `omit_gap_pos`, `apply_scaled_gaps`, `deepcopy` and
+  `with_masked_annotations`. With `True`, the default, the result has the
+  same metadata as the original, including values read from the original's
+  storage. With `False` the result has no metadata at all, including no `source`.
+- Slicing an alignment with a feature map keeps its metadata.
+- `pairwise_to_multiple` takes `metadata=` in place of `info=`. Passing
+  `info=` still works but emits a `DeprecationWarning`.
+- `MetaData.update()` merges nested dicts and does not warn, so with
+  `{"p": {"a": 1}}`, `md.update({"p": {"b": 2}})` gives
+  `{"p": {"a": 1, "b": 2}}`. `Info.update()` replaced the value and warned
+  about overwritten keys.
+- Assigning to a method name, as in `md.keys = 1`, raises `AttributeError`,
+  where `Info` let it hide the method. Use `md["keys"] = 1`.
+- Metadata has no `Refs` key unless the data has one. A database name is
+  an ordinary key, so `md["GenBank"] = ["X1"]` stores `{"GenBank": ["X1"]}`,
+  where `Info` stored `{"Refs": {"GenBank": ["X1"]}}`. Entries inside `Refs`
+  are no longer readable from the top level, so `seq.info.rRNA` on a
+  sequence from the rdb parser becomes `seq.metadata["Refs"]["rRNA"]`.
+- `load_json` keeps the source the JSON records, so `.source` and
+  `metadata["source"]` agree. It used to set `info["source"]` to a shortened
+  name, such as `"orig"` for data whose source was `"orig.fasta"`. A record
+  saved without a source gets the record's name, such as `"aln.json"`, as
+  its `.source`, where it was `"unknown"`.
+- Results of apps such as `fast_slow_dist` and `quick_tree` run on data
+  with no source have a `.source` of `None`, where it was previously `"unknown"`.
+- JSON written by this release stores a `"metadata"` key that earlier
+  releases cannot load. They fail with `TypeError: ... unexpected keyword
+  argument 'metadata'`.
+
+## Enhancements
+
+- `write()` on a sequence or a collection, and the `write_seqs` app, take
+  `warn_unsaved_metadata=False`. Set it to `True` to get a `UserWarning` when
+  the output format cannot hold the metadata being written, for example
+  `aln.write("out.fasta", warn_unsaved_metadata=True)` on an alignment loaded
+  from a file, whose metadata records its `source`. The warning names the
+  keys that are not written. JSON output can store the metadata.
+- `progressive_align`, `smith_waterman` and `align_to_ref` record their own
+  `align_params`, and copy only the input's other top-level metadata keys.
+  `progressive_align` run with F81 on `aln.degap()` of an HKY85 alignment now
+  records `"F81"`, where the input's `align_params` used to replace the new
+  ones. `smith_waterman` now keeps the input's metadata, which it used to
+  drop.
+- The results of these three apps keep the input's `source` as it was.
+  `progressive_align` used to record a shortened name, for example `"brca1"`
+  for an input whose source was `"data/brca1.fasta"`.
+- The result of `select_translatable` keeps the input's `source` as it was,
+  instead of a shortened name, i.e. `"data/brca1.fasta"` instead of `"brca1"`.
+- `load_db` gives a sequence collection saved without a source the location
+  it was read from, such as `"results.sqlitedb/x"`, as its `source`. It
+  previously came back with the placeholder `"unknown"`.
+
+## Bug fixes
+
+- `smith_waterman` results can now be saved with `to_json()`. The scoring
+  matrix in `metadata["align_params"]["score_matrix"]` is recorded as a nested
+  dict keyed by row then column, e.g. `matrix["A"]["T"]`, instead of by
+  `("A", "T")` tuples.
+- `align_to_ref` now records its own `metadata["align_params"]`: the scoring
+  matrix (nested by row then column), `insertion_penalty`,
+  `extension_penalty` and `ref_seq`, the name of the reference sequence it
+  used. It previously passed on the input's `align_params`, so a result could
+  report the model of an earlier `progressive_align` run, and `cogent3_score`
+  returned that run's log-likelihood for a different alignment. It now
+  returns `NotCompleted` for `align_to_ref` results. The result also gets its
+  own metadata, so changing it no longer changes the input.
+
+## Deprecations
+
+- The `info` argument of `make_seq`, `MolType.make_seq` and the `Sequence`
+  constructor is deprecated in favour of `metadata`, and the `Sequence.info`
+  attribute in favour of `Sequence.metadata`. Both will be removed in
+  version 2027.4.
+
+- The `info` argument of `make_unaligned_seqs`, `make_aligned_seqs` and the
+  `SequenceCollection` and `Alignment` constructors is deprecated in favour
+  of `metadata`, and the `info` attribute of collections in favour of
+  `metadata`. Both will be removed in version 2027.4. Assigning to `.info`,
+  on a collection or a sequence, is deprecated too. It replaces the contents
+  of `.metadata`, so `.info` stays a `MetaData` instead of becoming the
+  assigned object.
+
+- The `info` argument of `load_seq`, `load_unaligned_seqs` and
+  `load_aligned_seqs` is deprecated in favour of `metadata`, and will be
+  removed in version 2027.4.
+
+- JSON files and pickles written by earlier releases still load. Re-save
+  them with this release before upgrading to 2027.4, which removes the
+  `info` support they rely on. A re-saved file cannot be read by earlier
+  releases. Data that recorded the source `"unknown"` now loads with no
+  source, so the writer apps need an `identifier` to save it.
+- If `info=` and `metadata=` are both passed, `info` is used and `metadata`
+  is ignored. Pass only `metadata`.
+
 <a id='changelog-2026.11.5'></a>
 # Changes in release "2026.11.5"
 
