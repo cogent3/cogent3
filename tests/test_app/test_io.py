@@ -408,7 +408,7 @@ def test_write_tabular_table(w_dir_dstore):
     assert table.to_dict() == new.to_dict()
 
 
-def test_write_json_with_info(w_dir_dstore):
+def test_write_json_with_source(w_dir_dstore):
     """correctly writes an object with source attribute from json"""
     w_dir_dstore.suffix = "json"
     # create a mock object that pretends like it's been derived from
@@ -709,24 +709,20 @@ def test_writer_unique_id_arg(tmp_dir, writer, data, dstore):
     out_dstore.close()
 
 
-src_attr = "source"
-
-
 @pytest.mark.parametrize(
-    ("writer", "data", "attr", "dstore"),
+    ("writer", "data", "dstore"),
     [
-        ("write_seqs", seqs(), src_attr, dir_dstore),
-        ("write_db", seqs(), src_attr, db_dstore),
-        ("write_json", seqs(), src_attr, dir_dstore),
-        ("write_tabular", table(), "source", dir_dstore),
+        ("write_seqs", seqs(), dir_dstore),
+        ("write_db", seqs(), db_dstore),
+        ("write_json", seqs(), dir_dstore),
+        ("write_tabular", table(), dir_dstore),
     ],
 )
-def test_writer_no_unique_id(tmp_dir, writer, data, attr, dstore):
+def test_writer_no_unique_id(tmp_dir, writer, data, dstore):
     out_dstore = dstore(tmp_dir)
     writer = get_app(writer, data_store=out_dstore)
     # no unique id possible, so m will be NotCompleted error
-    value = {} if attr == "info" else None
-    setattr(data, attr, value)
+    data.source = None
     with pytest.raises(ValueError, match="cannot name a record"):
         _ = writer(data)
 
