@@ -33,6 +33,7 @@ from scinexus.sqlite_data_store import DataStoreSqlite
 
 import cogent3
 from cogent3.core import moltype as c3_moltype
+from cogent3.core.metadata import MetaData
 from cogent3.core.profile import (
     make_motif_counts_from_tabular,
     make_motif_freqs_from_tabular,
@@ -492,8 +493,9 @@ class load_json(LoaderApp, cite=cite_cogent3):
         identifier, data, completed = load_record_from_json(data)
 
         result = deserialise_object(data)
-        if hasattr(result, "info"):
-            result.info["source"] = result.info.get("source", identifier)
+        if isinstance(getattr(result, "metadata", None), MetaData):
+            if not result.metadata.get("source"):
+                result.metadata["source"] = identifier
         else:
             try:
                 identifier = getattr(result, "source", identifier)
@@ -523,9 +525,10 @@ class load_db(LoaderApp, cite=cite_cogent3):
 
         # do we need to inject identifier attribute?
         result = self.deserialiser(data)
-        if not hasattr(result, "source") and hasattr(result, "info"):
-            src = Path(identifier.data_store.source) / identifier.unique_id
-            result.info["source"] = result.info.get("source", str(src))
+        if isinstance(getattr(result, "metadata", None), MetaData):
+            if not result.metadata.get("source"):
+                src = Path(identifier.data_store.source) / identifier.unique_id
+                result.metadata["source"] = str(src)
         else:
             with contextlib.suppress(AttributeError):
                 identifier = getattr(result, "source", identifier)
