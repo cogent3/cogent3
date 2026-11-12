@@ -1,6 +1,7 @@
 # test_rdb.py
 """Unit test for RDB Parser"""
 
+import warnings
 from unittest import TestCase
 
 import cogent3
@@ -261,6 +262,21 @@ class RdbParserTests(GenericRdbTest):
         assert obs[1] == r2
         assert str(obs[1]) == str(r2)
         assert obs[1].metadata.to_dict() == r2.metadata.to_dict()
+
+    def test_does_not_use_info(self):
+        """RdbParser builds sequences without the deprecated info argument"""
+        for strict in (True, False):
+            with warnings.catch_warnings(record=True) as record:
+                warnings.simplefilter("always")
+                obs = list(RdbParser(RDB_LINES_ONLY_GOOD.split("\n"), strict=strict))
+            info_warnings = [
+                w
+                for w in record
+                if issubclass(w.category, DeprecationWarning)
+                and "info" in str(w.message)
+            ]
+            assert len(obs) == 2
+            assert info_warnings == []
 
 
 RDB_LINES_ONLY_GOOD = """acc:AF027020
