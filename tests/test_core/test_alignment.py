@@ -16,6 +16,7 @@ from scinexus.misc import get_object_provenance
 from cogent3 import (
     get_app,
     load_aligned_seqs,
+    load_seq,
     load_unaligned_seqs,
     open_,
     set_storage_defaults,
@@ -7110,3 +7111,68 @@ def test_rich_dict_legacy_info_key_loads_without_warning(mk_cls):
         got = deserialise_object(rd)
     assert _info_warning_files(record) == []
     assert got.metadata["k"] == 1
+
+
+_loaders = pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+
+
+@_loaders
+def test_loader_metadata_argument(loader, DATA_DIR):
+    metadata = {"k": 1}
+    got = loader(DATA_DIR / "brca1.fasta", moltype="dna", metadata=metadata)
+    assert got.metadata["k"] == 1
+    assert metadata == {"k": 1}
+
+
+@_loaders
+def test_loader_info_argument_warns_at_caller(loader, DATA_DIR):
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        got = loader(DATA_DIR / "brca1.fasta", moltype="dna", info={"k": 1})
+    assert _info_warning_files(record) == [__file__]
+    assert got.metadata["k"] == 1
+
+
+@_loaders
+def test_loader_without_info_does_not_warn(loader, DATA_DIR):
+    with catch_warnings(record=True) as record:
+        simplefilter("always")
+        loader(DATA_DIR / "brca1.fasta", moltype="dna")
+    assert _info_warning_files(record) == []
+
+
+def test_load_unaligned_glob_metadata_argument(DATA_DIR):
+    got = load_unaligned_seqs(DATA_DIR / "brca1.fa*", moltype="dna", metadata={"k": 1})
+    assert got.metadata["k"] == 1
+
+
+def test_load_seq_metadata_argument(DATA_DIR):
+    path = DATA_DIR / "brca1.fasta"
+    metadata = {"k": 1}
+    with catch_warnings(record=True) as record:
+        simplefilter("always")
+        got = load_seq(path, moltype="dna", metadata=metadata)
+    assert _info_warning_files(record) == []
+    assert metadata == {"k": 1}
+    assert got.metadata.to_dict() == {"k": 1, "source": str(path)}
+
+
+def test_load_seq_info_argument_warns_at_caller(DATA_DIR):
+    with pytest.warns(DeprecationWarning, match="info") as record:
+        got = load_seq(DATA_DIR / "brca1.fasta", moltype="dna", info={"k": 1})
+    assert _info_warning_files(record) == [__file__]
+    assert got.metadata["k"] == 1
+
+
+@pytest.mark.parametrize(
+    ("mk_cls", "loader"),
+    [
+        (c3_alignment.make_unaligned_seqs, load_unaligned_seqs),
+        (c3_alignment.make_aligned_seqs, load_aligned_seqs),
+    ],
+)
+def test_loader_json_keeps_recorded_source(mk_cls, loader, tmp_path):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    path = tmp_path / "coll.json"
+    coll.write(path)
+    got = loader(path, moltype="dna")
+    assert got.source == "orig.fa"

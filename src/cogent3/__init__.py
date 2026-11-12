@@ -168,7 +168,7 @@ def _load_files_to_unaligned_seqs(
     moltype: "MolTypeLiteral | None" = None,
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
-    info: dict | None = None,
+    metadata: dict | None = None,
     show_progress: "bool | Progress | dict[str, typing.Any]" = False,  # type: ignore[type-arg]
     **kwargs: typing.Any,
 ) -> "SequenceCollection":
@@ -199,7 +199,7 @@ def _load_files_to_unaligned_seqs(
         label_to_name=label_to_name,
         moltype=moltype,
         source=path,
-        info=info,
+        metadata=metadata,
     )
 
 
@@ -229,6 +229,7 @@ def _load_genbank_seq(
     return name, seq, db
 
 
+@_info_arg_renamed
 def load_seq(
     filename: os.PathLike | str,
     annotation_path: os.PathLike | str | None = None,
@@ -236,7 +237,7 @@ def load_seq(
     moltype: "MolTypeLiteral" = "text",
     label_to_name: Callable | None = None,
     parser_kw: dict | None = None,
-    info: dict | None = None,
+    metadata: dict | None = None,
     annotation_offset: int = 0,
     **kwargs: typing.Any,
 ) -> "Sequence":
@@ -257,8 +258,9 @@ def load_seq(
         function for converting original name into another name.
     parser_kw
         optional arguments for the parser
-    info
-        a dict from which to make an info object
+    metadata
+        values for the sequence's metadata, which are copied. Ignored for
+        json files
     annotation_offset
         integer indicating start position relative to annotations
     **kwargs
@@ -286,8 +288,7 @@ def load_seq(
     if not is_url(filename):
         filename = pathlib.Path(filename).expanduser()
 
-    info = info or {}
-    info["source"] = str(filename)
+    metadata = {**(metadata or {}), "source": str(filename)}
     file_suffix, _ = get_format_suffixes(filename)
     parser_kw = parser_kw or {}
     if file_suffix == "json":
@@ -351,26 +352,25 @@ def load_seq(
     if annotation_path is not None:
         db = load_annotations(path=annotation_path, seqids=[name])
 
-    result = make_seq(
+    return make_seq(
         seq,
         name,
         moltype=moltype,
         annotation_offset=annotation_offset,
         annotation_db=db,
+        metadata=metadata,
         **kwargs,
     )
-    result.info.update(info)
-
-    return result
 
 
+@_info_arg_renamed
 def load_unaligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
     moltype: "MolTypeLiteral" = "text",
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
-    info: dict | None = None,
+    metadata: dict | None = None,
     **kwargs: typing.Any,
 ) -> "SequenceCollection":
     """
@@ -390,8 +390,9 @@ def load_unaligned_seqs(
         function for converting original name into another name.
     parser_kw
         optional arguments for the parser
-    info
-        a dict from which to make an info object
+    metadata
+        values for the collection's metadata, which are copied. Ignored for
+        json files
     **kwargs
         other keyword arguments passed to SequenceCollection, or show_progress.
         The latter induces a progress bar for number of files processed when
@@ -423,7 +424,7 @@ def load_unaligned_seqs(
             moltype=moltype,
             label_to_name=label_to_name,
             parser_kw=parser_kw,
-            info=info,
+            metadata=metadata,
             **kwargs,
         )
 
@@ -458,18 +459,19 @@ def load_unaligned_seqs(
         label_to_name=label_to_name,
         moltype=moltype,
         source=filename,
-        info=info,
+        metadata=metadata,
         **kwargs,
     )
 
 
+@_info_arg_renamed
 def load_aligned_seqs(
     filename: str | pathlib.Path,
     format_name: str | None = None,
     moltype: "MolTypeLiteral" = "text",
     label_to_name: typing.Callable[[str], str] | None = None,
     parser_kw: dict | None = None,
-    info: dict | None = None,
+    metadata: dict | None = None,
     **kwargs: typing.Any,
 ) -> "Alignment":
     """
@@ -487,6 +489,9 @@ def load_aligned_seqs(
         function for converting original name into another name.
     parser_kw
         optional arguments for the parser
+    metadata
+        values for the collection's metadata, which are copied. Ignored for
+        json files
     kwargs
         passed to make_aligned_seqs
 
@@ -536,6 +541,6 @@ def load_aligned_seqs(
         label_to_name=label_to_name,
         moltype=moltype,
         source=filename,
-        info=info,
+        metadata=metadata,
         **kwargs,
     )
