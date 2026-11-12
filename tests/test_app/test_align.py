@@ -1,3 +1,5 @@
+import warnings
+
 import numpy
 import pytest
 from numpy import log2
@@ -9,6 +11,7 @@ from cogent3 import (
     get_app,
     get_moltype,
     load_aligned_seqs,
+    load_unaligned_seqs,
     make_aligned_seqs,
     make_tree,
     make_unaligned_seqs,
@@ -947,3 +950,92 @@ def test_align_with_gap_merging_case():
     aln = aligner.main(seqs)
     # does not fail
     assert len(aln)
+
+
+def _info_deprecations(record):
+    return [
+        w
+        for w in record
+        if issubclass(w.category, DeprecationWarning) and "info" in str(w.message)
+    ]
+
+
+_two_seqs = ["Human", "Bandicoot"]
+
+_aligners = pytest.mark.parametrize(
+    ("app", "names"),
+    [
+        (align_app.progressive_align(model="F81"), None),
+        (align_app.smith_waterman(), _two_seqs),
+        (align_app.align_to_ref(), None),
+    ],
+    ids=["progressive_align", "smith_waterman", "align_to_ref"],
+)
+
+
+def _user_seqs(names):
+    seqs = make_unaligned_seqs(_seqs, moltype=DNA, metadata={"user": 1})
+    return seqs.take_seqs(names) if names else seqs
+
+
+@_aligners
+def test_aligners_do_not_use_info(app, names):
+    seqs = _user_seqs(names)
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        got = app(seqs)
+    assert not isinstance(got, NotCompleted)
+    assert _info_deprecations(record) == []
+
+
+@_aligners
+def test_aligners_carry_input_metadata(app, names):
+    got = app(_user_seqs(names))
+    assert got.metadata["user"] == 1
+    assert "align_params" in got.metadata
+
+
+@_aligners
+def test_aligners_keep_input_source(app, names, tmp_path):
+    path = tmp_path / "seqs.fasta"
+    make_unaligned_seqs(_seqs, moltype=DNA).write(path)
+    seqs = load_unaligned_seqs(path, moltype="dna")
+    seqs = seqs.take_seqs(names) if names else seqs
+    got = app(seqs)
+    assert got.source == seqs.source == str(path)
+
+
+def test_cogent3_score_does_not_use_info(aln):
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        score = get_app("cogent3_score")(aln)
+    assert score < -100
+    assert _info_deprecations(record) == []
+
+
+def test_progressive_align_records_own_params_on_degapped_input(seqs):
+    hky = align_app.progressive_align(model="HKY85")(seqs)
+    got = align_app.progressive_align(model="F81")(hky.degap())
+    assert got.metadata["align_params"]["model"] == "F81"
+
+
+_PWISE_DATA = {
+    "Ref": "CAGGAGAACAGAAACCCATTACTCACT",
+    "Qu1": "CAGGAGAACAG--CCCGTTACTCACT-",
+}
+
+
+def test_pairwise_to_multiple_metadata():
+    ref, pwise = make_pairwise(_PWISE_DATA, "Ref")
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        got = pairwise_to_multiple(pwise, ref, DNA, metadata={"k": 1})
+    assert _info_deprecations(record) == []
+    assert got.metadata["k"] == 1
+
+
+def test_pairwise_to_multiple_info_argument_warns():
+    ref, pwise = make_pairwise(_PWISE_DATA, "Ref")
+    with pytest.warns(DeprecationWarning, match="info"):
+        got = pairwise_to_multiple(pwise, ref, DNA, info={"k": 1})
+    assert got.metadata["k"] == 1

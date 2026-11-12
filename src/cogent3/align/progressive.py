@@ -61,7 +61,7 @@ def tree_align(
     moltypes, and distances are estimated using the provided substitution model
     from pairwise alignments of the sequences.
 
-    Parameters and tree are added to ``<align>.info["align_params"]``.
+    Parameters and tree are added to ``<align>.metadata["align_params"]``.
     """
 
     _exclude_params = ["mprobs", "rate", "bin_switch"]
@@ -210,5 +210,5 @@ def _progressive_hmm(indel_length, indel_rate, model, param_vals, seqs, tree):
             "lnL": lnL,
         },
     )
-    align.info["align_params"] = param_vals
+    align.metadata["align_params"] = param_vals
     return align
