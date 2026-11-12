@@ -857,7 +857,12 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         return fasta.formatted(self, block_size=block_size)
 
     def write(
-        self, filename: str, format_name: str | None = None, **kwargs: Any
+        self,
+        filename: str,
+        format_name: str | None = None,
+        *,
+        warn_unsaved_metadata: bool = False,
+        **kwargs: Any,
     ) -> None:
         """Write the sequences to a file, preserving order of sequences.
 
@@ -867,6 +872,9 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             name of the sequence file
         format_name
             format of the sequence file
+        warn_unsaved_metadata
+            if True, emit a UserWarning when the format cannot save the
+            collection's metadata
 
         Notes
         -----
@@ -892,6 +900,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             file_suffix=suffix,
             unaligned_seqs=type(self) is SequenceCollection,
         )
+        if warn_unsaved_metadata:
+            from cogent3.format.sequence import warn_if_metadata_unsaved
+
+            warn_if_metadata_unsaved(self.metadata_to_save(), writer, stacklevel=3)
         _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
     def dotplot(

@@ -39,6 +39,7 @@ from cogent3.core.profile import (
     make_pssm_from_tabular,
 )
 from cogent3.evolve.fast_distance import DistanceMatrix
+from cogent3.format.sequence import warn_if_metadata_unsaved
 
 from ._citations import cite_cogent3
 
@@ -592,6 +593,7 @@ class write_seqs(WriterApp, cite=cite_cogent3):
         data_store: DataStoreABC,
         id_from_source: typing.Callable[[object], str | None] = get_unique_id,
         format_name: str = "fasta",
+        warn_unsaved_metadata: bool = False,
         **kwargs,
     ) -> None:
         """
@@ -605,6 +607,9 @@ class write_seqs(WriterApp, cite=cite_cogent3):
             filename + compression suffixes.
         format_name
             sequence format
+        warn_unsaved_metadata
+            if True, emit a UserWarning when the format cannot save the
+            collection's metadata
 
         Examples
         --------
@@ -618,6 +623,7 @@ class write_seqs(WriterApp, cite=cite_cogent3):
             format_name=format_name.lower(),
         )
         self._id_from_source = id_from_source
+        self._warn_unsaved_metadata = warn_unsaved_metadata
 
     def main(
         self,
@@ -637,6 +643,10 @@ class write_seqs(WriterApp, cite=cite_cogent3):
                 data=data.to_json(),
             )
 
+        if self._warn_unsaved_metadata:
+            warn_if_metadata_unsaved(
+                data.metadata_to_save(), self._formatter, stacklevel=2
+            )
         data = self._formatter.formatted(data)
         return self.data_store.write(unique_id=identifier, data=data)
 

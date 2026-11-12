@@ -34,6 +34,7 @@ from cogent3.core.info import Info
 from cogent3.core.location import FeatureMap, LostSpan, Span
 from cogent3.core.metadata import _NO_METADATA, MetaData
 from cogent3.core.slice_record import SliceRecord
+from cogent3.format.sequence import FastaWriter
 
 try:
     import cogent3_h5seqs
@@ -7667,3 +7668,89 @@ def test_same_storage_result_not_connected():
     got = coll.to_moltype("dna")
     assert got._metadata is None
     assert got.metadata_to_save() == _STORED
+
+
+class _MetadataSavingWriter(FastaWriter):
+    @property
+    def saves_metadata(self) -> bool:
+        return True
+
+
+class _WriterWithoutSavesMetadata:
+    name = "plain"
+
+    def write(self, *, path, seqcoll, **kwargs):
+        return path
+
+
+def _unsaved_metadata_warnings(record):
+    return [w for w in record if "metadata" in str(w.message)]
+
+
+@_loaders
+def test_write_warn_unsaved_metadata(loader, DATA_DIR, tmp_path):
+    coll = loader(DATA_DIR / "brca1.fasta", moltype="dna")
+    with catch_warnings(record=True) as record:
+        simplefilter("always")
+        coll.write(tmp_path / "out.fasta", warn_unsaved_metadata=True)
+    got = _unsaved_metadata_warnings(record)
+    assert len(got) == 1
+    assert got[0].category is UserWarning
+    assert "fasta" in str(got[0].message)
+    assert "source" in str(got[0].message)
+    assert got[0].filename == __file__
+
+
+@_loaders
+def test_write_unsaved_metadata_silent_by_default(loader, DATA_DIR, tmp_path):
+    coll = loader(DATA_DIR / "brca1.fasta", moltype="dna")
+    with catch_warnings():
+        simplefilter("error")
+        coll.write(tmp_path / "out.fasta")
+
+
+@_loaders
+def test_write_json_keeps_metadata_silently(loader, DATA_DIR, tmp_path):
+    coll = loader(DATA_DIR / "brca1.fasta", moltype="dna")
+    with catch_warnings():
+        simplefilter("error")
+        coll.write(tmp_path / "out.json", warn_unsaved_metadata=True)
+
+
+@_makers
+def test_write_empty_metadata_silent(mk_cls, tmp_path):
+    coll = mk_cls(_CODON_SEQS, moltype="dna")
+    assert coll.metadata_to_save() == {}
+    with catch_warnings():
+        simplefilter("error")
+        coll.write(tmp_path / "out.fasta", warn_unsaved_metadata=True)
+
+
+@_makers
+def test_write_metadata_saving_writer_silent(mk_cls, tmp_path, monkeypatch):
+    writer = _MetadataSavingWriter()
+    monkeypatch.setattr(
+        "cogent3._plugin.get_seq_format_writer_plugin", lambda **kwargs: writer
+    )
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    with catch_warnings():
+        simplefilter("error")
+        coll.write(tmp_path / "out.fasta", warn_unsaved_metadata=True)
+
+
+@_makers
+def test_write_writer_without_saves_metadata_warns(mk_cls, tmp_path, monkeypatch):
+    writer = _WriterWithoutSavesMetadata()
+    monkeypatch.setattr(
+        "cogent3._plugin.get_seq_format_writer_plugin", lambda **kwargs: writer
+    )
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    with pytest.warns(UserWarning, match="plain"):
+        coll.write(tmp_path / "out.plain", warn_unsaved_metadata=True)
+
+
+@_makers
+def test_write_warn_unsaved_metadata_is_keyword_only(mk_cls, tmp_path):
+    coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
+    with pytest.raises(TypeError):
+        coll.write(tmp_path / "out.fasta", "fasta", True)

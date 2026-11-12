@@ -442,7 +442,12 @@ class Sequence(AnnotatableMixin):
         return json.dumps(self.to_rich_dict())
 
     def write(
-        self, filename: str, format_name: str | None = None, **kwargs: Any
+        self,
+        filename: str,
+        format_name: str | None = None,
+        *,
+        warn_unsaved_metadata: bool = False,
+        **kwargs: Any,
     ) -> None:
         """Write the sequence to a file.
 
@@ -452,6 +457,9 @@ class Sequence(AnnotatableMixin):
             name of the sequence file
         format_name
             format of the sequence file (e.g., 'fasta', 'json')
+        warn_unsaved_metadata
+            if True, emit a UserWarning when the format cannot save the
+            sequence's metadata
         **kwargs
             additional arguments passed to the format writer
 
@@ -474,6 +482,10 @@ class Sequence(AnnotatableMixin):
             format_name=format_name,
             file_suffix=suffix,
         )
+        if warn_unsaved_metadata:
+            from cogent3.format.sequence import warn_if_metadata_unsaved
+
+            warn_if_metadata_unsaved(self.metadata.to_dict(), writer, stacklevel=3)
         _ = writer.write(seqcoll=self, path=filename, **kwargs)
 
     def count(self, item: str) -> int:

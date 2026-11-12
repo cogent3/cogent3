@@ -5,6 +5,7 @@ import pathlib
 import pickle
 import shutil
 import tempfile
+import warnings
 
 import numpy
 import pytest
@@ -103,6 +104,32 @@ def test_write_seqs(fasta_dir, tmp_dir):
     )
     writer = io_app.write_seqs(out_data_store, format_name="fasta")
     wrote = writer(seqs[0], identifier=datamember.unique_id)
+    assert isinstance(wrote, DataMember)
+
+
+def test_write_seqs_warn_unsaved_metadata(DATA_DIR, tmp_dir):
+    seqs = cogent3.load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
+    out_dstore = DataStoreDirectory(tmp_dir / "out", mode=Mode.w, suffix="fasta")
+    writer = io_app.write_seqs(
+        out_dstore, format_name="fasta", warn_unsaved_metadata=True
+    )
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        wrote = writer(seqs)
+    assert isinstance(wrote, DataMember)
+    got = [w for w in record if "metadata" in str(w.message)]
+    assert len(got) == 1
+    assert got[0].category is UserWarning
+    assert "source" in str(got[0].message)
+
+
+def test_write_seqs_unsaved_metadata_silent_by_default(DATA_DIR, tmp_dir):
+    seqs = cogent3.load_aligned_seqs(DATA_DIR / "brca1.fasta", moltype="dna")
+    out_dstore = DataStoreDirectory(tmp_dir / "out", mode=Mode.w, suffix="fasta")
+    writer = io_app.write_seqs(out_dstore, format_name="fasta")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        wrote = writer(seqs)
     assert isinstance(wrote, DataMember)
 
 

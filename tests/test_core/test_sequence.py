@@ -3319,6 +3319,40 @@ def test_sequence_write_json(tmp_path):
     assert got == seq.to_rich_dict()
 
 
+def test_sequence_write_warn_unsaved_metadata(tmp_path):
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": 1})
+    with warnings.catch_warnings(record=True) as record:
+        warnings.simplefilter("always")
+        seq.write(tmp_path / "seq.fasta", warn_unsaved_metadata=True)
+    got = [w for w in record if "metadata" in str(w.message)]
+    assert len(got) == 1
+    assert got[0].category is UserWarning
+    assert "'k'" in str(got[0].message)
+    assert got[0].filename == __file__
+
+
+@pytest.mark.parametrize(
+    ("filename", "kwargs"),
+    [
+        ("seq.fasta", {}),
+        ("seq.json", {"warn_unsaved_metadata": True}),
+    ],
+    ids=["default", "json"],
+)
+def test_sequence_write_unsaved_metadata_silent(tmp_path, filename, kwargs):
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": 1})
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        seq.write(tmp_path / filename, **kwargs)
+
+
+def test_sequence_write_empty_metadata_silent(tmp_path):
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna")
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        seq.write(tmp_path / "seq.fasta", warn_unsaved_metadata=True)
+
+
 @pytest.mark.parametrize("transform", [str, pathlib.Path])
 def test_sequence_write_home_dir(HOME_TMP_DIR, transform):
     # write to a "~/" home directory style path
