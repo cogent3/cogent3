@@ -175,6 +175,23 @@ def test_load_aligned(DATA_DIR, suffix):
     assert all(r.__class__.__name__.endswith("Alignment") for r in results)
 
 
+@pytest.mark.parametrize("format_name", ["c3h5a", "c3h5s"])
+def test_load_aligned_h5seqs(tmp_path, format_name):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "AC-GT", "b": "ACGGT"}
+    path = tmp_path / f"demo.{format_name}"
+    cogent3.make_aligned_seqs(data, moltype="dna").write(path)
+    loader = get_app("load_aligned", moltype="dna", format_name=format_name)
+    got = loader(str(path))
+    assert got.to_dict() == data
+
+
+def test_load_aligned_rejects_unaligned_only_format():
+    pytest.importorskip("cogent3_h5seqs")
+    with pytest.raises(ValueError, match="does not support parsing aligned"):
+        get_app("load_aligned", format_name="c3h5u")
+
+
 def test_load_unaligned(DATA_DIR):
     """load_unaligned returns degapped sequence collections"""
     fasta_paths = DataStoreDirectory(DATA_DIR, suffix=".fasta", limit=2)

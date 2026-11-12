@@ -327,6 +327,7 @@ class load_aligned(LoaderApp, cite=cite_cogent3):
         self.moltype = cogent3.get_moltype(moltype)
         self._parser = cogent3._plugin.get_seq_format_parser_plugin(
             format_name=format_name.lower(),
+            unaligned_seqs=False,
         )
 
     T = SerialisableType | AlignedSeqsType
