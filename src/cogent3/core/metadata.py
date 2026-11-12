@@ -91,10 +91,25 @@ def _copy_value(
 ) -> Any:  # noqa: ANN401
     """Return a copy of value with every mapping a plain dict.
 
-    Lists and tuples are copied, a MetaData becomes its to_dict(). Other
-    objects are shared, or deep-copied when copy_leaves is True. Raises
-    TypeError naming the path to a mapping key that is not a str when
-    check_keys is True, and ValueError for a value that contains itself.
+    Lists and tuples are copied, and a ``MetaData`` becomes its ``to_dict()``.
+
+    Parameters
+    ----------
+    value
+        the value to copy
+    where
+        the path to value, used in error messages
+    check_keys
+        reject a mapping key that is not a str
+    copy_leaves
+        deep-copy any other object, instead of sharing it
+
+    Raises
+    ------
+    TypeError
+        if check_keys is True and a mapping key is not a str, naming its path
+    ValueError
+        if value contains itself
     """
     root: list[Any] = [None]
     tuples: list[tuple[list[Any], Any, Any]] = []
