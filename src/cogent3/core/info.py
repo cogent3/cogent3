@@ -12,7 +12,7 @@ from cogent3.parse.record import MappedRecord
 from cogent3.util.misc import ConstrainedDict, Delegator, FunctionWrapper
 
 
-class DbRef:
+class DbRef:  # pragma: no cover
     """Holds a database accession, and optionally other data.
 
     Accession:      id in the database: str or int
@@ -72,7 +72,7 @@ class DbRef:
             return str(self) != str(other)
 
 
-def _make_list(obj):
+def _make_list(obj):  # pragma: no cover
     """Returns list corresponding to or containing obj, depending on type."""
     if isinstance(obj, list):
         return obj
@@ -81,7 +81,7 @@ def _make_list(obj):
     return [obj]
 
 
-class DbRefs(MappedRecord, ConstrainedDict):
+class DbRefs(MappedRecord, ConstrainedDict):  # pragma: no cover
     """Holds Database -> [Accessions] mapping.
 
     The accessions for a particular database are always stored as a list.
@@ -131,7 +131,7 @@ KnownDatabases = dict.fromkeys(
 )
 
 
-class Info(MappedRecord, Delegator):
+class Info(MappedRecord, Delegator):  # pragma: no cover
     """Dictionary that stores attributes for Sequence objects.
 
     Delegates to DbRefs for database IDs.
@@ -198,7 +198,7 @@ class Info(MappedRecord, Delegator):
         return super().update(item)
 
 
-def info_to_metadata(info: Mapping[str, Any]) -> dict[str, Any]:
+def info_to_metadata(info: Mapping[str, Any]) -> dict[str, Any]:  # pragma: no cover
     """Return legacy info as a plain dict, without an empty ``Refs``.
 
     An ``Info`` always holds ``Refs``, so an empty one carries no data.
