@@ -43,11 +43,11 @@ aligned
 
 ## Alignment settings provenance
 
-The parameters used to construct the alignment, including the guide tree and substitution model, are record in the alignment `info` attribute.
+The parameters used to construct the alignment, including the guide tree and substitution model, are recorded under `align_params` in the alignment's `metadata`, alongside its `source`.
 
 ```{python}
 
-aligned.info
+aligned.metadata
 ```
 
 The file from which the alignment was derived (the provenance) is on the `.source` attribute.
