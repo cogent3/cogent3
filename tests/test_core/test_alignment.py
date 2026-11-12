@@ -7796,9 +7796,13 @@ def test_write_unsaved_metadata_silent_by_default(loader, DATA_DIR, tmp_path):
 @_loaders
 def test_write_json_keeps_metadata_silently(loader, DATA_DIR, tmp_path):
     coll = loader(DATA_DIR / "brca1.fasta", moltype="dna")
+    coll.metadata["k"] = {"n": 1}
+    out = tmp_path / "out.json"
     with catch_warnings():
         simplefilter("error")
-        coll.write(tmp_path / "out.json", warn_unsaved_metadata=True)
+        coll.write(out, warn_unsaved_metadata=True)
+    written = json.loads(out.read_text())["init_args"]["metadata"]
+    assert written == {"source": str(DATA_DIR / "brca1.fasta"), "k": {"n": 1}}
 
 
 @_makers
