@@ -7494,3 +7494,176 @@ def test_nothing_to_do_keeps_stored_metadata(unaligned):
     assert got.metadata["status"] == "draft"
     got.metadata["status"] = "final"
     assert coll.metadata["status"] == "draft"
+
+
+class _InPlaceMetadataSeqsData(_MetadataSeqsData):
+    """grows itself in add_seqs and returns itself, as h5seqs stores do"""
+
+    __slots__ = ()
+
+    def add_seqs(self, seqs, **kwargs):
+        grown = super().add_seqs(seqs, **kwargs)
+        for name in ("_data", "_offset", "_reversed"):
+            setattr(self, name, getattr(grown, name))
+        return self
+
+
+_STORED = {"status": "draft", "source": "x.fa"}
+_STOP_SEQS = {"a": "ATGAAATAA", "b": "ATGCCCTAG"}
+
+
+def _make_stop_coll(unaligned, metadata=_STORED):
+    klass = _MetadataSeqsData if unaligned else _MetadataAlignedSeqsData
+    store = klass.from_seqs(
+        data=_STOP_SEQS,
+        alphabet=c3_moltype.get_moltype("dna").most_degen_alphabet(),
+    )
+    store.set_metadata(metadata)
+    maker = (
+        c3_alignment.make_unaligned_seqs
+        if unaligned
+        else c3_alignment.make_aligned_seqs
+    )
+    return maker(store, moltype="dna")
+
+
+def _scaled_gaps(c, **kw):
+    return c.get_translation().apply_scaled_gaps(c.trim_stop_codons().degap(), **kw)
+
+
+_BOTH_KINDS = {
+    "add_seqs": lambda c, **kw: c.add_seqs({"c": "ATGTTTTAA"}, **kw),
+    "to_moltype": lambda c, **kw: c.to_moltype("rna", **kw),
+    "to_rna": lambda c, **kw: c.to_rna(**kw),
+    "to_dna": lambda c, **kw: c.to_dna(**kw),
+    "pad_seqs": lambda c, **kw: c.pad_seqs(12, **kw),
+    "degap": lambda c, **kw: c.degap(**kw),
+    "get_translation": lambda c, **kw: c.get_translation(**kw),
+    "trim_stop_codons": lambda c, **kw: c.trim_stop_codons(**kw),
+}
+_ALIGNED_ONLY = {
+    "take_positions": lambda c, **kw: c.take_positions([0, 1, 2], **kw),
+    "take_positions_if": lambda c, **kw: c.take_positions_if(lambda col: True, **kw),
+    "filtered": lambda c, **kw: c.filtered(lambda seqs: True, **kw),
+    "sample": lambda c, **kw: c.sample(n=3, **kw),
+    "get_degapped_relative_to": lambda c, **kw: c.get_degapped_relative_to("a", **kw),
+    "gapped_by_map": lambda c, **kw: c.gapped_by_map(
+        FeatureMap.from_locations(locations=[(0, 3)], parent_length=9), **kw
+    ),
+    "no_degenerates": lambda c, **kw: c.no_degenerates(**kw),
+    "omit_gap_pos": lambda c, **kw: c.omit_gap_pos(**kw),
+    "apply_scaled_gaps": _scaled_gaps,
+    "deepcopy": lambda c, **kw: c.deepcopy(**kw),
+    "with_masked_annotations": lambda c, **kw: c.with_masked_annotations(
+        ["gene"], **kw
+    ),
+}
+_REPLACING = [(True, name) for name in _BOTH_KINDS] + [
+    (False, name) for name in _BOTH_KINDS | _ALIGNED_ONLY
+]
+
+
+def _replace(name, coll, **kwargs):
+    method = _BOTH_KINDS.get(name) or _ALIGNED_ONLY[name]
+    return method(coll, **kwargs)
+
+
+@pytest.mark.parametrize(("unaligned", "name"), _REPLACING)
+def test_storage_replacing_keeps_stored_metadata(unaligned, name):
+    coll = _make_stop_coll(unaligned)
+    got = _replace(name, coll)
+    assert got.metadata.to_dict() == _STORED
+    assert coll._metadata is None
+
+
+@pytest.mark.parametrize(("unaligned", "name"), _REPLACING)
+def test_storage_replacing_without_metadata(unaligned, name):
+    coll = _make_stop_coll(unaligned)
+    got = _replace(name, coll, with_metadata=False)
+    assert got.metadata.to_dict() == {}
+    assert got.source is None
+    assert coll.metadata.to_dict() == _STORED
+
+
+@pytest.mark.parametrize(("unaligned", "name"), _REPLACING)
+def test_storage_replacing_carries_local_changes(unaligned, name):
+    coll = _make_stop_coll(unaligned)
+    coll.metadata["k"] = 1
+    del coll.metadata["status"]
+    got = _replace(name, coll)
+    assert got.metadata.to_dict() == {"source": "x.fa", "k": 1}
+    got.metadata["k"] = 2
+    got.metadata["status"] = "final"
+    assert coll.metadata.to_dict() == {"source": "x.fa", "k": 1}
+    dropped = _replace(name, coll, with_metadata=False)
+    assert dropped.metadata.to_dict() == {}
+
+
+@pytest.mark.parametrize(("unaligned", "name"), _REPLACING)
+def test_storage_replacing_child_pickles(unaligned, name):
+    got = _replace(name, _make_stop_coll(unaligned))
+    assert pickle.loads(pickle.dumps(got)).metadata.to_dict() == _STORED
+
+
+def test_storage_replacing_chained(unaligned):
+    coll = _make_stop_coll(unaligned)
+    got = coll.trim_stop_codons().to_rna().get_translation()
+    assert got.metadata.to_dict() == _STORED
+
+
+def test_storage_replacing_chained_aligned():
+    aln = _make_stop_coll(False)
+    got = aln.omit_gap_pos().take_positions([0, 1, 2]).deepcopy()
+    assert got.metadata.to_dict() == _STORED
+
+
+def test_nothing_to_trim_without_metadata(unaligned):
+    coll = _make_stored_metadata_coll(unaligned, _STORED)
+    got = coll.trim_stop_codons(with_metadata=False)
+    assert got is not coll
+    assert got.metadata.to_dict() == {}
+    assert coll.metadata.to_dict() == _STORED
+
+
+def test_feature_map_slice_keeps_metadata():
+    aln = _make_stop_coll(False)
+    got = aln[FeatureMap.from_locations(locations=[(0, 3)], parent_length=9)]
+    assert got.metadata.to_dict() == _STORED
+
+
+@pytest.mark.parametrize("with_metadata", [True, False])
+def test_add_seqs_in_place_storage(with_metadata):
+    store = _InPlaceMetadataSeqsData.from_seqs(
+        data=_STOP_SEQS,
+        alphabet=c3_moltype.get_moltype("dna").most_degen_alphabet(),
+    )
+    store.set_metadata(_STORED)
+    coll = c3_alignment.make_unaligned_seqs(store, moltype="dna")
+    got = coll.add_seqs({"c": "ATGTTTTAA"}, with_metadata=with_metadata)
+    assert got.storage is coll.storage
+    assert got.names == ("a", "b", "c")
+    expect = _STORED if with_metadata else {}
+    assert got.metadata.to_dict() == expect
+    assert coll.metadata.to_dict() == _STORED
+
+
+class _FreshMappingSeqsData(_MetadataSeqsData):
+    """returns a new mapping on every metadata access"""
+
+    __slots__ = ()
+
+    @property
+    def metadata(self):
+        return types.MappingProxyType(dict(getattr(self, "_md", {})))
+
+
+def test_same_storage_result_not_connected():
+    store = _FreshMappingSeqsData.from_seqs(
+        data=_STOP_SEQS,
+        alphabet=c3_moltype.get_moltype("dna").most_degen_alphabet(),
+    )
+    store.set_metadata(_STORED)
+    coll = c3_alignment.make_unaligned_seqs(store, moltype="dna")
+    got = coll.to_moltype("dna")
+    assert got._metadata is None
+    assert got.metadata_to_save() == _STORED
