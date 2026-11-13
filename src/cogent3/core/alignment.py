@@ -101,6 +101,12 @@ def _complement_if_nucleic(
     return moltype.complement(seq) if moltype.is_nucleic else seq
 
 
+def _require_nucleic(moltype: c3_moltype.MolType[Any]) -> None:
+    if not moltype.is_nucleic:
+        msg = f"moltype must be a DNA/RNA, not {moltype.name!r}"
+        raise c3_moltype.MolTypeError(msg)
+
+
 class Aligned(AnnotatableMixin):
     """A single sequence in an alignment.
 
@@ -2348,7 +2354,10 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
     def rc(self) -> Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for reverse_complement.
+
+        Raises MolTypeError if the moltype is not DNA or RNA.
         """
+        _require_nucleic(self.moltype)
         init_kwargs = self._get_init_kwargs()
         init_kwargs["is_reversed"] = not self._is_reversed
         return self.__class__(**init_kwargs)
@@ -3475,7 +3484,10 @@ class Alignment(CollectionBase[Aligned]):
     def rc(self) -> Self:
         """Returns the reverse complement of all sequences in the alignment.
         A synonym for reverse_complement.
+
+        Raises MolTypeError if the moltype is not DNA or RNA.
         """
+        _require_nucleic(self.moltype)
         init_kwargs = self._get_init_kwargs()
         init_kwargs["slice_record"] = self._slice_record[::-1]
         return self.__class__(**init_kwargs)
