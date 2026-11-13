@@ -425,6 +425,7 @@ class Sequence(AnnotatableMixin):
     @classmethod
     def from_rich_dict(cls, data: dict[str, Any]) -> Sequence:
         """create a Sequence object from a rich dict"""
+        data = dict(data)
         if isinstance(data["seq"], dict):
             # this is a rich dict from the old type sequences
             data["seq"] = data.pop("seq")["init_args"]["seq"]

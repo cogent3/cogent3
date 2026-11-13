@@ -3565,6 +3565,49 @@ def test_from_rich_dict_prefers_metadata_to_info():
     assert got.metadata.to_dict() == {"m": 2}
 
 
+def _seq_rich_dict():
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": [1]})
+    return seq.to_rich_dict()
+
+
+def _annotated_seq_rich_dict():
+    seq = cogent3.make_seq("ACGTACGT", name="s", moltype="dna")
+    seq.add_feature(biotype="exon", name="e1", spans=[(0, 4)])
+    return seq.to_rich_dict(exclude_annotations=False)
+
+
+def _legacy_info_seq_rich_dict():
+    data = _seq_rich_dict()
+    data["info"] = data.pop("metadata")
+    return data
+
+
+def _old_type_seq_rich_dict():
+    data = _seq_rich_dict()
+    data["seq"] = {"init_args": {"seq": data["seq"]}}
+    return data
+
+
+@pytest.mark.parametrize(
+    "make_data",
+    [
+        _seq_rich_dict,
+        _annotated_seq_rich_dict,
+        _legacy_info_seq_rich_dict,
+        _old_type_seq_rich_dict,
+    ],
+)
+def test_from_rich_dict_leaves_input_unchanged(make_data):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
+    first.metadata["added"] = 1
+    assert data == expected
+
+
 def test_pickle_keeps_metadata():
     seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"p": {"m": 1}})
     got = pickle.loads(pickle.dumps(seq))  # noqa: S301
