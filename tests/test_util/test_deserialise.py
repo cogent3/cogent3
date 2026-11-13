@@ -464,6 +464,73 @@ def test_deserialise_tabular_leaves_input_unchanged(make_data):
     assert second.to_rich_dict() == first.to_rich_dict()
 
 
+def _lf():
+    aln = make_aligned_seqs(
+        {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        },
+        moltype="dna",
+    )
+    lf = get_model("HKY85").make_likelihood_function(make_tree(tip_names=aln.names))
+    lf.set_alignment(aln)
+    lf.set_param_rule("kappa", edge="Human", init=2)
+    return lf
+
+
+def _codon_alphabet_rich_dict():
+    return get_code(1).get_alphabet().to_rich_dict()
+
+
+def _named_model_rich_dict():
+    return get_model("HKY85").to_rich_dict()
+
+
+def _model_kw_name_rich_dict():
+    data = get_model("HKY85").to_rich_dict()
+    data["kw"] = {"name": "HKY85"}
+    return data
+
+
+def _codon_model_rich_dict():
+    return get_model("CNFGTR").to_rich_dict()
+
+
+def _lf_rich_dict():
+    return _lf().to_rich_dict()
+
+
+def _model_result_rich_dict():
+    result = model_result(name="test", source="blah")
+    result[1] = _lf()
+    return result.to_rich_dict()
+
+
+@pytest.mark.parametrize(
+    "make_data",
+    [
+        _codon_alphabet_rich_dict,
+        _named_model_rich_dict,
+        _model_kw_name_rich_dict,
+        _codon_model_rich_dict,
+        _lf_rich_dict,
+        _model_result_rich_dict,
+    ],
+)
+def test_deserialise_model_types_leave_input_unchanged(make_data):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    if hasattr(first, "deserialised_values"):
+        first.deserialised_values()
+    assert data == expected
+    second = deserialise_object(data)
+    if hasattr(second, "deserialised_values"):
+        second.deserialised_values()
+    assert second.to_rich_dict() == first.to_rich_dict()
+
+
 def test_deserialised_table_does_not_share_column_templates():
     data = _table_rich_dict()
     expected = copy.deepcopy(data)

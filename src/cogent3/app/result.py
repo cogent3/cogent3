@@ -656,6 +656,7 @@ class tabular_result(generic_result):
 @register_deserialiser("cogent3.app.result")
 def deserialise_result(data):
     """returns a result object"""
+    data = dict(data)
     data.pop("version", None)
     klass = get_class(data.pop("type"))
     kwargs = data.pop("result_construction")

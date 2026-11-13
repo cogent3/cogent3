@@ -1768,6 +1768,7 @@ class SenseCodonAlphabet(
     @classmethod
     def from_rich_dict(cls, data: dict[str, Any]) -> SenseCodonAlphabet:
         """returns an instance from a serialised dictionary"""
+        data = dict(data)
         data["monomers"] = deserialise_char_alphabet(data["monomers"])
         data.pop("type", None)
         data.pop("version", None)
