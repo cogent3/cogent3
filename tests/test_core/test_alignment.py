@@ -6206,6 +6206,7 @@ def test_load_with_pathlib(mk_cls, home_seqs):
     assert "Human" in got.names
 
 
+@pytest.mark.internet
 def test_load_from_url():
     import cogent3
 
