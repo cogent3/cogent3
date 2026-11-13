@@ -1539,6 +1539,10 @@ class Sequence(AnnotatableMixin):
 
         When applied to a sequence in a SequenceCollection, the resulting
         sequence will no longer be part of the collection.
+
+        The result has no annotations if self is a slice taken with a step
+        other than 1 or -1, or is reversed and either self or moltype is not
+        nucleic, since its features cannot be placed on the result.
         """
 
         if not moltype:
@@ -1550,7 +1554,11 @@ class Sequence(AnnotatableMixin):
         if moltype is self.moltype:
             return self
 
-        seq = numpy.array(self)
+        sr = self._seq.slice_record
+        keep_strand = sr.is_reversed and self.moltype.is_nucleic and moltype.is_nucleic
+        # features can only be placed on a contiguous view whose strand is kept
+        annotatable = abs(sr.step) == 1 and (keep_strand or not sr.is_reversed)
+        seq = numpy.array(self._seq[::-1] if keep_strand else self)
         self_alpha = self.moltype.most_degen_alphabet()
         other_alpha = moltype.most_degen_alphabet()
         if len(self.moltype.alphabet) != len(moltype.alphabet):
@@ -1575,13 +1583,16 @@ class Sequence(AnnotatableMixin):
             alphabet=moltype.most_degen_alphabet(),
             seqid=self._resolved_seqid,
         )
-        db = self.annotation_db if self.has_annotation_db() else None
+        if keep_strand:
+            sv = sv[::-1]
+        db = self.annotation_db if annotatable and self.has_annotation_db() else None
         new = moltype.make_seq(
             seq=sv,
             name=self.name,
             check_seq=False,
             metadata=self._metadata,
             annotation_db=db,
+            annotation_offset=self.annotation_offset if annotatable else 0,
         )
         new._repr_policy.update(self._repr_policy)
         return new
