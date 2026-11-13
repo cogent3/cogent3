@@ -1483,8 +1483,13 @@ class Sequence(AnnotatableMixin):
         -------
         Feature instance
 
-        Raises ValueError if the sequence was created without a name.
+        Raises ValueError if the sequence was created without a name, or is a
+        slice taken with a step other than 1 or -1.
         """
+        if abs(self._seq.slice_record.step) != 1:
+            msg = "cannot add a feature to a slice taken with a step other than 1 or -1"
+            raise ValueError(msg)
+
         local_vars = locals()
         local_vars["strand"] = Strand.from_value(strand).value
 

@@ -3838,6 +3838,16 @@ def test_add_feature_on_slice_found_by_parent(make_view):
     assert got == [str(seq[3:6])]
 
 
+@pytest.mark.parametrize(
+    "make_view",
+    [lambda s: s[::2], lambda s: s[::-2], lambda s: s[::2].rc(), lambda s: s[::3][::2]],
+)
+def test_add_feature_on_stepped_slice_raises(make_view):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    with pytest.raises(ValueError, match="step other than 1 or -1"):
+        make_view(seq).add_feature(biotype="gene", name="g", spans=[(0, 1)])
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")
