@@ -1493,7 +1493,9 @@ class Sequence(AnnotatableMixin):
             **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},  # type: ignore[typeddict-item]
         )
 
-        self.annotation_db.add_feature(**cast("dict[str, Any]", feature_data))
+        record = cast("dict[str, Any]", dict(feature_data))
+        record["spans"] = (numpy.array(spans) + self.annotation_offset).tolist()
+        self.annotation_db.add_feature(**record)
         for discard in ("on_alignment", "parent_id"):
             feature_data.pop(discard)
         return self.make_feature(feature_data)
