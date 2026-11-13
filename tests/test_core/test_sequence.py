@@ -3795,6 +3795,49 @@ def test_make_seq_same_name_and_moltype_returns_input(make_seq, name):
     assert make_seq(orig, name, "dna") is orig
 
 
+def _annotatable_view(kind):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    views = {
+        "slice": seq[2:10],
+        "offset": cogent3.make_seq(
+            "AAACCCGGGAAT", name="a", moltype="dna", annotation_offset=5
+        ),
+        "slice_rc": seq[2:10].rc(),
+        "rc_slice": seq.rc()[2:10],
+    }
+    return views[kind]
+
+
+@pytest.mark.parametrize("kind", ["slice", "offset", "slice_rc", "rc_slice"])
+@pytest.mark.parametrize("strand", ["+", "-"])
+def test_add_feature_on_view_is_found(kind, strand):
+    view = _annotatable_view(kind)
+    added = view.add_feature(biotype="gene", name="g", spans=[(1, 4)], strand=strand)
+    got = [str(f.get_slice()) for f in view.get_features(name="g")]
+    assert got == [str(added.get_slice())]
+
+
+def test_annotate_matches_on_slice_finds_match():
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    sub = seq[2:12]
+    sub.annotate_matches_to("GGG", biotype="gene", name="g")
+    assert [str(f.get_slice()) for f in sub.get_features(name="g")] == ["GGG"]
+
+
+@pytest.mark.parametrize(
+    "make_view",
+    [lambda s: s[2:10], lambda s: s[2:10].rc(), lambda s: s.rc()[2:10]],
+)
+def test_add_feature_on_slice_found_by_parent(make_view):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    db = seq.annotation_db
+    sub = make_view(seq)
+    assert sub.annotation_db is db
+    sub.add_feature(biotype="gene", name="g", spans=[(1, 4)])
+    got = [str(f.get_slice()) for f in seq.get_features(name="g")]
+    assert got == [str(seq[3:6])]
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")
