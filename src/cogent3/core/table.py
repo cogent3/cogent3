@@ -362,6 +362,7 @@ class Columns(MutableMapping):
 
     def __setstate__(self, data):
         new = self.__class__()
+        data = dict(data)
         for k in ("type", "version"):
             data.pop(k, None)
 
@@ -702,11 +703,14 @@ class Table:
         return data
 
     def __setstate__(self, data):
+        data = dict(data)
         # we're not using these right now
         for k in ("type", "version"):
             data.pop(k, None)
 
-        kwargs = data.pop("init_table")
+        kwargs = dict(data.pop("init_table"))
+        if kwargs.get("column_templates"):
+            kwargs["column_templates"] = dict(kwargs["column_templates"])
         index = kwargs.pop("index_name")
         table = self.__class__(**kwargs)
         table.columns.__setstate__(data["data"])
@@ -2894,6 +2898,7 @@ def load_table(
 )
 def deserialise_tabular(data: dict) -> Table:
     """deserialising DictArray, Table instances"""
+    data = dict(data)
     data.pop("version", None)
     _ = data.pop("type", None)
     if "init_table" in data:

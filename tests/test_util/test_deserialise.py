@@ -1,3 +1,4 @@
+import copy
 import json
 
 import numpy
@@ -424,6 +425,51 @@ def test_deserialise_tabular_distancematrix():
             assert numpy.isnan(got_dict[a, b])
         else:
             assert_allclose(dist, got_dict[a, b])
+
+
+def _table_rich_dict():
+    from cogent3 import make_table
+
+    table = make_table(
+        header=["id", "foo"],
+        rows=[[1, "abc"], [2, "bca"]],
+        index_name="id",
+        title="T",
+    )
+    table.format_column("foo", "%5s")
+    return table.to_rich_dict()
+
+
+def _dictarray_rich_dict():
+    from cogent3.util.dict_array import DictArrayTemplate
+
+    return DictArrayTemplate(2, ["a", "b"]).wrap([[1, 2], [3, 4]]).to_rich_dict()
+
+
+def _distancematrix_rich_dict():
+    from cogent3.evolve.fast_distance import DistanceMatrix
+
+    return DistanceMatrix({("a", "b"): 0.5, ("b", "a"): 0.5}).to_rich_dict()
+
+
+@pytest.mark.parametrize(
+    "make_data", [_table_rich_dict, _dictarray_rich_dict, _distancematrix_rich_dict]
+)
+def test_deserialise_tabular_leaves_input_unchanged(make_data):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
+
+
+def test_deserialised_table_does_not_share_column_templates():
+    data = _table_rich_dict()
+    expected = copy.deepcopy(data)
+    got = deserialise_object(data)
+    got.format_column("id", "%3d")
+    assert data == expected
 
 
 def test_deserialise_likelihood_function1(DATA_DIR):

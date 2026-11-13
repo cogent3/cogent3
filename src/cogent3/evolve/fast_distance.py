@@ -973,6 +973,7 @@ class DistanceMatrix(DictArray):
 @register_deserialiser(get_object_provenance(DistanceMatrix))
 def deserialise_tabular(data: dict) -> DistanceMatrix:
     """deserialising DistanceMatrix from a rich dict"""
+    data = dict(data)
     data.pop("version", None)
     _ = data.pop("type", None)
     # dists is a list of simple dists from which we reconstruct a 1D dict
