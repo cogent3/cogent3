@@ -8217,6 +8217,35 @@ def test_reversed_protein_alignment_protein_letters():
     assert str(aln.get_seq("t")) == "YW*KM"
 
 
+@_makers
+@pytest.mark.parametrize("moltype", ["protein", "protein_with_stop", "text", "bytes"])
+@pytest.mark.parametrize("method", ["rc", "reverse_complement"])
+def test_rc_not_nucleic_raises(mk_cls, moltype, method):
+    coll = mk_cls(_REV_DATA, moltype=moltype)
+    with pytest.raises(c3_moltype.MolTypeError):
+        getattr(coll, method)()
+
+
+def _reversed_alignment_feature(moltype):
+    aln = c3_alignment.make_aligned_seqs(
+        {"t": "AC-TGA", "u": "ACGTGA"}, moltype=moltype
+    )
+    aln.add_feature(biotype="gene", name="g", spans=[(1, 4)], on_alignment=True)
+    (feature,) = aln[::-1].get_features(name="g")
+    return feature
+
+
+def test_reversed_dna_alignment_feature_slice():
+    feature = _reversed_alignment_feature("dna")
+    assert feature.get_slice().to_dict() == {"t": "C-T", "u": "CGT"}
+
+
+def test_reversed_protein_alignment_feature_slice_raises():
+    feature = _reversed_alignment_feature("protein")
+    with pytest.raises(c3_moltype.MolTypeError):
+        feature.get_slice()
+
+
 def test_reversed_dna_alignment_is_reverse_complement():
     aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype="dna")[::-1]
     assert aln.to_dict() == {"t": "CAG-T", "u": "CACGT"}
