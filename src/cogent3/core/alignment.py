@@ -94,6 +94,13 @@ NumpyFloatArrayType = npt.NDArray[numpy.floating]
 _REPR_NUM_SEQS = 3
 
 
+def _complement_if_nucleic(
+    moltype: c3_moltype.MolType[Any], seq: NumpyIntArrayType
+) -> NumpyIntArrayType:
+    # a reversed view of a moltype without a complement is just reversed
+    return moltype.complement(seq) if moltype.is_nucleic else seq
+
+
 class Aligned(AnnotatableMixin):
     """A single sequence in an alignment.
 
@@ -191,7 +198,7 @@ class Aligned(AnnotatableMixin):
             # step != 1, we cannot retain a connection to the underlying
             # annotations
             seq = self.moltype.degap(self.data.gapped_array_value)
-            seq = self.moltype.complement(seq)
+            seq = _complement_if_nucleic(self.moltype, seq)
 
         mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
         ann_db = self._annotation_db if self.data.slice_record.plus_step == 1 else None
@@ -203,7 +210,7 @@ class Aligned(AnnotatableMixin):
         """Returns Sequence object, including gaps."""
         seq = self.data.gapped_array_value
         if self.data.slice_record.step < 0:
-            seq = self.moltype.complement(seq)
+            seq = _complement_if_nucleic(self.moltype, seq)
         return self.moltype.make_seq(seq=seq, name=self.data.seqid)
 
     @property
@@ -282,7 +289,7 @@ class Aligned(AnnotatableMixin):
             # .array_value will return the data in the correct orientation
             # which means we need to complement it if the data is reversed
             data = (
-                self.moltype.complement(data)
+                _complement_if_nucleic(self.moltype, data)
                 if self.data.slice_record.is_reversed
                 else data
             )
@@ -2941,12 +2948,11 @@ class Alignment(CollectionBase[Aligned]):
                 stop=self._slice_record.plus_stop,
                 step=self._slice_record.plus_step,
             )
-            if self.moltype.is_nucleic and self._slice_record.is_reversed:
-                rev_complement = self.moltype.rc
-                arr_seqs = arr_seqs.copy()
-                arr_seqs.flags.writeable = True
-                for i in range(arr_seqs.shape[0]):
-                    arr_seqs[i] = rev_complement(arr_seqs[i])
+            if self._slice_record.is_reversed:
+                arr_seqs = arr_seqs[:, ::-1].copy()
+                if self.moltype.is_nucleic:
+                    for i in range(arr_seqs.shape[0]):
+                        arr_seqs[i] = self.moltype.complement(arr_seqs[i])
 
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
@@ -3325,11 +3331,13 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = kw | kwargs
         # the SeqsData classes will return the data corresponding to the slice,
-        # however, will not complement the data if the step is negative. We do
-        # this here.
-        rev_complement = self.moltype.rc
+        # however, will not reverse or complement the data if the step is
+        # negative. We do this here.
         data = (
-            {name: rev_complement(seq) for name, seq in data.items()}
+            {
+                name: _complement_if_nucleic(self.moltype, seq[::-1])
+                for name, seq in data.items()
+            }
             if sr.step < 0
             else data
         )
