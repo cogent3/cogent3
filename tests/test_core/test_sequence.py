@@ -3639,6 +3639,81 @@ def test_old_pickle_state_with_info_slot():
     assert old.metadata.to_dict() == {"k": 1}
 
 
+def _renamed_annotated_seq():
+    seq = cogent3.make_seq("ACG-TACGTTAA", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    seq.name = "b"
+    return seq
+
+
+def test_renamed_seq_add_feature_uses_original_name():
+    seq = _renamed_annotated_seq()
+    feature = seq.add_feature(biotype="gene", name="h", spans=[(4, 6)])
+    assert feature.seqid == "a"
+    got = list(seq.get_features(name="h"))
+    assert [f.seqid for f in got] == ["a"]
+
+
+def test_renamed_seq_features_report_original_name():
+    seq = _renamed_annotated_seq()
+    assert [f.seqid for f in seq.get_features(name="g")] == ["a"]
+
+
+def test_renamed_seq_copy_annotations_uses_original_name():
+    other = cogent3.make_seq("ACG-TACGTTAA", name="a", moltype="dna")
+    other.add_feature(biotype="gene", name="h", spans=[(4, 6)])
+    seq = cogent3.make_seq("ACG-TACGTTAA", name="a", moltype="dna")
+    seq.name = "b"
+    seq.copy_annotations(other.annotation_db)
+    assert len(list(seq.get_features(name="h"))) == 1
+
+
+@pytest.mark.parametrize(
+    "method",
+    [
+        "degap",
+        "with_masked_annotations",
+        "parse_out_gaps",
+        "trim_stop_codon",
+        "to_moltype",
+    ],
+)
+def test_renamed_seq_methods_keep_original_name(method):
+    seq = _renamed_annotated_seq()
+    args = {"with_masked_annotations": ("gene",), "to_moltype": ("rna",)}
+    got = getattr(seq, method)(*args.get(method, ()))
+    if method == "parse_out_gaps":
+        got = got[1]
+    assert got.name == "b"
+    assert got.parent_coordinates()[0] == "a"
+    assert [f.seqid for f in got.get_features(name="g")] == ["a"]
+    if method == "with_masked_annotations":
+        assert str(got).startswith("???")
+
+
+@pytest.mark.parametrize("name", [None, "x"])
+def test_seq_created_without_name_cannot_add_features(name):
+    seq = cogent3.make_seq("ACGTACGTACGT", moltype="dna")
+    seq.name = name
+    with pytest.raises(ValueError, match="created without a name"):
+        seq.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    with pytest.raises(ValueError, match="created without a name"):
+        seq.annotate_matches_to("ACG", biotype="motif", name="m")
+    other = cogent3.make_seq("ACGTACGTACGT", name="o", moltype="dna")
+    other.add_feature(biotype="gene", name="h", spans=[(0, 3)])
+    with pytest.raises(ValueError, match="created without a name"):
+        seq.copy_annotations(other.annotation_db)
+
+
+def test_seq_created_without_name_finds_no_features():
+    other = cogent3.make_seq("ACGTACGTACGT", name="o", moltype="dna")
+    other.add_feature(biotype="gene", name="h", spans=[(0, 3)])
+    seq = cogent3.make_seq("ACGTACGTACGT", moltype="dna")
+    seq.annotation_db = other.annotation_db
+    assert list(seq.get_features()) == []
+    assert not seq.is_annotated()
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")

@@ -347,20 +347,25 @@ def load_seq(
         data = list(parser.loader(filename, **parser_kw))
         name, seq = data[0]
 
-    name = label_to_name(name) if label_to_name else name
+    new_name = label_to_name(name) if label_to_name else name
 
     if annotation_path is not None:
-        db = load_annotations(path=annotation_path, seqids=[name])
+        db = load_annotations(path=annotation_path, seqids=[new_name])
 
-    return make_seq(
+    # annotations from a GenBank file are recorded under the file's name, so
+    # the sequence keeps that name for looking them up
+    annotations_from_file = db is not None and annotation_path is None
+    result = make_seq(
         seq,
-        name,
+        name if annotations_from_file else new_name,
         moltype=moltype,
         annotation_offset=annotation_offset,
         annotation_db=db,
         metadata=metadata,
         **kwargs,
     )
+    result.name = new_name
+    return result
 
 
 @_info_arg_renamed

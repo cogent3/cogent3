@@ -698,17 +698,37 @@ class Sequence(AnnotatableMixin):
             metadata=self._metadata,
         )
 
-    def degap(self) -> Self:
-        """Deletes all gap characters from sequence."""
-        result = self.__class__(
+    @property
+    def _resolved_seqid(self) -> str | None:
+        # annotations are stored under the name the sequence data was created
+        # with, which self.name no longer matches after a rename
+        return self._seq.seqid
+
+    def _require_resolved_seqid(self) -> str:
+        if (seqid := self._resolved_seqid) is None:
+            msg = (
+                "sequence was created without a name, so it cannot hold "
+                "annotations. Create it with a name, e.g. "
+                "make_seq(str(seq), name='x', moltype=seq.moltype)"
+            )
+            raise ValueError(msg)
+        return seqid
+
+    def _new_annotated(self, seq: str | bytes) -> Self:
+        new = self.__class__(
             moltype=self.moltype,
-            seq=self.moltype.degap(bytes(self)),
-            name=self.name,
+            seq=seq,
+            name=self._resolved_seqid,
             metadata=self._metadata,
         )
+        new.name = self.name
         if self.has_annotation_db():
-            result.annotation_db = self.annotation_db
-        return result
+            new.annotation_db = self.annotation_db
+        return new
+
+    def degap(self) -> Self:
+        """Deletes all gap characters from sequence."""
+        return self._new_annotated(self.moltype.degap(bytes(self)))
 
     def gap_indices(self) -> NumpyIntArrayType:
         """Returns array of the indices of all gaps in the sequence"""
@@ -1279,15 +1299,12 @@ class Sequence(AnnotatableMixin):
             len(self), stop
         )  # otherwise index error from absolute_position method
 
+        parent_id = self._resolved_seqid
+        if parent_id is None:
+            return None
+
         # we set include_boundary=False because start is inclusive indexing,
         # i,e., the start cannot be equal to the length of the view
-        (
-            # parent_id can differ from self.name if there was a
-            # rename operation
-            parent_id,
-            *_,
-            _,
-        ) = self.parent_coordinates()
         parent_offset = self._seq.parent_offset
         sr = self._seq.slice_record
         query_start = (
@@ -1410,7 +1427,10 @@ class Sequence(AnnotatableMixin):
         feature_dict.pop("on_alignment", None)
         feature_dict.pop("seqid", None)
         return Feature(
-            parent=self, seqid=cast("str", self.name), map=fmap, **feature_dict
+            parent=self,
+            seqid=cast("str", self._resolved_seqid),
+            map=fmap,
+            **feature_dict,
         )
 
     def add_feature(
@@ -1447,12 +1467,14 @@ class Sequence(AnnotatableMixin):
         Returns
         -------
         Feature instance
+
+        Raises ValueError if the sequence was created without a name.
         """
         local_vars = locals()
         local_vars["strand"] = Strand.from_value(strand).value
 
         feature_data = FeatureDataType(
-            seqid=cast("str", self.name),
+            seqid=self._require_resolved_seqid(),
             **{n: v for n, v in local_vars.items() if n not in ("self", "seqid")},  # type: ignore[typeddict-item]
         )
 
@@ -1529,6 +1551,7 @@ class Sequence(AnnotatableMixin):
             parent=seq,
             parent_len=len(seq),
             alphabet=moltype.most_degen_alphabet(),
+            seqid=self._resolved_seqid,
         )
         db = self.annotation_db if self.has_annotation_db() else None
         new = moltype.make_seq(
@@ -1551,7 +1574,9 @@ class Sequence(AnnotatableMixin):
 
         Notes
         -----
-        Only copies annotations for records with seqid equal to self.name
+        Only copies annotations for records with seqid equal to the name the
+        sequence was created with, which differs from self.name after a
+        rename.
         """
         if not isinstance(seq_db, AnnotationDbABC):
             msg = f"type {type(seq_db)} does not match AnnotationDbABC interface"
@@ -1559,14 +1584,15 @@ class Sequence(AnnotatableMixin):
                 msg,
             )
 
-        if not seq_db.num_matches(seqid=self.name):
+        seqid = self._require_resolved_seqid()
+        if not seq_db.num_matches(seqid=seqid):
             return
 
         if self.has_annotation_db() and not self.annotation_db.compatible(seq_db):
             msg = f"type {type(seq_db)} != {type(self.annotation_db)}"
             raise TypeError(msg)
 
-        self.annotation_db.update(seq_db, seqids=self.name)
+        self.annotation_db.update(seq_db, seqids=seqid)
 
     def copy(
         self,
@@ -1653,17 +1679,7 @@ class Sequence(AnnotatableMixin):
             segments.extend((str(self[i:b]), mask_char * (e - b)))
             i = e
         segments.append(str(self[i:]))
-
-        new = self.__class__(
-            moltype=self.moltype,
-            seq="".join(segments),
-            name=self.name,
-            metadata=self._metadata,
-        )
-        if self.has_annotation_db():
-            new.annotation_db = self.annotation_db
-
-        return new
+        return self._new_annotated("".join(segments))
 
     def gapped_by_map_segment_iter(
         self,
@@ -1898,19 +1914,12 @@ class Sequence(AnnotatableMixin):
         cum_lengths = numpy.array(cum_lengths_list).cumsum()
         gap_pos[1:] = gap_pos[1:] - cum_lengths[:-1]
 
-        seq = self.__class__(
-            moltype=self.moltype,
-            seq=gap.sub("", seq_str),
-            name=self.get_name(),
-            metadata=self._metadata,
-        )
+        seq = self._new_annotated(gap.sub("", seq_str))
         indel_map = IndelMap(
             gap_pos=gap_pos,
             cum_gap_lengths=cum_lengths,
             parent_length=len(seq),
         )
-        if self.has_annotation_db():
-            seq.annotation_db = self.annotation_db
         return indel_map, seq
 
     def is_annotated(
@@ -1925,13 +1934,11 @@ class Sequence(AnnotatableMixin):
             amend condition to return True only if the sequence is
             annotated with one of provided biotypes.
         """
-        if not self.has_annotation_db():
+        seqid = self._resolved_seqid
+        if seqid is None or not self.has_annotation_db():
             return False
         with contextlib.suppress(AttributeError):
-            return (
-                self.annotation_db.num_matches(seqid=self._seq.seqid, biotype=biotype)
-                != 0
-            )
+            return self.annotation_db.num_matches(seqid=seqid, biotype=biotype) != 0
         return False
 
     def annotate_matches_to(
@@ -2340,15 +2347,7 @@ class NucleicAcidSequenceBase(Sequence):
             diff = len(str_s) - match.start()
             str_s = terminal_stop.sub("-" * diff, str_s)
 
-        result = self.__class__(
-            moltype=self.moltype,
-            seq=str_s,
-            name=self.name,
-            metadata=self._metadata,
-        )
-        if self.has_annotation_db():
-            result.annotation_db = self.annotation_db
-        return result
+        return self._new_annotated(str_s)
 
     def get_translation(
         self,

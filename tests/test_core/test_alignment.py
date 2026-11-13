@@ -4,6 +4,7 @@ import os
 import pathlib
 import pickle
 import re
+import shutil
 import types
 from collections.abc import Mapping
 from typing import Any
@@ -675,6 +676,21 @@ def test_load_seqs_label_to_name_applied_once(DATA_DIR, loader):
 def test_load_seq_label_to_name_applied_once(DATA_DIR):
     got = load_seq(DATA_DIR / "brca1.fasta", moltype="dna", label_to_name=_add_x)
     assert got.name == "FlyingFox_x"
+
+
+def test_load_seq_genbank_label_to_name_keeps_annotations(DATA_DIR):
+    got = load_seq(DATA_DIR / "annotated_seq.gb", moltype="dna", label_to_name=_add_x)
+    assert got.name == "AE017341_x"
+    assert len(list(got.get_features(biotype="CDS"))) == 2
+
+
+def test_load_unaligned_glob_genbank_label_to_name_keeps_annotations(
+    DATA_DIR, tmp_path
+):
+    shutil.copy(DATA_DIR / "annotated_seq.gb", tmp_path / "annotated_seq.gb")
+    got = load_unaligned_seqs(tmp_path / "*.gb", moltype="dna", label_to_name=_add_x)
+    assert got.names == ("AE017341_x",)
+    assert len(list(got.get_features(biotype="CDS"))) == 2
 
 
 def _first_char(name):
