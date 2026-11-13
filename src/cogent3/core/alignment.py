@@ -401,6 +401,14 @@ def _names_file(source: Any, path: pathlib.Path) -> bool:
         return False
 
 
+def _names_differ_from_storage(
+    name_map: Mapping[str, str], storage_names: Iterable[str]
+) -> bool:
+    # a view matches its storage only if it selects every stored sequence,
+    # in stored order, under its stored name
+    return tuple(name_map.items()) != tuple((n, n) for n in storage_names)
+
+
 class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
     @_info_arg_renamed
     def __init__(
@@ -1952,12 +1960,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
     @property
     def modified(self) -> bool:
         """collection is a modification of underlying storage"""
-        return any(
-            [
-                self._is_reversed,
-                set(self.name_map.values()) != set(self.storage.names),
-                set(self.name_map.keys()) != set(self.name_map.values()),
-            ]
+        return self._is_reversed or _names_differ_from_storage(
+            self.name_map, self.storage.names
         )
 
     @overload
@@ -2914,15 +2918,10 @@ class Alignment(CollectionBase[Aligned]):
     @property
     def modified(self) -> bool:
         """collection is a modification of underlying storage"""
-        # include changed seq names?
         sr = self._slice_record
         changed_slice = sr.start != 0 or len(sr) != self.storage.align_len
-        return any(
-            [
-                changed_slice,
-                set(self.name_map.values()) != set(self.storage.names),
-                set(self.name_map.keys()) != set(self.name_map.values()),
-            ]
+        return changed_slice or _names_differ_from_storage(
+            self.name_map, self.storage.names
         )
 
     @property

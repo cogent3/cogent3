@@ -6575,6 +6575,49 @@ def test_seqcoll_modified_renamed_seqs(mk_cls):
     assert sub.modified
 
 
+_SWAP_NAMES = {"s1": "s2", "s2": "s1", "s3": "s3"}
+
+
+def _reorder(coll):
+    return coll.take_seqs(["s3", "s2", "s1"])
+
+
+def _swap_names(coll):
+    return coll.renamed_seqs(_SWAP_NAMES.get)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+@pytest.mark.parametrize("change", [_reorder, _swap_names])
+def test_seqcoll_modified_order_or_swap(mk_cls, change):
+    data = {"s1": "ATCTGA", "s2": "TCGCCC", "s3": "TCGCCA"}
+    coll = mk_cls(data, moltype="dna")
+    assert change(coll).modified
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+def test_seqcoll_not_modified_take_all_in_order(mk_cls):
+    data = {"s1": "ATCTGA", "s2": "TCGCCC", "s3": "TCGCCA"}
+    coll = mk_cls(data, moltype="dna")
+    assert not coll.take_seqs(["s1", "s2", "s3"]).modified
+
+
+@pytest.mark.parametrize("suffix", ["c3h5a", "c3h5s"])
+@pytest.mark.parametrize("change", [_reorder, _swap_names])
+def test_h5seqs_write_keeps_order_and_names(tmp_path, suffix, change):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"s1": "ATCTGA", "s2": "TCGCCC", "s3": "TCGCCA"}
+    c3_alignment.make_aligned_seqs(data, moltype="dna").write(tmp_path / f"a.{suffix}")
+    changed = change(load_aligned_seqs(tmp_path / f"a.{suffix}", moltype="dna"))
+    changed.write(tmp_path / f"b.{suffix}")
+    got = load_aligned_seqs(tmp_path / f"b.{suffix}", moltype="dna")
+    assert got.names == changed.names
+    assert got.to_dict() == changed.to_dict()
+
+
 @pytest.mark.parametrize(("start", "stop", "step"), [(0, 4, 1), (1, 8, 2)])
 def test_asd_get_pos_range(dna_alphabet, start, stop, step):
     alpha = dna_alphabet
