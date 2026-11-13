@@ -3714,6 +3714,87 @@ def test_seq_created_without_name_finds_no_features():
     assert not seq.is_annotated()
 
 
+def _top_level_make_seq(seq, name, moltype):
+    return cogent3.make_seq(seq, name=name, moltype=moltype)
+
+
+def _moltype_make_seq(seq, name, moltype):
+    return c3_moltype.get_moltype(moltype).make_seq(seq=seq, name=name)
+
+
+_make_seq_funcs = pytest.mark.parametrize(
+    "make_seq", [_top_level_make_seq, _moltype_make_seq]
+)
+
+
+@_make_seq_funcs
+def test_make_seq_names_unnamed_seq(make_seq):
+    orig = cogent3.make_seq("ACGTACGT", moltype="dna")
+    got = make_seq(orig, "w", "dna")
+    assert got is not orig
+    assert got.name == "w"
+    assert orig.name is None
+    got.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    assert [f.seqid for f in got.get_features(name="g")] == ["w"]
+
+
+@_make_seq_funcs
+def test_make_seq_renames_named_seq(make_seq):
+    orig = cogent3.make_seq("ACGTACGT", name="orig", moltype="dna")
+    orig.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    got = make_seq(orig, "w", "dna")
+    assert got is not orig
+    assert got.name == "w"
+    assert orig.name == "orig"
+    assert [f.seqid for f in got.get_features(name="g")] == ["orig"]
+
+
+@_make_seq_funcs
+@pytest.mark.parametrize("orig_name", [None, "orig"])
+def test_make_seq_names_seq_of_other_moltype(make_seq, orig_name):
+    orig = cogent3.make_seq("ACGTACGT", name=orig_name, moltype="dna")
+    got = make_seq(orig, "w", "rna")
+    assert got.name == "w"
+    assert str(got) == "ACGUACGU"
+
+
+@_make_seq_funcs
+def test_make_seq_names_unnamed_reversed_slice(make_seq):
+    orig = cogent3.make_seq("AACCGGTTAC", moltype="dna").rc()[2:6]
+    got = make_seq(orig, "w", "dna")
+    assert got.name == "w"
+    assert str(got) == str(orig)
+
+
+@_make_seq_funcs
+def test_make_seq_renames_named_reversed_slice(make_seq):
+    orig = cogent3.make_seq("AAACCCGGGTTTAC", name="orig", moltype="dna")
+    orig.add_feature(biotype="gene", name="g", spans=[(5, 11)])
+    orig = orig[2:12].rc()
+    got = make_seq(orig, "w", "dna")
+    assert got.name == "w"
+    assert str(got) == str(orig)
+    expect = [str(f.get_slice()) for f in orig.get_features(name="g")]
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == expect
+
+
+@_make_seq_funcs
+@pytest.mark.parametrize("orig_name", [None, "orig"])
+def test_make_seq_rename_keeps_annotation_offset(make_seq, orig_name):
+    orig = cogent3.make_seq(
+        "ACGTACGTAC", name=orig_name, moltype="dna", annotation_offset=5
+    )
+    got = make_seq(orig, "w", "dna")
+    assert got.annotation_offset == 5
+
+
+@_make_seq_funcs
+@pytest.mark.parametrize("name", [None, "orig"])
+def test_make_seq_same_name_and_moltype_returns_input(make_seq, name):
+    orig = cogent3.make_seq("ACGTACGT", name="orig", moltype="dna")
+    assert make_seq(orig, name, "dna") is orig
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")
