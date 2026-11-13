@@ -311,7 +311,8 @@ class Aligned(AnnotatableMixin):
         seq_coords
             if True, the coordinates for the unaligned sequence
         apply_offset
-            if True and seq_coords, adds annotation offset from parent
+            if True and seq_coords, adds the offset stored by the collection
+            holding this sequence
         """
         return self.data.parent_coords(seq_coords=seq_coords, apply_offset=apply_offset)
 

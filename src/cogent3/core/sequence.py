@@ -2072,7 +2072,13 @@ class Sequence(AnnotatableMixin):
         Parameters
         ----------
         apply_offset
-            if True, adds annotation offset from parent
+            if True, adds the offset stored by the collection holding this
+            sequence. A collection stores only the positions selected by the
+            sequence's view, and records separately where those positions
+            started on the original. For example a[2:8] reports start 2 on
+            its own. In a collection, only those 6 positions are stored, with
+            2 recorded as the offset, so it reports start 0 unless
+            apply_offset is True.
 
         Notes
         -----
