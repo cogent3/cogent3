@@ -355,8 +355,10 @@ class Columns(MutableMapping):
         for c in self:
             v = self[c]
             dtype = v.dtype.name
-            if dtype.startswith("str"):
-                dtype = dtype.replace("str", "U")
+            if v.dtype.kind in "US":
+                # the name states the width in bits, which numpy cannot load
+                # correctly, and the byte order prefix is machine dependent
+                dtype = v.dtype.str.lstrip("<>|=")
             result["columns"][c] = {"values": v.tolist(), "dtype": dtype}
         return result
 
