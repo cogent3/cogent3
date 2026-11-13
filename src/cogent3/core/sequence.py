@@ -715,14 +715,23 @@ class Sequence(AnnotatableMixin):
         return seqid
 
     def _new_annotated(self, seq: str | bytes) -> Self:
+        # seq is as displayed by self, so rebuild self's view of the parent for
+        # the annotation db to place features on it
+        sr = self._seq.slice_record
+        annotatable = abs(sr.step) == 1
+        if sr.is_reversed:
+            seq = self.moltype.rc(seq) if self.moltype.is_nucleic else seq[::-1]
         new = self.__class__(
             moltype=self.moltype,
             seq=seq,
             name=self._resolved_seqid,
             metadata=self._metadata,
+            annotation_offset=self.annotation_offset if annotatable else 0,
         )
+        if sr.is_reversed:
+            new = new[::-1]
         new.name = self.name
-        if self.has_annotation_db():
+        if annotatable and self.has_annotation_db():
             new.annotation_db = self.annotation_db
         return new
 
