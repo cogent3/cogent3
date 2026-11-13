@@ -727,6 +727,10 @@ class MolType(Generic[TStrOrBytes]):
             msg = f"{type(seq)} not supported"
             raise TypeError(msg)
 
+        if not self.is_nucleic:
+            msg = f"{self.name!r} cannot complement"
+            raise MolTypeError(msg)
+
         if validate and not self.is_valid(seq):
             msg = f"{seq[:4]!r} not valid for moltype {self.name!r}"
             raise c3_alphabet.AlphabetError(
@@ -737,9 +741,6 @@ class MolType(Generic[TStrOrBytes]):
             return self.complement(seq.encode("utf8"), validate=False).decode("utf8")
 
         if isinstance(seq, bytes):
-            if not self.is_nucleic:
-                msg = f"{self.name!r} cannot complement"
-                raise MolTypeError(msg)
             assert self._complement is not None
             return self._complement(seq)
 
