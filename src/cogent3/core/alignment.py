@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import copy
 import dataclasses
 import json
@@ -5638,25 +5637,74 @@ def _make_name_seq_mapping(
         returns a new name
     """
     if isinstance(data, dict):
-        return {seq_namer(seq=seq, name=name): seq for name, seq in data.items()}
+        return _unique_name_seq_mapping(
+            [_named_record(seq_namer, seq, name) for name, seq in data.items()]
+        )
 
     if isinstance(data, (tuple, set)):
         data = list(data)
 
     if isinstance(data, list):
-        if isinstance(data[0], (list, tuple)):
+        if all(isinstance(r, (list, tuple)) and len(r) == 2 for r in data):
             # handle case where we've been given data like
             # for example [[name, seq], ...]
-            with contextlib.suppress(ValueError):
-                return _make_name_seq_mapping(dict(data), seq_namer)  # type: ignore[arg-type]
+            return _unique_name_seq_mapping(
+                [_named_record(seq_namer, seq, name) for name, seq in data]
+            )
 
-        return {seq_namer(seq=record): record for record in data}
+        return _unique_name_seq_mapping(
+            [_named_record(seq_namer, record) for record in data]
+        )
 
     if not isinstance(data, CollectionBase):
         msg = f"_make_name_seq_mapping not implemented for {type(data)}"
         raise NotImplementedError(msg)
 
-    return {seq_namer(seq=record): record for record in data.seqs}
+    return _unique_name_seq_mapping(
+        [_named_record(seq_namer, record) for record in data.seqs]
+    )
+
+
+_NamedRecord = tuple[
+    str, str | None, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned
+]
+
+
+def _named_record(
+    seq_namer: _SeqNamer,
+    seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned,
+    name: str | None = None,
+) -> _NamedRecord:
+    # the label is None when seq_namer assigns the name automatically
+    label = name or getattr(seq, "name", None)
+    return seq_namer(seq=seq, name=name), label, seq
+
+
+def _describe_name_clash(name: str, labels: list[str | None]) -> str:
+    named = [repr(label) for label in labels if label]
+    noun = "label" if len(named) == 1 else "labels"
+    description = f"{name!r} from {noun} {', '.join(named)}"
+    if len(named) < len(labels):
+        description += " and an automatically assigned name"
+    return description
+
+
+def _unique_name_seq_mapping(
+    records: list[_NamedRecord],
+) -> dict[str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned]:
+    labels: defaultdict[str, list[str | None]] = defaultdict(list)
+    for name, label, _ in records:
+        labels[name].append(label)
+
+    if clashes := [
+        _describe_name_clash(name, found)
+        for name, found in labels.items()
+        if len(found) > 1
+    ]:
+        msg = f"duplicate sequence names: {'; '.join(clashes)}"
+        raise ValueError(msg)
+
+    return {name: seq for name, _, seq in records}
 
 
 def _seqname_parent_name(

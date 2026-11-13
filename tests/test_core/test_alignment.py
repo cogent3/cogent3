@@ -677,6 +677,83 @@ def test_load_seq_label_to_name_applied_once(DATA_DIR):
     assert got.name == "FlyingFox_x"
 
 
+def _first_char(name):
+    return name[:1]
+
+
+def _raise_value_error(name):
+    msg = "error from label_to_name"
+    raise ValueError(msg)
+
+
+_SEQ_AB = c3_moltype.DNA.make_seq(seq="AAAA", name="ab")
+_SEQ_AC = c3_moltype.DNA.make_seq(seq="CCCC", name="ac")
+_SEQ_A1 = c3_moltype.DNA.make_seq(seq="AAAA", name="a")
+_SEQ_A2 = c3_moltype.DNA.make_seq(seq="CCCC", name="a")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("data", "label_to_name", "match"),
+    [
+        ({"ab": "AAAA", "ac": "CCCC"}, _first_char, "'a' from labels 'ab', 'ac'"),
+        ([["ab", "AAAA"], ["ac", "CCCC"]], _first_char, "'a' from labels 'ab', 'ac'"),
+        ([_SEQ_AB, _SEQ_AC], _first_char, "'a' from labels 'ab', 'ac'"),
+        ([["a", "AAAA"], ["a", "CCCC"]], None, "'a' from labels 'a', 'a'"),
+        ([_SEQ_A1, _SEQ_A2], None, "'a' from labels 'a', 'a'"),
+        ({_SEQ_A1, _SEQ_A2}, None, "'a' from labels 'a', 'a'"),
+        (
+            ["AAAA", c3_moltype.DNA.make_seq(seq="CCCC", name="seq_0")],
+            None,
+            "'seq_0' from label 'seq_0' and an automatically assigned name",
+        ),
+    ],
+)
+def test_make_seqs_duplicate_names_raise(mk_cls, data, label_to_name, match):
+    """sequences that end up with the same name raise rather than being dropped"""
+    with pytest.raises(ValueError, match=re.escape(match)):
+        mk_cls(data, moltype="dna", label_to_name=label_to_name)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_make_seqs_pairs_label_to_name_error_not_hidden(mk_cls):
+    """an error raised by label_to_name reaches the caller"""
+    with pytest.raises(ValueError, match="error from label_to_name"):
+        mk_cls(
+            [["a", "AAAA"], ["b", "CCCC"]],
+            moltype="dna",
+            label_to_name=_raise_value_error,
+        )
+
+
+def test_add_seqs_duplicate_names_raise():
+    coll = c3_alignment.make_unaligned_seqs({"b": "GGGG"}, moltype="dna")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
+        coll.add_seqs([_SEQ_A1, _SEQ_A2])
+
+
+@pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+def test_load_seqs_repeated_label_raises(tmp_path, loader):
+    path = tmp_path / "dup.fasta"
+    path.write_text(">a\nAAAA\n>a\nCCCC\n>b\nGGGG\n")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
+        loader(path, moltype="dna")
+
+
+@pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+def test_load_seqs_label_to_name_clash_names_labels(tmp_path, loader):
+    path = tmp_path / "x.fasta"
+    path.write_text(">ab\nAAAA\n>ac\nCCCC\n")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'ab', 'ac'")):
+        loader(path, moltype="dna", label_to_name=_first_char)
+
+
 @pytest.mark.parametrize(
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
@@ -7266,6 +7343,13 @@ def test_load_unaligned_glob_passes_kwargs(two_fasta_files):
 def test_load_unaligned_glob_label_to_name_applied_once(two_fasta_files):
     got = load_unaligned_seqs(two_fasta_files, moltype="dna", label_to_name=_add_x)
     assert sorted(got.names) == ["a_x", "b_x"]
+
+
+def test_load_unaligned_glob_repeated_label_raises(tmp_path):
+    (tmp_path / "x.fasta").write_text(">a\nAAAA\n")
+    (tmp_path / "y.fasta").write_text(">a\nCCCC\n")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
+        load_unaligned_seqs(tmp_path / "*.fasta", moltype="dna")
 
 
 def test_load_unaligned_glob_rejects_unknown_kwarg(two_fasta_files):
