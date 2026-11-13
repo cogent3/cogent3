@@ -6013,7 +6013,6 @@ def make_unaligned_seqs(
 
     seqs_data = make_unaligned_storage(
         named_seqs,
-        label_to_name=label_to_name,
         moltype=moltype,
         offset=offset,
         reversed_seqs=reversed_seqs,
@@ -6231,7 +6230,6 @@ def make_aligned_seqs(
     seqs_data = make_aligned_storage(
         named_seqs,
         moltype=moltype,
-        label_to_name=label_to_name,
         offset=offset,
         reversed_seqs=reversed_seqs,
         storage_backend=storage_backend,

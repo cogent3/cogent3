@@ -196,7 +196,6 @@ def _load_files_to_unaligned_seqs(
 
     return make_unaligned_seqs(
         seqs,
-        label_to_name=label_to_name,
         moltype=moltype,
         source=path,
         metadata=metadata,

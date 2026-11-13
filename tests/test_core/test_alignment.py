@@ -594,6 +594,10 @@ def test_make_seqs(moltype, mk_cls, cls):
     assert isinstance(got, cls)
 
 
+def _add_x(name):
+    return f"{name}_x"
+
+
 @pytest.mark.parametrize(
     ("mk_cls", "cls"),
     [
@@ -604,19 +608,46 @@ def test_make_seqs(moltype, mk_cls, cls):
 def test_make_seqs_label_to_name(mk_cls, cls, dna_alphabet):
     """SequenceCollection and Alignment constructor functions should convert names
     using label_to_name function if provided"""
-
-    def f(x):
-        return x.upper()
-
     # for data as a dict
     data = {"a": "AGGCCC", "b": "AGAAAA"}
-    got = mk_cls(data, moltype="dna", label_to_name=f)
-    assert list(got.names) == ["A", "B"]
+    got = mk_cls(data, moltype="dna", label_to_name=_add_x)
+    assert list(got.names) == ["a_x", "b_x"]
 
     # for data as a SeqsData object
     data = cls.from_seqs(data=data, alphabet=dna_alphabet)
-    got = mk_cls(data, moltype="dna", label_to_name=f)
-    assert list(got.names) == ["A", "B"]
+    got = mk_cls(data, moltype="dna", label_to_name=_add_x)
+    assert list(got.names) == ["a_x", "b_x"]
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "data",
+    [
+        [["a", "AGGCCC"], ["b", "AGAAAA"]],
+        [
+            c3_moltype.DNA.make_seq(seq="AGGCCC", name="a"),
+            c3_moltype.DNA.make_seq(seq="AGAAAA", name="b"),
+        ],
+    ],
+)
+def test_make_seqs_label_to_name_applied_once(mk_cls, data):
+    """label_to_name is applied once to pairs and Sequence inputs"""
+    got = mk_cls(data, moltype="dna", label_to_name=_add_x)
+    assert list(got.names) == ["a_x", "b_x"]
+
+
+@pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+def test_load_seqs_label_to_name_applied_once(DATA_DIR, loader):
+    got = loader(DATA_DIR / "brca1.fasta", moltype="dna", label_to_name=_add_x)
+    assert got.names[:2] == ("FlyingFox_x", "DogFaced_x")
+
+
+def test_load_seq_label_to_name_applied_once(DATA_DIR):
+    got = load_seq(DATA_DIR / "brca1.fasta", moltype="dna", label_to_name=_add_x)
+    assert got.name == "FlyingFox_x"
 
 
 @pytest.mark.parametrize(
@@ -7203,6 +7234,11 @@ def test_load_unaligned_glob_passes_kwargs(two_fasta_files):
     got = load_unaligned_seqs(two_fasta_files, moltype="dna", is_reversed=True)
     assert got._is_reversed
     assert got.to_dict() == {"a": "ACGT", "b": "CCGT"}
+
+
+def test_load_unaligned_glob_label_to_name_applied_once(two_fasta_files):
+    got = load_unaligned_seqs(two_fasta_files, moltype="dna", label_to_name=_add_x)
+    assert sorted(got.names) == ["a_x", "b_x"]
 
 
 def test_load_unaligned_glob_rejects_unknown_kwarg(two_fasta_files):
