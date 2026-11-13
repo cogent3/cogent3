@@ -676,7 +676,9 @@ class MolType(Generic[TStrOrBytes]):
         from cogent3.core import sequence as c3_sequence
 
         if isinstance(seq, c3_sequence.Sequence):
-            return seq if seq.moltype is self else seq.to_moltype(self)
+            if seq.moltype is not self:
+                seq = seq.to_moltype(self)
+            return seq if name is None or name == seq.name else seq._renamed(name)
 
         seq = cast("str | bytes | SeqViewABC", seq)
         if isinstance(seq, str):

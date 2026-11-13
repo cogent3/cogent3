@@ -726,6 +726,21 @@ class Sequence(AnnotatableMixin):
             new.annotation_db = self.annotation_db
         return new
 
+    def _renamed(self, name: str) -> Self:
+        if self._resolved_seqid is not None:
+            new = self.copy(sliced=False)
+        else:
+            # with no stored name, name also becomes the name annotations use
+            new = self.__class__(
+                moltype=self.moltype,
+                seq=numpy.array(self),
+                name=name,
+                metadata=self._metadata,
+                annotation_offset=self.annotation_offset,
+            )
+        new.name = name
+        return new
+
     def degap(self) -> Self:
         """Deletes all gap characters from sequence."""
         return self._new_annotated(self.moltype.degap(bytes(self)))
