@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import pathlib
@@ -7597,6 +7598,18 @@ def test_legacy_deserialisers_without_info(make_old):
     got = deserialise_object(data)
     assert got.metadata.to_dict() == {}
     assert got.source is None
+
+
+@pytest.mark.parametrize(
+    "make_old", [_old_seqcoll, _old_array_alignment, _old_alignment]
+)
+def test_legacy_deserialisers_leave_input_unchanged(make_old):
+    data = make_old()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.to_dict() == first.to_dict()
 
 
 _NOTHING_TO_DO = {

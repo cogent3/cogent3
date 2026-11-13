@@ -1,3 +1,4 @@
+import copy
 import re
 from itertools import combinations
 
@@ -15,6 +16,7 @@ from cogent3.core.location import (
     TerminalPadding,
     coords_intersect,
     coords_minus_coords,
+    deserialise_map_spans,
     gap_coords_to_map,
     span_and_span,
 )
@@ -1132,6 +1134,46 @@ def test_featuremap_roundtrip_json():
     coords = fmap.get_coordinates()
     assert coords == [(0, 9), (20, 23)]
     assert got.parent_length == fmap.parent_length == 140
+
+
+def _indelmap_rich_dict():
+    return IndelMap(
+        gap_pos=numpy.array([0, 9]),
+        cum_gap_lengths=numpy.array([1, 3]),
+        parent_length=14,
+    ).to_rich_dict()
+
+
+def _featuremap_rich_dict():
+    return FeatureMap.from_locations(
+        locations=[[0, 9], [20, 23]], parent_length=140
+    ).to_rich_dict()
+
+
+def _old_style_map_rich_dict():
+    data = _featuremap_rich_dict()
+    data["type"] = data["type"].replace(".FeatureMap", ".Map")
+    data["tidy"] = False
+    data["termini_unknown"] = False
+    return data
+
+
+@pytest.mark.parametrize(
+    ("make_data", "loader"),
+    [
+        (_indelmap_rich_dict, IndelMap.from_rich_dict),
+        (_featuremap_rich_dict, FeatureMap.from_rich_dict),
+        (_featuremap_rich_dict, deserialise_map_spans),
+        (_old_style_map_rich_dict, deserialise_map_spans),
+    ],
+)
+def test_map_from_rich_dict_leaves_input_unchanged(make_data, loader):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = loader(data)
+    assert data == expected
+    second = loader(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
 
 
 @pytest.mark.parametrize(
