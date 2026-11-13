@@ -136,6 +136,18 @@ def test_roundtrip_likelihood_function():
     assert_allclose(got_obj.get_log_likelihood(), lnL)
 
 
+def test_roundtrip_likelihood_function_keeps_name():
+    """likelihood function name survives a roundtrip"""
+    aln = make_aligned_seqs(
+        {"a": "ACGTACGT", "b": "ACGTACGA", "c": "ACGAACGT"}, moltype="dna"
+    )
+    lf = get_model("HKY85").make_likelihood_function(make_tree(tip_names=aln.names))
+    lf.set_alignment(aln)
+    lf.set_name("myname")
+    got = deserialise_object(lf.to_rich_dict())
+    assert got.name == "myname"
+
+
 def test_roundtrip_discrete_time_likelihood_function():
     """discrete time likelihood function.to_json enables roundtrip"""
     _data = {

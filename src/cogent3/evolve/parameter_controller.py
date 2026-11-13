@@ -638,7 +638,6 @@ def deserialise_likelihood_function(data):
     name = data.pop("name", None)
     lf = model.make_likelihood_function(tree, **constructor_args)
     lf.set_name(name)
-    lf = model.make_likelihood_function(tree, **constructor_args)
 
     if isinstance(constructor_args["loci"], list):
         locus_names = constructor_args["loci"]
