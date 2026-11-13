@@ -590,13 +590,8 @@ def test_deserialise_likelihood_function_multilocus(DATA_DIR):
     )
 
 
-def test_convert_annotation_to_annotation_db():
-    from cogent3.core.annotation_db import (
-        BasicAnnotationDb,
-        convert_annotation_to_annotation_db,
-    )
-
-    data = {
+def _old_annotations():
+    return {
         "name": "A",
         "data": [
             {
@@ -624,12 +619,53 @@ def test_convert_annotation_to_annotation_db():
             },
         ],
     }
-    data = convert_annotation_to_annotation_db(data)
+
+
+def test_convert_annotation_to_annotation_db():
+    from cogent3.core.annotation_db import (
+        BasicAnnotationDb,
+        convert_annotation_to_annotation_db,
+    )
+
+    data = convert_annotation_to_annotation_db(_old_annotations())
     # which can be turned back into an annotation db
     db = deserialise_object(data)
     assert isinstance(db, BasicAnnotationDb)
     assert db.num_matches() == 1
     db.close()
+
+
+def test_convert_annotation_to_annotation_db_leaves_input_unchanged():
+    from cogent3.core.annotation_db import convert_annotation_to_annotation_db
+
+    data = _old_annotations()
+    expected = copy.deepcopy(data)
+    first = convert_annotation_to_annotation_db(data)
+    assert data == expected
+    second = convert_annotation_to_annotation_db(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
+
+
+def _annotation_db_rich_dict(db_class):
+    db = db_class()
+    db.add_feature(seqid="s1", biotype="gene", name="g1", spans=[(1, 5)])
+    db.add_feature(seqid="s2", biotype="exon", name="e1", spans=[(0, 3), (6, 9)])
+    return db.to_rich_dict()
+
+
+@pytest.mark.parametrize(
+    "db_class_name", ["BasicAnnotationDb", "GffAnnotationDb", "GenbankAnnotationDb"]
+)
+def test_deserialise_annotation_db_leaves_input_unchanged(db_class_name):
+    from cogent3.core import annotation_db
+
+    data = _annotation_db_rich_dict(getattr(annotation_db, db_class_name))
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.num_matches() == first.num_matches() == 2
+    assert second.to_rich_dict() == first.to_rich_dict()
 
 
 @pytest.mark.parametrize("rate_matrix_required", [True, False])
