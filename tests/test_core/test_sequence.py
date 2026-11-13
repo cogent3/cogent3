@@ -3848,6 +3848,88 @@ def test_add_feature_on_stepped_slice_raises(make_view):
         make_view(seq).add_feature(biotype="gene", name="g", spans=[(0, 1)])
 
 
+def _annotated_view_for_moltype(kind):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(2, 6)])
+    db = seq.annotation_db
+    if kind == "offset":
+        return cogent3.make_seq(
+            "ACCCGGGAAT", name="a", moltype="dna", annotation_offset=2, annotation_db=db
+        )
+    if kind == "coll_slice":
+        coll = cogent3.make_unaligned_seqs(
+            {"a": "AAACCCGGGAAT"}, moltype="dna", annotation_db=db
+        )
+        return coll.seqs["a"][1:]
+    views = {
+        "slice": seq[1:],
+        "rc": seq.rc(),
+        "slice_rc": seq[1:].rc(),
+        "rc_slice": seq.rc()[1:],
+    }
+    return views[kind]
+
+
+@pytest.mark.parametrize(
+    "kind", ["slice", "offset", "rc", "slice_rc", "rc_slice", "coll_slice"]
+)
+def test_to_moltype_keeps_feature_positions(kind):
+    view = _annotated_view_for_moltype(kind)
+    got = view.to_moltype("rna")
+    expect = [str(f.get_slice()).replace("T", "U") for f in view.get_features(name="g")]
+    assert expect
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == expect
+    assert got.parent_coordinates() == view.parent_coordinates()
+
+
+def test_to_moltype_slice_to_text_keeps_features():
+    view = _annotated_view_for_moltype("slice")
+    got = view.to_moltype("text")
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == ["ACCC"]
+
+
+def test_to_moltype_rc_to_text_shows_rc():
+    got = _annotated_view_for_moltype("rc").to_moltype("text")
+    assert str(got) == "ATTCCCGGGTTT"
+    assert not got.has_annotation_db()
+
+
+@pytest.mark.parametrize(
+    ("make_view", "expect"),
+    [(lambda s: s[::2], "AACGGA"), (lambda s: s.rc()[::2], "ATCGGT")],
+)
+def test_to_moltype_stepped_slice_drops_annotations(make_view, expect):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(2, 6)])
+    got = make_view(seq).to_moltype("rna")
+    assert str(got) == expect.replace("T", "U")
+    assert not got.has_annotation_db()
+
+
+def test_to_moltype_collection_member_with_offset():
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(102, 106)])
+    coll = cogent3.make_unaligned_seqs(
+        {"a": "AAACCCGGGAAT"},
+        moltype="dna",
+        offset={"a": 100},
+        annotation_db=seq.annotation_db,
+    )
+    member = coll.seqs["a"]
+    got = member.to_moltype("rna")
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == ["ACCC"]
+    assert got.parent_coordinates() == member.parent_coordinates(apply_offset=True)
+
+
+def test_to_moltype_keeps_metadata_and_repr_policy():
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")[1:]
+    seq.metadata["x"] = 1
+    seq.set_repr_policy(num_pos=2)
+    got = seq.to_moltype("rna")
+    assert got.metadata["x"] == 1
+    assert got._repr_policy == seq._repr_policy
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")
