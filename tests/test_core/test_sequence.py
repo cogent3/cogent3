@@ -3930,6 +3930,14 @@ def test_to_moltype_keeps_metadata_and_repr_policy():
     assert got._repr_policy == seq._repr_policy
 
 
+@pytest.mark.parametrize("moltype", ["protein", "text", "bytes"])
+def test_reversed_seq_not_nucleic_prints_reversed(moltype):
+    seq = cogent3.make_seq("ACGT", name="t", moltype=moltype)
+    assert str(seq[::-1]) == "TGCA"
+    assert str(seq[1:3][::-1]) == "GC"
+    assert str(seq[::-2]) == "TC"
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")

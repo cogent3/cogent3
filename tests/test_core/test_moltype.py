@@ -77,6 +77,15 @@ def test_complement(name, seq, data_type):
     )
 
 
+@pytest.mark.parametrize("validate", [True, False])
+@pytest.mark.parametrize("name", ["protein", "text", "bytes"])
+def test_complement_array_not_nucleic(name, validate):
+    moltype = c3_moltype.get_moltype(name)
+    seq = moltype.most_degen_alphabet().to_indices("ACGT")
+    with pytest.raises(c3_moltype.MolTypeError):
+        moltype.complement(seq, validate=validate)
+
+
 def make_typed(seq, data_type, moltype):
     if data_type is numpy.ndarray:
         seq = moltype.most_degen_alphabet().to_indices(seq, validate=False)
