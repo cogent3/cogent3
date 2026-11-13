@@ -8167,3 +8167,59 @@ def test_write_warn_unsaved_metadata_is_keyword_only(mk_cls, tmp_path):
     coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
     with pytest.raises(TypeError):
         coll.write(tmp_path / "out.fasta", "fasta", True)
+
+
+_REV_DATA = {"t": "A-CTG", "u": "ACGTG"}
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text"])
+def test_reversed_not_nucleic_alignment_reads_reversed(moltype):
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype=moltype)[::-1]
+    expect = {"t": "GTC-A", "u": "GTGCA"}
+    assert aln.to_dict() == expect
+    assert str(aln.seqs["t"]) == "GTC-A"
+    assert str(aln.seqs["t"].gapped_seq) == "GTC-A"
+    assert str(aln.seqs["t"].seq) == "GTCA"
+    assert str(aln.get_gapped_seq("t")) == "GTC-A"
+    assert str(aln.get_seq("t")) == "GTCA"
+    assert aln.degap().to_dict() == {"t": "GTCA", "u": "GTGCA"}
+    assert aln.positions[3] == ["-", "C"]
+    assert deserialise_object(aln.to_json()).to_dict() == expect
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text"])
+@pytest.mark.parametrize(
+    ("index", "expect"),
+    [
+        (slice(None, None, -2), {"t": "GCA", "u": "GGA"}),
+        ((slice(1, 4), slice(None, None, -1)), {"t": "TC-", "u": "TGC"}),
+    ],
+)
+def test_reversed_not_nucleic_alignment_slices(moltype, index, expect):
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype=moltype)
+    for sl in index if isinstance(index, tuple) else (index,):
+        aln = aln[sl]
+    assert aln.to_dict() == expect
+    assert str(aln.seqs["t"]) == expect["t"]
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text"])
+def test_reversed_not_nucleic_aligned_slice(moltype):
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype=moltype)[::-1]
+    assert str(aln.seqs["t"][1:4]) == "TC-"
+
+
+def test_reversed_protein_alignment_protein_letters():
+    aln = c3_alignment.make_aligned_seqs(
+        {"t": "MK*-WY", "u": "MKLVWY"}, moltype="protein_with_stop"
+    )[::-1]
+    assert aln.to_dict() == {"t": "YW-*KM", "u": "YWVLKM"}
+    assert str(aln.get_seq("t")) == "YW*KM"
+
+
+def test_reversed_dna_alignment_is_reverse_complement():
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype="dna")[::-1]
+    assert aln.to_dict() == {"t": "CAG-T", "u": "CACGT"}
+    assert str(aln.seqs["t"]) == "CAG-T"
+    assert str(aln.seqs["t"].seq) == "CAGT"
+    assert aln.degap().to_dict() == {"t": "CAGT", "u": "CACGT"}
