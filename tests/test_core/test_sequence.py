@@ -3938,6 +3938,87 @@ def test_reversed_seq_not_nucleic_prints_reversed(moltype):
     assert str(seq[::-2]) == "TC"
 
 
+def _rebuild_view(kind, text="TTAAACCCGGG", spans=((5, 8),), strand="+"):
+    seq = cogent3.make_seq(text, name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=list(spans), strand=strand)
+    if kind == "offset":
+        return cogent3.make_seq(
+            text[2:],
+            name="a",
+            moltype="dna",
+            annotation_offset=2,
+            annotation_db=seq.annotation_db,
+        )
+    if kind == "coll_slice":
+        coll = cogent3.make_unaligned_seqs(
+            {"a": text}, moltype="dna", annotation_db=seq.annotation_db
+        )
+        return coll.seqs["a"][2:]
+    views = {"slice": seq[2:], "rc": seq.rc(), "slice_rc": seq[2:].rc()}
+    return views[kind]
+
+
+def _feature_text(seq):
+    return [str(f.get_slice()) for f in seq.get_features(name="g")]
+
+
+_REBUILDERS = {
+    "degap": lambda s: s.degap(),
+    "parse_out_gaps": lambda s: s.parse_out_gaps()[1],
+    "with_masked_annotations": lambda s: s.with_masked_annotations("gene"),
+}
+
+
+@pytest.mark.parametrize("method", list(_REBUILDERS))
+@pytest.mark.parametrize("kind", ["slice", "offset", "rc", "slice_rc"])
+def test_rebuilt_seq_keeps_features(kind, method):
+    view = _rebuild_view(kind)
+    got = _REBUILDERS[method](view)
+    before = _feature_text(view)
+    expect = ["???"] if method == "with_masked_annotations" else before
+    assert before == ["CCC"]
+    assert _feature_text(got) == expect
+    assert got.parent_coordinates() == view.parent_coordinates()
+
+
+@pytest.mark.parametrize("method", ["degap", "with_masked_annotations"])
+@pytest.mark.parametrize("kind", ["slice", "slice_rc"])
+def test_rebuilt_seq_keeps_minus_strand_features(kind, method):
+    view = _rebuild_view(kind, strand="-")
+    got = _REBUILDERS[method](view)
+    expect = ["???"] if method == "with_masked_annotations" else ["GGG"]
+    assert _feature_text(view) == ["GGG"]
+    assert _feature_text(got) == expect
+
+
+def test_rebuilt_collection_member_keeps_features():
+    view = _rebuild_view("coll_slice")
+    assert _feature_text(view.degap()) == _feature_text(view) == ["CCC"]
+
+
+@pytest.mark.parametrize(
+    ("kind", "text", "spans", "strand"),
+    [
+        ("slice", "TTAAACCCGGGTAA---", [(5, 8)], "+"),
+        ("rc", "---TTACCCGGGTTT", [(9, 12)], "-"),
+    ],
+)
+def test_trim_stop_codon_gapped_keeps_features(kind, text, spans, strand):
+    view = _rebuild_view(kind, text=text, spans=spans, strand=strand)
+    assert str(view) == "AAACCCGGGTAA---"
+    got = view.trim_stop_codon()
+    assert str(got) == "AAACCCGGG------"
+    assert _feature_text(got) == _feature_text(view) == ["CCC"]
+
+
+def test_rebuilt_stepped_slice_drops_annotations():
+    seq = cogent3.make_seq("TTAAACCCGGG", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(5, 8)])
+    got = seq[::2].degap()
+    assert str(got) == "TAACGG"
+    assert not got.has_annotation_db()
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_failed_construction_del_is_silent():
     dna = c3_moltype.get_moltype("dna")
