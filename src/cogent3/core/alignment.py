@@ -1213,6 +1213,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """
         assign_names = _SeqNamer()
         named_seqs = _make_name_seq_mapping(seqs, assign_names)
+        unique = kwargs.get("force_unique_keys", True)
+        if unique and not self._name_map.keys().isdisjoint(named_seqs):
+            msg = "One or more sequence names already exist in collection"
+            raise ValueError(msg)
         name_map = make_name_map(named_seqs)
         data, offsets, _ = prep_for_seqs_data(
             named_seqs,
@@ -5730,15 +5734,14 @@ def make_name_map(
 
     Returns
     -------
-        empty dict if names and parent names are always equal
+        a map for every name if any name differs from its parent name,
+        otherwise an empty dict
     """
-    name_map: dict[str, str] = {}
-    for name, record in data.items():
-        new_name, parent_name = _seqname_parent_name(record, name=name)
-        if new_name == parent_name:
-            continue
-        name_map[new_name] = parent_name
-
+    name_map = dict(
+        _seqname_parent_name(record, name=name) for name, record in data.items()
+    )
+    if all(name == parent_name for name, parent_name in name_map.items()):
+        return {}
     return name_map
 
 

@@ -738,6 +738,92 @@ def test_add_seqs_duplicate_names_raise():
         coll.add_seqs([_SEQ_A1, _SEQ_A2])
 
 
+def _a_to_z(name):
+    return name.replace("a", "z")
+
+
+_SEQ_A = c3_moltype.DNA.make_seq(seq="ACGT", name="a")
+_SEQ_B = c3_moltype.DNA.make_seq(seq="GGCC", name="b")
+_ALN_AB = c3_alignment.make_aligned_seqs({"a": "AC-T", "b": "GGCC"}, moltype="dna")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("data", "label_to_name", "expect"),
+    [
+        ({"z": _SEQ_A, "b": _SEQ_B}, None, {"z": "ACGT", "b": "GGCC"}),
+        ([_SEQ_A, _SEQ_B], _a_to_z, {"z": "ACGT", "b": "GGCC"}),
+        (
+            {"z": _ALN_AB.seqs["a"], "b": _ALN_AB.seqs["b"]},
+            None,
+            {"z": "AC-T", "b": "GGCC"},
+        ),
+    ],
+)
+def test_make_seqs_renaming_one_keeps_others(mk_cls, data, label_to_name, expect):
+    """sequences that keep their names stay when another is renamed"""
+    got = mk_cls(data, moltype="dna", label_to_name=label_to_name)
+    assert got.names == ("z", "b")
+    assert got.to_dict() == expect
+
+
+def test_add_seqs_renaming_one_keeps_others():
+    coll = c3_alignment.make_unaligned_seqs({"b": "GGCC"}, moltype="dna")
+    got = coll.add_seqs({"z": _SEQ_A, "c": "CCCC"})
+    assert got.names == ("b", "z", "c")
+    assert got.to_dict() == {"b": "GGCC", "z": "ACGT", "c": "CCCC"}
+
+
+def test_add_seqs_to_renamed_keeps_all():
+    coll = c3_alignment.make_unaligned_seqs({"z": _SEQ_A}, moltype="dna")
+    got = coll.add_seqs({"b": "GGCC", "c": "CCCC"})
+    assert got.names == ("z", "b", "c")
+    assert got.to_dict() == {"z": "ACGT", "b": "GGCC", "c": "CCCC"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("renamer", "new_seqs"),
+    [
+        (None, {"a": c3_moltype.DNA.make_seq(seq="GGGG", name="q")}),
+        (str.upper, {"A": "GGGG"}),
+    ],
+)
+def test_add_seqs_existing_name_raises(mk_cls, renamer, new_seqs):
+    """a new sequence under a name already in the collection raises"""
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    if renamer:
+        coll = coll.renamed_seqs(renamer)
+    with pytest.raises(ValueError, match="already exist"):
+        coll.add_seqs(new_seqs)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_add_seqs_existing_name_replaced_when_not_unique(mk_cls):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    new_seq = c3_moltype.DNA.make_seq(seq="GGGG", name="q")
+    got = coll.add_seqs({"a": new_seq}, force_unique_keys=False)
+    assert got.to_dict() == {"a": "GGGG", "b": "CCCC"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_make_seqs_rename_onto_existing_name_raises(mk_cls):
+    with pytest.raises(ValueError, match="Not all derived names"):
+        mk_cls({"z": _SEQ_A, "a": "CCCC"}, moltype="dna")
+
+
 @pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
 def test_load_seqs_repeated_label_raises(tmp_path, loader):
     path = tmp_path / "dup.fasta"
