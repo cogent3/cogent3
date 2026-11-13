@@ -200,6 +200,7 @@ def _load_files_to_unaligned_seqs(
         moltype=moltype,
         source=path,
         metadata=metadata,
+        **kwargs,
     )
 
 
@@ -394,9 +395,9 @@ def load_unaligned_seqs(
         values for the collection's metadata, which are copied. Ignored for
         json files
     **kwargs
-        other keyword arguments passed to SequenceCollection, or show_progress.
-        The latter induces a progress bar for number of files processed when
-        filename is a glob pattern.
+        other keyword arguments passed to make_unaligned_seqs. When filename
+        is a glob pattern, show_progress is also accepted and displays a
+        progress bar for the number of files processed.
 
     Notes
     -----

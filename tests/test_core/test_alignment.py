@@ -7148,6 +7148,24 @@ def test_load_unaligned_glob_metadata_argument(DATA_DIR):
     assert got.metadata["k"] == 1
 
 
+@pytest.fixture
+def two_fasta_files(tmp_path):
+    (tmp_path / "a.fasta").write_text(">a\nACGT\n")
+    (tmp_path / "b.fasta").write_text(">b\nACGG\n")
+    return tmp_path / "*.fasta"
+
+
+def test_load_unaligned_glob_passes_kwargs(two_fasta_files):
+    got = load_unaligned_seqs(two_fasta_files, moltype="dna", is_reversed=True)
+    assert got._is_reversed
+    assert got.to_dict() == {"a": "ACGT", "b": "CCGT"}
+
+
+def test_load_unaligned_glob_rejects_unknown_kwarg(two_fasta_files):
+    with pytest.raises(TypeError, match="no_such_arg"):
+        load_unaligned_seqs(two_fasta_files, moltype="dna", no_such_arg=1)
+
+
 def test_load_seq_metadata_argument(DATA_DIR):
     path = DATA_DIR / "brca1.fasta"
     metadata = {"k": 1}
