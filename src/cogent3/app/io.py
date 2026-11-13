@@ -311,12 +311,15 @@ def _load_seqs(
     parser: "SequenceParserBase",
     moltype: c3_moltype.MolType | None = None,
 ) -> SeqsCollectionType:
-    if not parser.result_is_storage:
-        data = _read_it(path)
-        data = data.splitlines()
-        data = dict(iter(parser.loader(data)))
+    source = _file_path(path)
+    if parser.result_is_storage:
+        data = parser.loader(source)
+    elif isinstance(source, str | os.PathLike):
+        data = dict(iter(parser.loader(Path(source).expanduser())))
     else:
-        data = parser.loader(_file_path(path))
+        # only some readers accept lines, but members of zipped or sqlite
+        # stores have no file path
+        data = dict(iter(parser.loader(_read_it(source).splitlines())))
     return coll_maker(data, moltype=moltype, source=_path_name(path))
 
 
