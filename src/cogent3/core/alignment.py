@@ -5838,11 +5838,12 @@ def prep_for_seqs_data(
     for name, seq in data.items():
         name = seq_namer(seq=seq, name=name)
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
+        storage_name = cast("str", seq_data.parent_name or seq_data.name)
         if seq_data.offset:
-            offsets[seq_data.parent_name or name] = seq_data.offset
-        seqs[cast("str", seq_data.parent_name or seq_data.name)] = seq_data.seq
+            offsets[storage_name] = seq_data.offset
+        seqs[storage_name] = seq_data.seq
         if seq_data.is_reversed:
-            rvd.add(name)
+            rvd.add(storage_name)
 
     if len(data) != len(seqs):
         msg = "Not all derived names for storage unique"

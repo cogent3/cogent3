@@ -639,6 +639,33 @@ def test_make_seqs_label_to_name_applied_once(mk_cls, data):
     assert list(got.names) == ["a_x", "b_x"]
 
 
+def _rc_annotated_input(naming):
+    a = c3_moltype.DNA.make_seq(seq="ACGTTGCA", name="a")
+    b = c3_moltype.DNA.make_seq(seq="ACGGACGG", name="b")
+    a.add_feature(biotype="exon", name="e1", spans=[(1, 4)])
+    if naming == "dict_key":
+        return {"z": a.rc(), "y": b}, {}
+    label_to_name = _add_x if naming == "label_to_name" else None
+    return [a.rc(), b], {"label_to_name": label_to_name}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize("naming", ["unchanged", "label_to_name", "dict_key"])
+@pytest.mark.parametrize("flip_collection", [False, True])
+def test_make_seqs_renamed_rc_seq_keeps_strand(mk_cls, naming, flip_collection):
+    """a reverse complemented Sequence keeps its strand when renamed"""
+    data, kwargs = _rc_annotated_input(naming)
+    coll = mk_cls(data, moltype="dna", **kwargs)
+    if flip_collection:
+        coll = coll.rc()
+    seq = coll.get_seq(coll.names[0])
+    assert seq.parent_coordinates()[-1] == (1 if flip_collection else -1)
+    assert [str(f.get_slice()) for f in seq.get_features(name="e1")] == ["CGT"]
+
+
 @pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
 def test_load_seqs_label_to_name_applied_once(DATA_DIR, loader):
     got = loader(DATA_DIR / "brca1.fasta", moltype="dna", label_to_name=_add_x)
