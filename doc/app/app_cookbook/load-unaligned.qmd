@@ -1,7 +1,9 @@
 ---
 title: "Loading unaligned sequence data"
 ---
-We can load unaligned sequence data using the `load_unaligned` app, this will return a `SequenceCollection`. 
+We can load unaligned sequence data using the `load_unaligned` app, this will return a `SequenceCollection`.
+
+If you do not provide `format_name`, the format is chosen from each file's suffix, so a `.fasta` file is read as fasta and a `.phylip` file as phylip. A file whose suffix does not identify its format, such as `.txt` or no suffix at all, cannot be loaded unless you provide `format_name`.
 
 ## Loading unaligned DNA sequences from a single fasta file
 

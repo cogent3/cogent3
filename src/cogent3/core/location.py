@@ -1567,6 +1567,7 @@ class IndelMap(MapABC):
 
     @classmethod
     def from_rich_dict(cls, map_element: dict[str, Any]) -> IndelMap:
+        map_element = dict(map_element)
         map_element.pop("version", None)
         type_ = map_element.pop("type", None)
         assert get_class(type_) == cls
@@ -2142,11 +2143,13 @@ class FeatureMap(MapABC):
     def from_rich_dict(cls, map_element: dict[str, Any]) -> FeatureMap:
         from scinexus.deserialise import get_class
 
+        map_element = dict(map_element)
         map_element.pop("version", None)
         type_ = map_element.pop("type")
         assert get_class(type_) == cls
         spans: list[SpanTypes] = []
         for element in map_element.pop("spans"):
+            element = dict(element)
             element.pop("version", None)
             klass = get_class(element.pop("type"))
             instance = klass(**element)
@@ -2310,6 +2313,7 @@ def _(index: FeatureMap, length: int) -> tuple[int, int, int | None]:
 
 
 def deserialise_map_spans(map_element: dict[str, Any]) -> MapABC:
+    map_element = dict(map_element)
     map_element.pop("version", None)
     type_ = map_element.pop("type")
     if type_.endswith(".Map"):
@@ -2321,6 +2325,7 @@ def deserialise_map_spans(map_element: dict[str, Any]) -> MapABC:
     map_klass = get_class(type_)
     spans: list[SpanTypes] = []
     for element in map_element["spans"]:
+        element = dict(element)
         element.pop("version", None)
         klass = get_class(element.pop("type"))
         instance = klass(**element)

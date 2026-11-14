@@ -3565,6 +3565,49 @@ def test_from_rich_dict_prefers_metadata_to_info():
     assert got.metadata.to_dict() == {"m": 2}
 
 
+def _seq_rich_dict():
+    seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"k": [1]})
+    return seq.to_rich_dict()
+
+
+def _annotated_seq_rich_dict():
+    seq = cogent3.make_seq("ACGTACGT", name="s", moltype="dna")
+    seq.add_feature(biotype="exon", name="e1", spans=[(0, 4)])
+    return seq.to_rich_dict(exclude_annotations=False)
+
+
+def _legacy_info_seq_rich_dict():
+    data = _seq_rich_dict()
+    data["info"] = data.pop("metadata")
+    return data
+
+
+def _old_type_seq_rich_dict():
+    data = _seq_rich_dict()
+    data["seq"] = {"init_args": {"seq": data["seq"]}}
+    return data
+
+
+@pytest.mark.parametrize(
+    "make_data",
+    [
+        _seq_rich_dict,
+        _annotated_seq_rich_dict,
+        _legacy_info_seq_rich_dict,
+        _old_type_seq_rich_dict,
+    ],
+)
+def test_from_rich_dict_leaves_input_unchanged(make_data):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
+    first.metadata["added"] = 1
+    assert data == expected
+
+
 def test_pickle_keeps_metadata():
     seq = cogent3.make_seq("ACGT", name="s", moltype="dna", metadata={"p": {"m": 1}})
     got = pickle.loads(pickle.dumps(seq))  # noqa: S301
@@ -3594,6 +3637,386 @@ def test_old_pickle_state_with_info_slot():
     assert str(old) == "ACGT"
     assert old.name == "s"
     assert old.metadata.to_dict() == {"k": 1}
+
+
+def _renamed_annotated_seq():
+    seq = cogent3.make_seq("ACG-TACGTTAA", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    seq.name = "b"
+    return seq
+
+
+def test_renamed_seq_add_feature_uses_original_name():
+    seq = _renamed_annotated_seq()
+    feature = seq.add_feature(biotype="gene", name="h", spans=[(4, 6)])
+    assert feature.seqid == "a"
+    got = list(seq.get_features(name="h"))
+    assert [f.seqid for f in got] == ["a"]
+
+
+def test_renamed_seq_features_report_original_name():
+    seq = _renamed_annotated_seq()
+    assert [f.seqid for f in seq.get_features(name="g")] == ["a"]
+
+
+def test_renamed_seq_copy_annotations_uses_original_name():
+    other = cogent3.make_seq("ACG-TACGTTAA", name="a", moltype="dna")
+    other.add_feature(biotype="gene", name="h", spans=[(4, 6)])
+    seq = cogent3.make_seq("ACG-TACGTTAA", name="a", moltype="dna")
+    seq.name = "b"
+    seq.copy_annotations(other.annotation_db)
+    assert len(list(seq.get_features(name="h"))) == 1
+
+
+@pytest.mark.parametrize(
+    "method",
+    [
+        "degap",
+        "with_masked_annotations",
+        "parse_out_gaps",
+        "trim_stop_codon",
+        "to_moltype",
+    ],
+)
+def test_renamed_seq_methods_keep_original_name(method):
+    seq = _renamed_annotated_seq()
+    args = {"with_masked_annotations": ("gene",), "to_moltype": ("rna",)}
+    got = getattr(seq, method)(*args.get(method, ()))
+    if method == "parse_out_gaps":
+        got = got[1]
+    assert got.name == "b"
+    assert got.parent_coordinates()[0] == "a"
+    assert [f.seqid for f in got.get_features(name="g")] == ["a"]
+    if method == "with_masked_annotations":
+        assert str(got).startswith("???")
+
+
+@pytest.mark.parametrize("name", [None, "x"])
+def test_seq_created_without_name_cannot_add_features(name):
+    seq = cogent3.make_seq("ACGTACGTACGT", moltype="dna")
+    seq.name = name
+    with pytest.raises(ValueError, match="created without a name"):
+        seq.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    with pytest.raises(ValueError, match="created without a name"):
+        seq.annotate_matches_to("ACG", biotype="motif", name="m")
+    other = cogent3.make_seq("ACGTACGTACGT", name="o", moltype="dna")
+    other.add_feature(biotype="gene", name="h", spans=[(0, 3)])
+    with pytest.raises(ValueError, match="created without a name"):
+        seq.copy_annotations(other.annotation_db)
+
+
+def test_seq_created_without_name_finds_no_features():
+    other = cogent3.make_seq("ACGTACGTACGT", name="o", moltype="dna")
+    other.add_feature(biotype="gene", name="h", spans=[(0, 3)])
+    seq = cogent3.make_seq("ACGTACGTACGT", moltype="dna")
+    seq.annotation_db = other.annotation_db
+    assert list(seq.get_features()) == []
+    assert not seq.is_annotated()
+
+
+def _top_level_make_seq(seq, name, moltype):
+    return cogent3.make_seq(seq, name=name, moltype=moltype)
+
+
+def _moltype_make_seq(seq, name, moltype):
+    return c3_moltype.get_moltype(moltype).make_seq(seq=seq, name=name)
+
+
+_make_seq_funcs = pytest.mark.parametrize(
+    "make_seq", [_top_level_make_seq, _moltype_make_seq]
+)
+
+
+@_make_seq_funcs
+def test_make_seq_names_unnamed_seq(make_seq):
+    orig = cogent3.make_seq("ACGTACGT", moltype="dna")
+    got = make_seq(orig, "w", "dna")
+    assert got is not orig
+    assert got.name == "w"
+    assert orig.name is None
+    got.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    assert [f.seqid for f in got.get_features(name="g")] == ["w"]
+
+
+@_make_seq_funcs
+def test_make_seq_renames_named_seq(make_seq):
+    orig = cogent3.make_seq("ACGTACGT", name="orig", moltype="dna")
+    orig.add_feature(biotype="gene", name="g", spans=[(0, 3)])
+    got = make_seq(orig, "w", "dna")
+    assert got is not orig
+    assert got.name == "w"
+    assert orig.name == "orig"
+    assert [f.seqid for f in got.get_features(name="g")] == ["orig"]
+
+
+@_make_seq_funcs
+@pytest.mark.parametrize("orig_name", [None, "orig"])
+def test_make_seq_names_seq_of_other_moltype(make_seq, orig_name):
+    orig = cogent3.make_seq("ACGTACGT", name=orig_name, moltype="dna")
+    got = make_seq(orig, "w", "rna")
+    assert got.name == "w"
+    assert str(got) == "ACGUACGU"
+
+
+@_make_seq_funcs
+def test_make_seq_names_unnamed_reversed_slice(make_seq):
+    orig = cogent3.make_seq("AACCGGTTAC", moltype="dna").rc()[2:6]
+    got = make_seq(orig, "w", "dna")
+    assert got.name == "w"
+    assert str(got) == str(orig)
+
+
+@_make_seq_funcs
+def test_make_seq_renames_named_reversed_slice(make_seq):
+    orig = cogent3.make_seq("AAACCCGGGTTTAC", name="orig", moltype="dna")
+    orig.add_feature(biotype="gene", name="g", spans=[(5, 11)])
+    orig = orig[2:12].rc()
+    got = make_seq(orig, "w", "dna")
+    assert got.name == "w"
+    assert str(got) == str(orig)
+    expect = [str(f.get_slice()) for f in orig.get_features(name="g")]
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == expect
+
+
+@_make_seq_funcs
+@pytest.mark.parametrize("orig_name", [None, "orig"])
+def test_make_seq_rename_keeps_annotation_offset(make_seq, orig_name):
+    orig = cogent3.make_seq(
+        "ACGTACGTAC", name=orig_name, moltype="dna", annotation_offset=5
+    )
+    got = make_seq(orig, "w", "dna")
+    assert got.annotation_offset == 5
+
+
+@_make_seq_funcs
+@pytest.mark.parametrize("name", [None, "orig"])
+def test_make_seq_same_name_and_moltype_returns_input(make_seq, name):
+    orig = cogent3.make_seq("ACGTACGT", name="orig", moltype="dna")
+    assert make_seq(orig, name, "dna") is orig
+
+
+def _annotatable_view(kind):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    views = {
+        "slice": seq[2:10],
+        "offset": cogent3.make_seq(
+            "AAACCCGGGAAT", name="a", moltype="dna", annotation_offset=5
+        ),
+        "slice_rc": seq[2:10].rc(),
+        "rc_slice": seq.rc()[2:10],
+    }
+    return views[kind]
+
+
+@pytest.mark.parametrize("kind", ["slice", "offset", "slice_rc", "rc_slice"])
+@pytest.mark.parametrize("strand", ["+", "-"])
+def test_add_feature_on_view_is_found(kind, strand):
+    view = _annotatable_view(kind)
+    added = view.add_feature(biotype="gene", name="g", spans=[(1, 4)], strand=strand)
+    got = [str(f.get_slice()) for f in view.get_features(name="g")]
+    assert got == [str(added.get_slice())]
+
+
+def test_annotate_matches_on_slice_finds_match():
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    sub = seq[2:12]
+    sub.annotate_matches_to("GGG", biotype="gene", name="g")
+    assert [str(f.get_slice()) for f in sub.get_features(name="g")] == ["GGG"]
+
+
+@pytest.mark.parametrize(
+    "make_view",
+    [lambda s: s[2:10], lambda s: s[2:10].rc(), lambda s: s.rc()[2:10]],
+)
+def test_add_feature_on_slice_found_by_parent(make_view):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    db = seq.annotation_db
+    sub = make_view(seq)
+    assert sub.annotation_db is db
+    sub.add_feature(biotype="gene", name="g", spans=[(1, 4)])
+    got = [str(f.get_slice()) for f in seq.get_features(name="g")]
+    assert got == [str(seq[3:6])]
+
+
+@pytest.mark.parametrize(
+    "make_view",
+    [lambda s: s[::2], lambda s: s[::-2], lambda s: s[::2].rc(), lambda s: s[::3][::2]],
+)
+def test_add_feature_on_stepped_slice_raises(make_view):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    with pytest.raises(ValueError, match="step other than 1 or -1"):
+        make_view(seq).add_feature(biotype="gene", name="g", spans=[(0, 1)])
+
+
+def _annotated_view_for_moltype(kind):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(2, 6)])
+    db = seq.annotation_db
+    if kind == "offset":
+        return cogent3.make_seq(
+            "ACCCGGGAAT", name="a", moltype="dna", annotation_offset=2, annotation_db=db
+        )
+    if kind == "coll_slice":
+        coll = cogent3.make_unaligned_seqs(
+            {"a": "AAACCCGGGAAT"}, moltype="dna", annotation_db=db
+        )
+        return coll.seqs["a"][1:]
+    views = {
+        "slice": seq[1:],
+        "rc": seq.rc(),
+        "slice_rc": seq[1:].rc(),
+        "rc_slice": seq.rc()[1:],
+    }
+    return views[kind]
+
+
+@pytest.mark.parametrize(
+    "kind", ["slice", "offset", "rc", "slice_rc", "rc_slice", "coll_slice"]
+)
+def test_to_moltype_keeps_feature_positions(kind):
+    view = _annotated_view_for_moltype(kind)
+    got = view.to_moltype("rna")
+    expect = [str(f.get_slice()).replace("T", "U") for f in view.get_features(name="g")]
+    assert expect
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == expect
+    assert got.parent_coordinates() == view.parent_coordinates()
+
+
+def test_to_moltype_slice_to_text_keeps_features():
+    view = _annotated_view_for_moltype("slice")
+    got = view.to_moltype("text")
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == ["ACCC"]
+
+
+def test_to_moltype_rc_to_text_shows_rc():
+    got = _annotated_view_for_moltype("rc").to_moltype("text")
+    assert str(got) == "ATTCCCGGGTTT"
+    assert not got.has_annotation_db()
+
+
+@pytest.mark.parametrize(
+    ("make_view", "expect"),
+    [(lambda s: s[::2], "AACGGA"), (lambda s: s.rc()[::2], "ATCGGT")],
+)
+def test_to_moltype_stepped_slice_drops_annotations(make_view, expect):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(2, 6)])
+    got = make_view(seq).to_moltype("rna")
+    assert str(got) == expect.replace("T", "U")
+    assert not got.has_annotation_db()
+
+
+def test_to_moltype_collection_member_with_offset():
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(102, 106)])
+    coll = cogent3.make_unaligned_seqs(
+        {"a": "AAACCCGGGAAT"},
+        moltype="dna",
+        offset={"a": 100},
+        annotation_db=seq.annotation_db,
+    )
+    member = coll.seqs["a"]
+    got = member.to_moltype("rna")
+    assert [str(f.get_slice()) for f in got.get_features(name="g")] == ["ACCC"]
+    assert got.parent_coordinates() == member.parent_coordinates(apply_offset=True)
+
+
+def test_to_moltype_keeps_metadata_and_repr_policy():
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")[1:]
+    seq.metadata["x"] = 1
+    seq.set_repr_policy(num_pos=2)
+    got = seq.to_moltype("rna")
+    assert got.metadata["x"] == 1
+    assert got._repr_policy == seq._repr_policy
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text", "bytes"])
+def test_reversed_seq_not_nucleic_prints_reversed(moltype):
+    seq = cogent3.make_seq("ACGT", name="t", moltype=moltype)
+    assert str(seq[::-1]) == "TGCA"
+    assert str(seq[1:3][::-1]) == "GC"
+    assert str(seq[::-2]) == "TC"
+
+
+def _rebuild_view(kind, text="TTAAACCCGGG", spans=((5, 8),), strand="+"):
+    seq = cogent3.make_seq(text, name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=list(spans), strand=strand)
+    if kind == "offset":
+        return cogent3.make_seq(
+            text[2:],
+            name="a",
+            moltype="dna",
+            annotation_offset=2,
+            annotation_db=seq.annotation_db,
+        )
+    if kind == "coll_slice":
+        coll = cogent3.make_unaligned_seqs(
+            {"a": text}, moltype="dna", annotation_db=seq.annotation_db
+        )
+        return coll.seqs["a"][2:]
+    views = {"slice": seq[2:], "rc": seq.rc(), "slice_rc": seq[2:].rc()}
+    return views[kind]
+
+
+def _feature_text(seq):
+    return [str(f.get_slice()) for f in seq.get_features(name="g")]
+
+
+_REBUILDERS = {
+    "degap": lambda s: s.degap(),
+    "parse_out_gaps": lambda s: s.parse_out_gaps()[1],
+    "with_masked_annotations": lambda s: s.with_masked_annotations("gene"),
+}
+
+
+@pytest.mark.parametrize("method", list(_REBUILDERS))
+@pytest.mark.parametrize("kind", ["slice", "offset", "rc", "slice_rc"])
+def test_rebuilt_seq_keeps_features(kind, method):
+    view = _rebuild_view(kind)
+    got = _REBUILDERS[method](view)
+    before = _feature_text(view)
+    expect = ["???"] if method == "with_masked_annotations" else before
+    assert before == ["CCC"]
+    assert _feature_text(got) == expect
+    assert got.parent_coordinates() == view.parent_coordinates()
+
+
+@pytest.mark.parametrize("method", ["degap", "with_masked_annotations"])
+@pytest.mark.parametrize("kind", ["slice", "slice_rc"])
+def test_rebuilt_seq_keeps_minus_strand_features(kind, method):
+    view = _rebuild_view(kind, strand="-")
+    got = _REBUILDERS[method](view)
+    expect = ["???"] if method == "with_masked_annotations" else ["GGG"]
+    assert _feature_text(view) == ["GGG"]
+    assert _feature_text(got) == expect
+
+
+def test_rebuilt_collection_member_keeps_features():
+    view = _rebuild_view("coll_slice")
+    assert _feature_text(view.degap()) == _feature_text(view) == ["CCC"]
+
+
+@pytest.mark.parametrize(
+    ("kind", "text", "spans", "strand"),
+    [
+        ("slice", "TTAAACCCGGGTAA---", [(5, 8)], "+"),
+        ("rc", "---TTACCCGGGTTT", [(9, 12)], "-"),
+    ],
+)
+def test_trim_stop_codon_gapped_keeps_features(kind, text, spans, strand):
+    view = _rebuild_view(kind, text=text, spans=spans, strand=strand)
+    assert str(view) == "AAACCCGGGTAA---"
+    got = view.trim_stop_codon()
+    assert str(got) == "AAACCCGGG------"
+    assert _feature_text(got) == _feature_text(view) == ["CCC"]
+
+
+def test_rebuilt_stepped_slice_drops_annotations():
+    seq = cogent3.make_seq("TTAAACCCGGG", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(5, 8)])
+    got = seq[::2].degap()
+    assert str(got) == "TAACGG"
+    assert not got.has_annotation_db()
 
 
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")

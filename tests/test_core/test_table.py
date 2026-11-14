@@ -13,6 +13,7 @@ import pytest
 from numpy import arange
 from numpy.exceptions import ComplexWarning
 from numpy.testing import assert_equal
+from scinexus.deserialise import deserialise_object
 from scinexus.misc import get_object_provenance
 
 from cogent3 import load_table, make_table, open_
@@ -2646,6 +2647,45 @@ def test_empty_to_rich_dict_roundtrip():
     got = pickle.loads(pickle.dumps(t))  # noqa: S301
     assert got.shape == (0, 2)
     assert list(got.header) == ["a", "b"]
+
+
+def _via_rich_dict(table):
+    return deserialise_object(table.to_rich_dict())
+
+
+def _via_json(table):
+    return deserialise_object(table.to_json())
+
+
+def _via_pickle(table):
+    return pickle.loads(pickle.dumps(table))  # noqa: S301
+
+
+@pytest.mark.parametrize("roundtrip", [_via_rich_dict, _via_json, _via_pickle])
+def test_roundtrip_keeps_str_column_width(roundtrip):
+    """text columns keep their width through a roundtrip"""
+    t = make_table(header=["foo"], rows=[["abc"], ["bca"]])
+    got = roundtrip(t)
+    assert got.columns["foo"].dtype == numpy.dtype("U3")
+    assert got.columns["foo"].tolist() == ["abc", "bca"]
+
+
+@pytest.mark.parametrize("roundtrip", [_via_rich_dict, _via_pickle])
+def test_roundtrip_bytes_column(roundtrip):
+    """byte-string columns survive a roundtrip"""
+    t = make_table(data={"foo": numpy.array([b"abc", b"bca"])})
+    got = roundtrip(t)
+    assert got.columns["foo"].dtype == numpy.dtype("S3")
+    assert got.columns["foo"].tolist() == [b"abc", b"bca"]
+
+
+def test_load_old_wide_str_column_does_not_grow():
+    """an over-wide saved text column keeps its width when saved again"""
+    rd = make_table(header=["foo"], rows=[["abc"], ["bca"]]).to_rich_dict()
+    rd["data"]["columns"]["foo"]["dtype"] = "U96"
+    got = deserialise_object(rd)
+    assert got.columns["foo"].dtype == numpy.dtype("U96")
+    assert got.to_rich_dict()["data"]["columns"]["foo"]["dtype"] == "U96"
 
 
 @pytest.mark.skipif(DataFrame is None, reason="pandas not installed")

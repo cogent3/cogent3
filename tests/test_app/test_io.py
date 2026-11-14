@@ -175,6 +175,183 @@ def test_load_aligned(DATA_DIR, suffix):
     assert all(r.__class__.__name__.endswith("Alignment") for r in results)
 
 
+@pytest.mark.parametrize("format_name", ["c3h5a", "c3h5s"])
+def test_load_aligned_h5seqs(tmp_path, format_name):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "AC-GT", "b": "ACGGT"}
+    path = tmp_path / f"demo.{format_name}"
+    cogent3.make_aligned_seqs(data, moltype="dna").write(path)
+    loader = get_app("load_aligned", moltype="dna", format_name=format_name)
+    got = loader(str(path))
+    assert got.to_dict() == data
+
+
+@pytest.mark.parametrize(
+    ("app_name", "maker", "format_name"),
+    [
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5a"),
+        ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
+    ],
+)
+def test_load_h5seqs_from_data_store(tmp_path, app_name, maker, format_name):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "ACGT", "b": "ACGG"}
+    maker(data, moltype="dna").write(tmp_path / f"demo.{format_name}")
+    member = DataStoreDirectory(tmp_path, suffix=format_name)[0]
+    loader = get_app(app_name, moltype="dna", format_name=format_name)
+    got = loader(member)
+    assert got.to_dict() == data
+    assert got.source == member.unique_id
+
+
+@pytest.mark.parametrize(
+    ("app_name", "maker", "suffix"),
+    [
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5a"),
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5s"),
+        ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
+    ],
+)
+def test_load_h5seqs_format_from_suffix(tmp_path, app_name, maker, suffix):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "ACGT", "b": "ACGG"}
+    maker(data, moltype="dna").write(tmp_path / f"demo.{suffix}")
+    loader = get_app(app_name, moltype="dna")
+    path = str(tmp_path / f"demo.{suffix}")
+    got = loader(path)
+    assert got.to_dict() == data
+    assert got.source == path
+    member = DataStoreDirectory(tmp_path, suffix=suffix)[0]
+    got = loader(member)
+    assert got.to_dict() == data
+    assert got.source == member.unique_id
+
+
+@pytest.mark.parametrize("app_name", ["load_aligned", "load_unaligned"])
+@pytest.mark.parametrize("suffix", ["txt", ""])
+def test_load_unknown_suffix_needs_format_name(tmp_path, app_name, suffix):
+    path = tmp_path / f"demo.{suffix}".rstrip(".")
+    path.write_text(">a\nACGT\n>b\nACGG\n")
+    got = get_app(app_name, moltype="dna")(path)
+    assert isinstance(got, NotCompleted)
+    assert "Unknown parser" in got.message
+    got = get_app(app_name, moltype="dna", format_name="fasta")(path)
+    assert got.to_dict() == {"a": "ACGT", "b": "ACGG"}
+
+
+_GB_MSF = [("annotated_seq.gb", "dna"), ("formattest.msf", "protein")]
+_LOADERS = [
+    ("load_aligned", cogent3.load_aligned_seqs),
+    ("load_unaligned", cogent3.load_unaligned_seqs),
+]
+
+
+def _expected_seqs(load_func, path, moltype):
+    seqs = load_func(path, moltype=moltype)
+    if load_func is cogent3.load_unaligned_seqs:
+        seqs = seqs.degap()
+    return seqs.to_dict()
+
+
+@pytest.mark.parametrize(("app_name", "load_func"), _LOADERS)
+@pytest.mark.parametrize(("filename", "moltype"), _GB_MSF)
+@pytest.mark.parametrize("input_kind", ["str", "path", "member"])
+def test_load_gb_msf_from_suffix(
+    DATA_DIR, tmp_path, app_name, load_func, filename, moltype, input_kind
+):
+    """loader apps read genbank and msf files chosen by suffix"""
+    path = tmp_path / filename
+    shutil.copy(DATA_DIR / filename, path)
+    inputs = {
+        "str": str(path),
+        "path": path,
+        "member": DataStoreDirectory(tmp_path, suffix=path.suffix[1:])[0],
+    }
+    got = get_app(app_name, moltype=moltype)(inputs[input_kind])
+    assert got.to_dict() == _expected_seqs(load_func, path, moltype)
+
+
+@pytest.mark.parametrize(("app_name", "load_func"), _LOADERS)
+@pytest.mark.parametrize(
+    ("filename", "moltype", "format_name"),
+    [("annotated_seq.gb", "dna", "genbank"), ("formattest.msf", "protein", "msf")],
+)
+def test_load_gb_msf_format_name(
+    DATA_DIR, app_name, load_func, filename, moltype, format_name
+):
+    """loader apps read genbank and msf files with an explicit format"""
+    path = DATA_DIR / filename
+    got = get_app(app_name, moltype=moltype, format_name=format_name)(path)
+    assert got.to_dict() == _expected_seqs(load_func, path, moltype)
+
+
+@pytest.mark.parametrize(("app_name", "load_func"), _LOADERS)
+def test_load_seqs_expands_home(DATA_DIR, tmp_path, monkeypatch, app_name, load_func):
+    """loader apps expand ~ in a path"""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    shutil.copy(DATA_DIR / "brca1_5.paml", tmp_path / "brca1_5.paml")
+    got = get_app(app_name, moltype="dna")("~/brca1_5.paml")
+    expect = _expected_seqs(load_func, tmp_path / "brca1_5.paml", "dna")
+    assert got.to_dict() == expect
+
+
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+@pytest.mark.parametrize(
+    ("app_name", "maker", "suffix"),
+    [
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5a"),
+        ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
+    ],
+)
+def test_load_h5seqs_expands_home(
+    tmp_path, monkeypatch, app_name, maker, suffix, transform
+):
+    """loader apps expand ~ in a path to a storage format"""
+    pytest.importorskip("cogent3_h5seqs")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    data = {"a": "ACGT", "b": "ACGG"}
+    maker(data, moltype="dna").write(tmp_path / f"demo.{suffix}")
+    loader = get_app(app_name, moltype="dna")
+    got = loader(transform(f"~/demo.{suffix}"))
+    assert not isinstance(got, NotCompleted), got
+    assert got.to_dict() == data
+
+
+@pytest.mark.parametrize(("app_name", "load_func"), _LOADERS)
+def test_load_seqs_gzipped(DATA_DIR, tmp_path, app_name, load_func):
+    """loader apps read gzip compressed sequence files"""
+    path = tmp_path / "formattest.msf.gz"
+    path.write_bytes(gzip.compress((DATA_DIR / "formattest.msf").read_bytes()))
+    got = get_app(app_name, moltype="protein")(path)
+    expect = _expected_seqs(load_func, DATA_DIR / "formattest.msf", "protein")
+    assert got.to_dict() == expect
+
+
+def test_load_aligned_zipped_member(fasta_dir, zipped_full):
+    """load_aligned reads a fasta member of a zipped data store"""
+    member = zipped_full[0]
+    got = get_app("load_aligned", moltype="dna")(member)
+    expect = cogent3.load_aligned_seqs(fasta_dir / member.unique_id, moltype="dna")
+    assert got.to_dict() == expect.to_dict()
+
+
+def test_load_unaligned_from_suffix_keeps_role_error(tmp_path):
+    pytest.importorskip("cogent3_h5seqs")
+    path = tmp_path / "demo.c3h5a"
+    cogent3.make_aligned_seqs({"a": "ACGT", "b": "ACGG"}, moltype="dna").write(path)
+    got = get_app("load_unaligned", moltype="dna")(path)
+    assert isinstance(got, NotCompleted)
+    assert "does not support parsing unaligned" in got.message
+
+
+def test_load_aligned_rejects_unaligned_only_format():
+    pytest.importorskip("cogent3_h5seqs")
+    with pytest.raises(ValueError, match="does not support parsing aligned"):
+        get_app("load_aligned", format_name="c3h5u")
+
+
 def test_load_unaligned(DATA_DIR):
     """load_unaligned returns degapped sequence collections"""
     fasta_paths = DataStoreDirectory(DATA_DIR, suffix=".fasta", limit=2)

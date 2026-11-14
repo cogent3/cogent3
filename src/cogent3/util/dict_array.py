@@ -802,6 +802,7 @@ class DictArray:
 )
 def deserialise_dict_array(data: dict[str, Any]) -> DictArray:
     """deserialising DictArray, Table instances"""
+    data = dict(data)
     data.pop("version", None)
     type_ = data.pop("type")
     klass = get_class(type_)

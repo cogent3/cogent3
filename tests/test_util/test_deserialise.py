@@ -1,3 +1,4 @@
+import copy
 import json
 
 import numpy
@@ -133,6 +134,18 @@ def test_roundtrip_likelihood_function():
     data = lf.to_json()
     got_obj = deserialise_object(data)
     assert_allclose(got_obj.get_log_likelihood(), lnL)
+
+
+def test_roundtrip_likelihood_function_keeps_name():
+    """likelihood function name survives a roundtrip"""
+    aln = make_aligned_seqs(
+        {"a": "ACGTACGT", "b": "ACGTACGA", "c": "ACGAACGT"}, moltype="dna"
+    )
+    lf = get_model("HKY85").make_likelihood_function(make_tree(tip_names=aln.names))
+    lf.set_alignment(aln)
+    lf.set_name("myname")
+    got = deserialise_object(lf.to_rich_dict())
+    assert got.name == "myname"
 
 
 def test_roundtrip_discrete_time_likelihood_function():
@@ -426,6 +439,118 @@ def test_deserialise_tabular_distancematrix():
             assert_allclose(dist, got_dict[a, b])
 
 
+def _table_rich_dict():
+    from cogent3 import make_table
+
+    table = make_table(
+        header=["id", "foo"],
+        rows=[[1, "abc"], [2, "bca"]],
+        index_name="id",
+        title="T",
+    )
+    table.format_column("foo", "%5s")
+    return table.to_rich_dict()
+
+
+def _dictarray_rich_dict():
+    from cogent3.util.dict_array import DictArrayTemplate
+
+    return DictArrayTemplate(2, ["a", "b"]).wrap([[1, 2], [3, 4]]).to_rich_dict()
+
+
+def _distancematrix_rich_dict():
+    from cogent3.evolve.fast_distance import DistanceMatrix
+
+    return DistanceMatrix({("a", "b"): 0.5, ("b", "a"): 0.5}).to_rich_dict()
+
+
+@pytest.mark.parametrize(
+    "make_data", [_table_rich_dict, _dictarray_rich_dict, _distancematrix_rich_dict]
+)
+def test_deserialise_tabular_leaves_input_unchanged(make_data):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
+
+
+def _lf():
+    aln = make_aligned_seqs(
+        {
+            "Human": "ATGCGGCTCGCGGAGGCCGCGCTCGCGGAG",
+            "Mouse": "ATGCCCGGCGCCAAGGCAGCGCTGGCGGAG",
+            "Opossum": "ATGCCAGTGAAAGTGGCGGCGGTGGCTGAG",
+        },
+        moltype="dna",
+    )
+    lf = get_model("HKY85").make_likelihood_function(make_tree(tip_names=aln.names))
+    lf.set_alignment(aln)
+    lf.set_param_rule("kappa", edge="Human", init=2)
+    return lf
+
+
+def _codon_alphabet_rich_dict():
+    return get_code(1).get_alphabet().to_rich_dict()
+
+
+def _named_model_rich_dict():
+    return get_model("HKY85").to_rich_dict()
+
+
+def _model_kw_name_rich_dict():
+    data = get_model("HKY85").to_rich_dict()
+    data["kw"] = {"name": "HKY85"}
+    return data
+
+
+def _codon_model_rich_dict():
+    return get_model("CNFGTR").to_rich_dict()
+
+
+def _lf_rich_dict():
+    return _lf().to_rich_dict()
+
+
+def _model_result_rich_dict():
+    result = model_result(name="test", source="blah")
+    result[1] = _lf()
+    return result.to_rich_dict()
+
+
+@pytest.mark.parametrize(
+    "make_data",
+    [
+        _codon_alphabet_rich_dict,
+        _named_model_rich_dict,
+        _model_kw_name_rich_dict,
+        _codon_model_rich_dict,
+        _lf_rich_dict,
+        _model_result_rich_dict,
+    ],
+)
+def test_deserialise_model_types_leave_input_unchanged(make_data):
+    data = make_data()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    if hasattr(first, "deserialised_values"):
+        first.deserialised_values()
+    assert data == expected
+    second = deserialise_object(data)
+    if hasattr(second, "deserialised_values"):
+        second.deserialised_values()
+    assert second.to_rich_dict() == first.to_rich_dict()
+
+
+def test_deserialised_table_does_not_share_column_templates():
+    data = _table_rich_dict()
+    expected = copy.deepcopy(data)
+    got = deserialise_object(data)
+    got.format_column("id", "%3d")
+    assert data == expected
+
+
 def test_deserialise_likelihood_function1(DATA_DIR):
     """correctly deserialise data into likelihood function"""
     # tests single alignment
@@ -477,13 +602,8 @@ def test_deserialise_likelihood_function_multilocus(DATA_DIR):
     )
 
 
-def test_convert_annotation_to_annotation_db():
-    from cogent3.core.annotation_db import (
-        BasicAnnotationDb,
-        convert_annotation_to_annotation_db,
-    )
-
-    data = {
+def _old_annotations():
+    return {
         "name": "A",
         "data": [
             {
@@ -511,12 +631,53 @@ def test_convert_annotation_to_annotation_db():
             },
         ],
     }
-    data = convert_annotation_to_annotation_db(data)
+
+
+def test_convert_annotation_to_annotation_db():
+    from cogent3.core.annotation_db import (
+        BasicAnnotationDb,
+        convert_annotation_to_annotation_db,
+    )
+
+    data = convert_annotation_to_annotation_db(_old_annotations())
     # which can be turned back into an annotation db
     db = deserialise_object(data)
     assert isinstance(db, BasicAnnotationDb)
     assert db.num_matches() == 1
     db.close()
+
+
+def test_convert_annotation_to_annotation_db_leaves_input_unchanged():
+    from cogent3.core.annotation_db import convert_annotation_to_annotation_db
+
+    data = _old_annotations()
+    expected = copy.deepcopy(data)
+    first = convert_annotation_to_annotation_db(data)
+    assert data == expected
+    second = convert_annotation_to_annotation_db(data)
+    assert second.to_rich_dict() == first.to_rich_dict()
+
+
+def _annotation_db_rich_dict(db_class):
+    db = db_class()
+    db.add_feature(seqid="s1", biotype="gene", name="g1", spans=[(1, 5)])
+    db.add_feature(seqid="s2", biotype="exon", name="e1", spans=[(0, 3), (6, 9)])
+    return db.to_rich_dict()
+
+
+@pytest.mark.parametrize(
+    "db_class_name", ["BasicAnnotationDb", "GffAnnotationDb", "GenbankAnnotationDb"]
+)
+def test_deserialise_annotation_db_leaves_input_unchanged(db_class_name):
+    from cogent3.core import annotation_db
+
+    data = _annotation_db_rich_dict(getattr(annotation_db, db_class_name))
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.num_matches() == first.num_matches() == 2
+    assert second.to_rich_dict() == first.to_rich_dict()
 
 
 @pytest.mark.parametrize("rate_matrix_required", [True, False])

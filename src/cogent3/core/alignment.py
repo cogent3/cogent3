@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import copy
 import dataclasses
 import json
@@ -93,6 +92,19 @@ NumpyFloatArrayType = npt.NDArray[numpy.floating]
 # number of sequences listed by the text representation of a collection. The
 # num_seqs repr policy setting is not used as its default suits html display.
 _REPR_NUM_SEQS = 3
+
+
+def _complement_if_nucleic(
+    moltype: c3_moltype.MolType[Any], seq: NumpyIntArrayType
+) -> NumpyIntArrayType:
+    # a reversed view of a moltype without a complement is just reversed
+    return moltype.complement(seq) if moltype.is_nucleic else seq
+
+
+def _require_nucleic(moltype: c3_moltype.MolType[Any]) -> None:
+    if not moltype.is_nucleic:
+        msg = f"moltype must be a DNA/RNA, not {moltype.name!r}"
+        raise c3_moltype.MolTypeError(msg)
 
 
 class Aligned(AnnotatableMixin):
@@ -192,7 +204,7 @@ class Aligned(AnnotatableMixin):
             # step != 1, we cannot retain a connection to the underlying
             # annotations
             seq = self.moltype.degap(self.data.gapped_array_value)
-            seq = self.moltype.complement(seq)
+            seq = _complement_if_nucleic(self.moltype, seq)
 
         mt_seq = self.moltype.make_seq(seq=seq, name=self.data.seqid)
         ann_db = self._annotation_db if self.data.slice_record.plus_step == 1 else None
@@ -204,7 +216,7 @@ class Aligned(AnnotatableMixin):
         """Returns Sequence object, including gaps."""
         seq = self.data.gapped_array_value
         if self.data.slice_record.step < 0:
-            seq = self.moltype.complement(seq)
+            seq = _complement_if_nucleic(self.moltype, seq)
         return self.moltype.make_seq(seq=seq, name=self.data.seqid)
 
     @property
@@ -283,7 +295,7 @@ class Aligned(AnnotatableMixin):
             # .array_value will return the data in the correct orientation
             # which means we need to complement it if the data is reversed
             data = (
-                self.moltype.complement(data)
+                _complement_if_nucleic(self.moltype, data)
                 if self.data.slice_record.is_reversed
                 else data
             )
@@ -312,7 +324,8 @@ class Aligned(AnnotatableMixin):
         seq_coords
             if True, the coordinates for the unaligned sequence
         apply_offset
-            if True and seq_coords, adds annotation offset from parent
+            if True and seq_coords, adds the offset stored by the collection
+            holding this sequence
         """
         return self.data.parent_coords(seq_coords=seq_coords, apply_offset=apply_offset)
 
@@ -399,6 +412,14 @@ def _names_file(source: Any, path: pathlib.Path) -> bool:
         return source_path.expanduser().resolve() == path.resolve()
     except (OSError, RuntimeError, ValueError):
         return False
+
+
+def _names_differ_from_storage(
+    name_map: Mapping[str, str], storage_names: Iterable[str]
+) -> bool:
+    # a view matches its storage only if it selects every stored sequence,
+    # in stored order, under its stored name
+    return tuple(name_map.items()) != tuple((n, n) for n in storage_names)
 
 
 class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
@@ -1206,6 +1227,10 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         """
         assign_names = _SeqNamer()
         named_seqs = _make_name_seq_mapping(seqs, assign_names)
+        unique = kwargs.get("force_unique_keys", True)
+        if unique and not self._name_map.keys().isdisjoint(named_seqs):
+            msg = "One or more sequence names already exist in collection"
+            raise ValueError(msg)
         name_map = make_name_map(named_seqs)
         data, offsets, _ = prep_for_seqs_data(
             named_seqs,
@@ -1952,12 +1977,8 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
     @property
     def modified(self) -> bool:
         """collection is a modification of underlying storage"""
-        return any(
-            [
-                self._is_reversed,
-                set(self.name_map.values()) != set(self.storage.names),
-                set(self.name_map.keys()) != set(self.name_map.values()),
-            ]
+        return self._is_reversed or _names_differ_from_storage(
+            self.name_map, self.storage.names
         )
 
     @overload
@@ -2333,7 +2354,10 @@ class SequenceCollection(CollectionBase[c3_sequence.Sequence]):
     def rc(self) -> Self:
         """Returns the reverse complement of all sequences in the collection.
         A synonym for reverse_complement.
+
+        Raises MolTypeError if the moltype is not DNA or RNA.
         """
+        _require_nucleic(self.moltype)
         init_kwargs = self._get_init_kwargs()
         init_kwargs["is_reversed"] = not self._is_reversed
         return self.__class__(**init_kwargs)
@@ -2914,15 +2938,10 @@ class Alignment(CollectionBase[Aligned]):
     @property
     def modified(self) -> bool:
         """collection is a modification of underlying storage"""
-        # include changed seq names?
         sr = self._slice_record
         changed_slice = sr.start != 0 or len(sr) != self.storage.align_len
-        return any(
-            [
-                changed_slice,
-                set(self.name_map.values()) != set(self.storage.names),
-                set(self.name_map.keys()) != set(self.name_map.values()),
-            ]
+        return changed_slice or _names_differ_from_storage(
+            self.name_map, self.storage.names
         )
 
     @property
@@ -2938,12 +2957,11 @@ class Alignment(CollectionBase[Aligned]):
                 stop=self._slice_record.plus_stop,
                 step=self._slice_record.plus_step,
             )
-            if self.moltype.is_nucleic and self._slice_record.is_reversed:
-                rev_complement = self.moltype.rc
-                arr_seqs = arr_seqs.copy()
-                arr_seqs.flags.writeable = True
-                for i in range(arr_seqs.shape[0]):
-                    arr_seqs[i] = rev_complement(arr_seqs[i])
+            if self._slice_record.is_reversed:
+                arr_seqs = arr_seqs[:, ::-1].copy()
+                if self.moltype.is_nucleic:
+                    for i in range(arr_seqs.shape[0]):
+                        arr_seqs[i] = self.moltype.complement(arr_seqs[i])
 
             arr_seqs.flags.writeable = False  # make sure data is immutable
             self._array_seqs = arr_seqs
@@ -3322,11 +3340,13 @@ class Alignment(CollectionBase[Aligned]):
         )
         kwargs = kw | kwargs
         # the SeqsData classes will return the data corresponding to the slice,
-        # however, will not complement the data if the step is negative. We do
-        # this here.
-        rev_complement = self.moltype.rc
+        # however, will not reverse or complement the data if the step is
+        # negative. We do this here.
         data = (
-            {name: rev_complement(seq) for name, seq in data.items()}
+            {
+                name: _complement_if_nucleic(self.moltype, seq[::-1])
+                for name, seq in data.items()
+            }
             if sr.step < 0
             else data
         )
@@ -3464,7 +3484,10 @@ class Alignment(CollectionBase[Aligned]):
     def rc(self) -> Self:
         """Returns the reverse complement of all sequences in the alignment.
         A synonym for reverse_complement.
+
+        Raises MolTypeError if the moltype is not DNA or RNA.
         """
+        _require_nucleic(self.moltype)
         init_kwargs = self._get_init_kwargs()
         init_kwargs["slice_record"] = self._slice_record[::-1]
         return self.__class__(**init_kwargs)
@@ -5639,25 +5662,74 @@ def _make_name_seq_mapping(
         returns a new name
     """
     if isinstance(data, dict):
-        return {seq_namer(seq=seq, name=name): seq for name, seq in data.items()}
+        return _unique_name_seq_mapping(
+            [_named_record(seq_namer, seq, name) for name, seq in data.items()]
+        )
 
     if isinstance(data, (tuple, set)):
         data = list(data)
 
     if isinstance(data, list):
-        if isinstance(data[0], (list, tuple)):
+        if all(isinstance(r, (list, tuple)) and len(r) == 2 for r in data):
             # handle case where we've been given data like
             # for example [[name, seq], ...]
-            with contextlib.suppress(ValueError):
-                return _make_name_seq_mapping(dict(data), seq_namer)  # type: ignore[arg-type]
+            return _unique_name_seq_mapping(
+                [_named_record(seq_namer, seq, name) for name, seq in data]
+            )
 
-        return {seq_namer(seq=record): record for record in data}
+        return _unique_name_seq_mapping(
+            [_named_record(seq_namer, record) for record in data]
+        )
 
     if not isinstance(data, CollectionBase):
         msg = f"_make_name_seq_mapping not implemented for {type(data)}"
         raise NotImplementedError(msg)
 
-    return {seq_namer(seq=record): record for record in data.seqs}
+    return _unique_name_seq_mapping(
+        [_named_record(seq_namer, record) for record in data.seqs]
+    )
+
+
+_NamedRecord = tuple[
+    str, str | None, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned
+]
+
+
+def _named_record(
+    seq_namer: _SeqNamer,
+    seq: str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned,
+    name: str | None = None,
+) -> _NamedRecord:
+    # the label is None when seq_namer assigns the name automatically
+    label = name or getattr(seq, "name", None)
+    return seq_namer(seq=seq, name=name), label, seq
+
+
+def _describe_name_clash(name: str, labels: list[str | None]) -> str:
+    named = [repr(label) for label in labels if label]
+    noun = "label" if len(named) == 1 else "labels"
+    description = f"{name!r} from {noun} {', '.join(named)}"
+    if len(named) < len(labels):
+        description += " and an automatically assigned name"
+    return description
+
+
+def _unique_name_seq_mapping(
+    records: list[_NamedRecord],
+) -> dict[str, str | bytes | NumpyIntArrayType | c3_sequence.Sequence | Aligned]:
+    labels: defaultdict[str, list[str | None]] = defaultdict(list)
+    for name, label, _ in records:
+        labels[name].append(label)
+
+    if clashes := [
+        _describe_name_clash(name, found)
+        for name, found in labels.items()
+        if len(found) > 1
+    ]:
+        msg = f"duplicate sequence names: {'; '.join(clashes)}"
+        raise ValueError(msg)
+
+    return {name: seq for name, _, seq in records}
 
 
 def _seqname_parent_name(
@@ -5683,15 +5755,14 @@ def make_name_map(
 
     Returns
     -------
-        empty dict if names and parent names are always equal
+        a map for every name if any name differs from its parent name,
+        otherwise an empty dict
     """
-    name_map: dict[str, str] = {}
-    for name, record in data.items():
-        new_name, parent_name = _seqname_parent_name(record, name=name)
-        if new_name == parent_name:
-            continue
-        name_map[new_name] = parent_name
-
+    name_map = dict(
+        _seqname_parent_name(record, name=name) for name, record in data.items()
+    )
+    if all(name == parent_name for name, parent_name in name_map.items()):
+        return {}
     return name_map
 
 
@@ -5839,11 +5910,12 @@ def prep_for_seqs_data(
     for name, seq in data.items():
         name = seq_namer(seq=seq, name=name)
         seq_data = coerce_to_raw_seq_data(seq, moltype, name=name)
+        storage_name = cast("str", seq_data.parent_name or seq_data.name)
         if seq_data.offset:
-            offsets[seq_data.parent_name or name] = seq_data.offset
-        seqs[cast("str", seq_data.parent_name or seq_data.name)] = seq_data.seq
+            offsets[storage_name] = seq_data.offset
+        seqs[storage_name] = seq_data.seq
         if seq_data.is_reversed:
-            rvd.add(name)
+            rvd.add(storage_name)
 
     if len(data) != len(seqs):
         msg = "Not all derived names for storage unique"
@@ -6014,7 +6086,6 @@ def make_unaligned_seqs(
 
     seqs_data = make_unaligned_storage(
         named_seqs,
-        label_to_name=label_to_name,
         moltype=moltype,
         offset=offset,
         reversed_seqs=reversed_seqs,
@@ -6232,7 +6303,6 @@ def make_aligned_seqs(
     seqs_data = make_aligned_storage(
         named_seqs,
         moltype=moltype,
-        label_to_name=label_to_name,
         offset=offset,
         reversed_seqs=reversed_seqs,
         storage_backend=storage_backend,

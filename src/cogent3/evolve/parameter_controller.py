@@ -628,6 +628,7 @@ class SequenceLikelihoodFunction(_LikelihoodParameterController):
 @register_deserialiser("cogent3.evolve.parameter_controller")
 def deserialise_likelihood_function(data):
     """returns a cogent3 likelihood function instance"""
+    data = dict(data)
     data.pop("version", None)
     model = deserialise_object(data.pop("model"))
     tree = deserialise_object(data.pop("tree"))
@@ -637,7 +638,6 @@ def deserialise_likelihood_function(data):
     name = data.pop("name", None)
     lf = model.make_likelihood_function(tree, **constructor_args)
     lf.set_name(name)
-    lf = model.make_likelihood_function(tree, **constructor_args)
 
     if isinstance(constructor_args["loci"], list):
         locus_names = constructor_args["loci"]

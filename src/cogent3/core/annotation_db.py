@@ -2066,16 +2066,13 @@ class SqliteAnnotationDbMixin:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
         # make an empty db
-        init_args = data.pop("init_args")
-        db = cls(**init_args)
+        db = cls(**data["init_args"])
         db._update_db_from_rich_dict(data)
         return db
 
     def _update_db_from_rich_dict(
         self, data: dict[str, Any], seqids: str | Iterable[str] | None = None
     ) -> None:
-        data.pop("type", None)
-        data.pop("version")
         if isinstance(seqids, str):
             seqids = {seqids}
         elif seqids is not None:
@@ -2086,6 +2083,7 @@ class SqliteAnnotationDbMixin:
             for record in records:
                 if seqids and record.get("seqid") not in seqids:
                     continue
+                record = dict(record)
                 record["spans"] = numpy.array(record["spans"], dtype=int)
                 # Translate string columns to IDs for normalized schema
                 record = self._translate_record_to_ids(record)
@@ -2797,15 +2795,14 @@ def convert_annotation_to_annotation_db(data: dict[str, Any]) -> AnnotationDbABC
     minus = Strand.MINUS
     plus = Strand.PLUS
 
-    seqid = data.pop("name", data.pop("seqid", None))
-    anns = data.pop("data")
-    for ann in anns:
-        ann = ann.pop("annotation_construction")
-        m = deserialise_map_spans(ann.pop("map"))
+    seqid = data.get("name", data.get("seqid"))
+    for ann in data["data"]:
+        ann = ann["annotation_construction"]
+        m = deserialise_map_spans(ann["map"])
         spans = m.get_coordinates()
         strand = minus if any(s.reverse for s in m.iter_non_lost_spans()) else plus
-        biotype = ann.pop("type")
-        name = ann.pop("name")
+        biotype = ann["type"]
+        name = ann["name"]
         db.add_feature(
             seqid=seqid,
             biotype=biotype,

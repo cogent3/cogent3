@@ -324,7 +324,9 @@ class SeqView(SeqViewABC):
         Parameters
         ----------
         apply_offset
-            if True adds annotation offset from parent
+            if True, adds the offset stored by the collection holding this
+            sequence. A standalone view has no such offset, so it has no
+            effect here.
 
         Returns
         -------
@@ -465,7 +467,8 @@ class SeqDataView(SeqView):
         Parameters
         ----------
         apply_offset
-            if True adds annotation offset from parent
+            if True, adds the offset stored by the collection holding this
+            sequence
 
         Returns
         -------
@@ -687,7 +690,8 @@ class AlignedDataView(AlignedDataViewABC):
         seq_coords
             if True, parent is the ungapped sequence
         apply_offset
-            if True and seq_coords, adds annotation offset from parent
+            if True and seq_coords, adds the offset stored by the collection
+            holding this sequence
         """
         strand = -1 if self.is_reversed else 1
         if not seq_coords:

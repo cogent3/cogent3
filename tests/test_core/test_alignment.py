@@ -1,8 +1,10 @@
+import copy
 import json
 import os
 import pathlib
 import pickle
 import re
+import shutil
 import types
 from collections.abc import Mapping
 from typing import Any
@@ -593,6 +595,10 @@ def test_make_seqs(moltype, mk_cls, cls):
     assert isinstance(got, cls)
 
 
+def _add_x(name):
+    return f"{name}_x"
+
+
 @pytest.mark.parametrize(
     ("mk_cls", "cls"),
     [
@@ -603,19 +609,251 @@ def test_make_seqs(moltype, mk_cls, cls):
 def test_make_seqs_label_to_name(mk_cls, cls, dna_alphabet):
     """SequenceCollection and Alignment constructor functions should convert names
     using label_to_name function if provided"""
-
-    def f(x):
-        return x.upper()
-
     # for data as a dict
     data = {"a": "AGGCCC", "b": "AGAAAA"}
-    got = mk_cls(data, moltype="dna", label_to_name=f)
-    assert list(got.names) == ["A", "B"]
+    got = mk_cls(data, moltype="dna", label_to_name=_add_x)
+    assert list(got.names) == ["a_x", "b_x"]
 
     # for data as a SeqsData object
     data = cls.from_seqs(data=data, alphabet=dna_alphabet)
-    got = mk_cls(data, moltype="dna", label_to_name=f)
-    assert list(got.names) == ["A", "B"]
+    got = mk_cls(data, moltype="dna", label_to_name=_add_x)
+    assert list(got.names) == ["a_x", "b_x"]
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "data",
+    [
+        [["a", "AGGCCC"], ["b", "AGAAAA"]],
+        [
+            c3_moltype.DNA.make_seq(seq="AGGCCC", name="a"),
+            c3_moltype.DNA.make_seq(seq="AGAAAA", name="b"),
+        ],
+    ],
+)
+def test_make_seqs_label_to_name_applied_once(mk_cls, data):
+    """label_to_name is applied once to pairs and Sequence inputs"""
+    got = mk_cls(data, moltype="dna", label_to_name=_add_x)
+    assert list(got.names) == ["a_x", "b_x"]
+
+
+def _rc_annotated_input(naming):
+    a = c3_moltype.DNA.make_seq(seq="ACGTTGCA", name="a")
+    b = c3_moltype.DNA.make_seq(seq="ACGGACGG", name="b")
+    a.add_feature(biotype="exon", name="e1", spans=[(1, 4)])
+    if naming == "dict_key":
+        return {"z": a.rc(), "y": b}, {}
+    label_to_name = _add_x if naming == "label_to_name" else None
+    return [a.rc(), b], {"label_to_name": label_to_name}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize("naming", ["unchanged", "label_to_name", "dict_key"])
+@pytest.mark.parametrize("flip_collection", [False, True])
+def test_make_seqs_renamed_rc_seq_keeps_strand(mk_cls, naming, flip_collection):
+    """a reverse complemented Sequence keeps its strand when renamed"""
+    data, kwargs = _rc_annotated_input(naming)
+    coll = mk_cls(data, moltype="dna", **kwargs)
+    if flip_collection:
+        coll = coll.rc()
+    seq = coll.get_seq(coll.names[0])
+    assert seq.parent_coordinates()[-1] == (1 if flip_collection else -1)
+    assert [str(f.get_slice()) for f in seq.get_features(name="e1")] == ["CGT"]
+
+
+@pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+def test_load_seqs_label_to_name_applied_once(DATA_DIR, loader):
+    got = loader(DATA_DIR / "brca1.fasta", moltype="dna", label_to_name=_add_x)
+    assert got.names[:2] == ("FlyingFox_x", "DogFaced_x")
+
+
+def test_load_seq_label_to_name_applied_once(DATA_DIR):
+    got = load_seq(DATA_DIR / "brca1.fasta", moltype="dna", label_to_name=_add_x)
+    assert got.name == "FlyingFox_x"
+
+
+def test_load_seq_genbank_label_to_name_keeps_annotations(DATA_DIR):
+    got = load_seq(DATA_DIR / "annotated_seq.gb", moltype="dna", label_to_name=_add_x)
+    assert got.name == "AE017341_x"
+    assert len(list(got.get_features(biotype="CDS"))) == 2
+
+
+def test_load_unaligned_glob_genbank_label_to_name_keeps_annotations(
+    DATA_DIR, tmp_path
+):
+    shutil.copy(DATA_DIR / "annotated_seq.gb", tmp_path / "annotated_seq.gb")
+    got = load_unaligned_seqs(tmp_path / "*.gb", moltype="dna", label_to_name=_add_x)
+    assert got.names == ("AE017341_x",)
+    assert len(list(got.get_features(biotype="CDS"))) == 2
+
+
+def _first_char(name):
+    return name[:1]
+
+
+def _raise_value_error(name):
+    msg = "error from label_to_name"
+    raise ValueError(msg)
+
+
+_SEQ_AB = c3_moltype.DNA.make_seq(seq="AAAA", name="ab")
+_SEQ_AC = c3_moltype.DNA.make_seq(seq="CCCC", name="ac")
+_SEQ_A1 = c3_moltype.DNA.make_seq(seq="AAAA", name="a")
+_SEQ_A2 = c3_moltype.DNA.make_seq(seq="CCCC", name="a")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("data", "label_to_name", "match"),
+    [
+        ({"ab": "AAAA", "ac": "CCCC"}, _first_char, "'a' from labels 'ab', 'ac'"),
+        ([["ab", "AAAA"], ["ac", "CCCC"]], _first_char, "'a' from labels 'ab', 'ac'"),
+        ([_SEQ_AB, _SEQ_AC], _first_char, "'a' from labels 'ab', 'ac'"),
+        ([["a", "AAAA"], ["a", "CCCC"]], None, "'a' from labels 'a', 'a'"),
+        ([_SEQ_A1, _SEQ_A2], None, "'a' from labels 'a', 'a'"),
+        ({_SEQ_A1, _SEQ_A2}, None, "'a' from labels 'a', 'a'"),
+        (
+            ["AAAA", c3_moltype.DNA.make_seq(seq="CCCC", name="seq_0")],
+            None,
+            "'seq_0' from label 'seq_0' and an automatically assigned name",
+        ),
+    ],
+)
+def test_make_seqs_duplicate_names_raise(mk_cls, data, label_to_name, match):
+    """sequences that end up with the same name raise rather than being dropped"""
+    with pytest.raises(ValueError, match=re.escape(match)):
+        mk_cls(data, moltype="dna", label_to_name=label_to_name)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_make_seqs_pairs_label_to_name_error_not_hidden(mk_cls):
+    """an error raised by label_to_name reaches the caller"""
+    with pytest.raises(ValueError, match="error from label_to_name"):
+        mk_cls(
+            [["a", "AAAA"], ["b", "CCCC"]],
+            moltype="dna",
+            label_to_name=_raise_value_error,
+        )
+
+
+def test_add_seqs_duplicate_names_raise():
+    coll = c3_alignment.make_unaligned_seqs({"b": "GGGG"}, moltype="dna")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
+        coll.add_seqs([_SEQ_A1, _SEQ_A2])
+
+
+def _a_to_z(name):
+    return name.replace("a", "z")
+
+
+_SEQ_A = c3_moltype.DNA.make_seq(seq="ACGT", name="a")
+_SEQ_B = c3_moltype.DNA.make_seq(seq="GGCC", name="b")
+_ALN_AB = c3_alignment.make_aligned_seqs({"a": "AC-T", "b": "GGCC"}, moltype="dna")
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("data", "label_to_name", "expect"),
+    [
+        ({"z": _SEQ_A, "b": _SEQ_B}, None, {"z": "ACGT", "b": "GGCC"}),
+        ([_SEQ_A, _SEQ_B], _a_to_z, {"z": "ACGT", "b": "GGCC"}),
+        (
+            {"z": _ALN_AB.seqs["a"], "b": _ALN_AB.seqs["b"]},
+            None,
+            {"z": "AC-T", "b": "GGCC"},
+        ),
+    ],
+)
+def test_make_seqs_renaming_one_keeps_others(mk_cls, data, label_to_name, expect):
+    """sequences that keep their names stay when another is renamed"""
+    got = mk_cls(data, moltype="dna", label_to_name=label_to_name)
+    assert got.names == ("z", "b")
+    assert got.to_dict() == expect
+
+
+def test_add_seqs_renaming_one_keeps_others():
+    coll = c3_alignment.make_unaligned_seqs({"b": "GGCC"}, moltype="dna")
+    got = coll.add_seqs({"z": _SEQ_A, "c": "CCCC"})
+    assert got.names == ("b", "z", "c")
+    assert got.to_dict() == {"b": "GGCC", "z": "ACGT", "c": "CCCC"}
+
+
+def test_add_seqs_to_renamed_keeps_all():
+    coll = c3_alignment.make_unaligned_seqs({"z": _SEQ_A}, moltype="dna")
+    got = coll.add_seqs({"b": "GGCC", "c": "CCCC"})
+    assert got.names == ("z", "b", "c")
+    assert got.to_dict() == {"z": "ACGT", "b": "GGCC", "c": "CCCC"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("renamer", "new_seqs"),
+    [
+        (None, {"a": c3_moltype.DNA.make_seq(seq="GGGG", name="q")}),
+        (str.upper, {"A": "GGGG"}),
+    ],
+)
+def test_add_seqs_existing_name_raises(mk_cls, renamer, new_seqs):
+    """a new sequence under a name already in the collection raises"""
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    if renamer:
+        coll = coll.renamed_seqs(renamer)
+    with pytest.raises(ValueError, match="already exist"):
+        coll.add_seqs(new_seqs)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_add_seqs_existing_name_replaced_when_not_unique(mk_cls):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    new_seq = c3_moltype.DNA.make_seq(seq="GGGG", name="q")
+    got = coll.add_seqs({"a": new_seq}, force_unique_keys=False)
+    assert got.to_dict() == {"a": "GGGG", "b": "CCCC"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_make_seqs_rename_onto_existing_name_raises(mk_cls):
+    with pytest.raises(ValueError, match="Not all derived names"):
+        mk_cls({"z": _SEQ_A, "a": "CCCC"}, moltype="dna")
+
+
+@pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+def test_load_seqs_repeated_label_raises(tmp_path, loader):
+    path = tmp_path / "dup.fasta"
+    path.write_text(">a\nAAAA\n>a\nCCCC\n>b\nGGGG\n")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
+        loader(path, moltype="dna")
+
+
+@pytest.mark.parametrize("loader", [load_unaligned_seqs, load_aligned_seqs])
+def test_load_seqs_label_to_name_clash_names_labels(tmp_path, loader):
+    path = tmp_path / "x.fasta"
+    path.write_text(">ab\nAAAA\n>ac\nCCCC\n")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'ab', 'ac'")):
+        loader(path, moltype="dna", label_to_name=_first_char)
 
 
 @pytest.mark.parametrize(
@@ -5968,6 +6206,7 @@ def test_load_with_pathlib(mk_cls, home_seqs):
     assert "Human" in got.names
 
 
+@pytest.mark.internet
 def test_load_from_url():
     import cogent3
 
@@ -6575,6 +6814,49 @@ def test_seqcoll_modified_renamed_seqs(mk_cls):
     assert sub.modified
 
 
+_SWAP_NAMES = {"s1": "s2", "s2": "s1", "s3": "s3"}
+
+
+def _reorder(coll):
+    return coll.take_seqs(["s3", "s2", "s1"])
+
+
+def _swap_names(coll):
+    return coll.renamed_seqs(_SWAP_NAMES.get)
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+@pytest.mark.parametrize("change", [_reorder, _swap_names])
+def test_seqcoll_modified_order_or_swap(mk_cls, change):
+    data = {"s1": "ATCTGA", "s2": "TCGCCC", "s3": "TCGCCA"}
+    coll = mk_cls(data, moltype="dna")
+    assert change(coll).modified
+
+
+@pytest.mark.parametrize(
+    "mk_cls", [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs]
+)
+def test_seqcoll_not_modified_take_all_in_order(mk_cls):
+    data = {"s1": "ATCTGA", "s2": "TCGCCC", "s3": "TCGCCA"}
+    coll = mk_cls(data, moltype="dna")
+    assert not coll.take_seqs(["s1", "s2", "s3"]).modified
+
+
+@pytest.mark.parametrize("suffix", ["c3h5a", "c3h5s"])
+@pytest.mark.parametrize("change", [_reorder, _swap_names])
+def test_h5seqs_write_keeps_order_and_names(tmp_path, suffix, change):
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"s1": "ATCTGA", "s2": "TCGCCC", "s3": "TCGCCA"}
+    c3_alignment.make_aligned_seqs(data, moltype="dna").write(tmp_path / f"a.{suffix}")
+    changed = change(load_aligned_seqs(tmp_path / f"a.{suffix}", moltype="dna"))
+    changed.write(tmp_path / f"b.{suffix}")
+    got = load_aligned_seqs(tmp_path / f"b.{suffix}", moltype="dna")
+    assert got.names == changed.names
+    assert got.to_dict() == changed.to_dict()
+
+
 @pytest.mark.parametrize(("start", "stop", "step"), [(0, 4, 1), (1, 8, 2)])
 def test_asd_get_pos_range(dna_alphabet, start, stop, step):
     alpha = dna_alphabet
@@ -7148,6 +7430,36 @@ def test_load_unaligned_glob_metadata_argument(DATA_DIR):
     assert got.metadata["k"] == 1
 
 
+@pytest.fixture
+def two_fasta_files(tmp_path):
+    (tmp_path / "a.fasta").write_text(">a\nACGT\n")
+    (tmp_path / "b.fasta").write_text(">b\nACGG\n")
+    return tmp_path / "*.fasta"
+
+
+def test_load_unaligned_glob_passes_kwargs(two_fasta_files):
+    got = load_unaligned_seqs(two_fasta_files, moltype="dna", is_reversed=True)
+    assert got._is_reversed
+    assert got.to_dict() == {"a": "ACGT", "b": "CCGT"}
+
+
+def test_load_unaligned_glob_label_to_name_applied_once(two_fasta_files):
+    got = load_unaligned_seqs(two_fasta_files, moltype="dna", label_to_name=_add_x)
+    assert sorted(got.names) == ["a_x", "b_x"]
+
+
+def test_load_unaligned_glob_repeated_label_raises(tmp_path):
+    (tmp_path / "x.fasta").write_text(">a\nAAAA\n")
+    (tmp_path / "y.fasta").write_text(">a\nCCCC\n")
+    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
+        load_unaligned_seqs(tmp_path / "*.fasta", moltype="dna")
+
+
+def test_load_unaligned_glob_rejects_unknown_kwarg(two_fasta_files):
+    with pytest.raises(TypeError, match="no_such_arg"):
+        load_unaligned_seqs(two_fasta_files, moltype="dna", no_such_arg=1)
+
+
 def test_load_seq_metadata_argument(DATA_DIR):
     path = DATA_DIR / "brca1.fasta"
     metadata = {"k": 1}
@@ -7538,6 +7850,18 @@ def test_legacy_deserialisers_without_info(make_old):
     assert got.source is None
 
 
+@pytest.mark.parametrize(
+    "make_old", [_old_seqcoll, _old_array_alignment, _old_alignment]
+)
+def test_legacy_deserialisers_leave_input_unchanged(make_old):
+    data = make_old()
+    expected = copy.deepcopy(data)
+    first = deserialise_object(data)
+    assert data == expected
+    second = deserialise_object(data)
+    assert second.to_dict() == first.to_dict()
+
+
 _NOTHING_TO_DO = {
     "to_moltype": lambda c: c.to_moltype(c.moltype.label),
     "drop_duplicated_seqs": lambda c: c.drop_duplicated_seqs(),
@@ -7843,3 +8167,88 @@ def test_write_warn_unsaved_metadata_is_keyword_only(mk_cls, tmp_path):
     coll = mk_cls(_CODON_SEQS, moltype="dna", source="orig.fa")
     with pytest.raises(TypeError):
         coll.write(tmp_path / "out.fasta", "fasta", True)
+
+
+_REV_DATA = {"t": "A-CTG", "u": "ACGTG"}
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text"])
+def test_reversed_not_nucleic_alignment_reads_reversed(moltype):
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype=moltype)[::-1]
+    expect = {"t": "GTC-A", "u": "GTGCA"}
+    assert aln.to_dict() == expect
+    assert str(aln.seqs["t"]) == "GTC-A"
+    assert str(aln.seqs["t"].gapped_seq) == "GTC-A"
+    assert str(aln.seqs["t"].seq) == "GTCA"
+    assert str(aln.get_gapped_seq("t")) == "GTC-A"
+    assert str(aln.get_seq("t")) == "GTCA"
+    assert aln.degap().to_dict() == {"t": "GTCA", "u": "GTGCA"}
+    assert aln.positions[3] == ["-", "C"]
+    assert deserialise_object(aln.to_json()).to_dict() == expect
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text"])
+@pytest.mark.parametrize(
+    ("index", "expect"),
+    [
+        (slice(None, None, -2), {"t": "GCA", "u": "GGA"}),
+        ((slice(1, 4), slice(None, None, -1)), {"t": "TC-", "u": "TGC"}),
+    ],
+)
+def test_reversed_not_nucleic_alignment_slices(moltype, index, expect):
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype=moltype)
+    for sl in index if isinstance(index, tuple) else (index,):
+        aln = aln[sl]
+    assert aln.to_dict() == expect
+    assert str(aln.seqs["t"]) == expect["t"]
+
+
+@pytest.mark.parametrize("moltype", ["protein", "text"])
+def test_reversed_not_nucleic_aligned_slice(moltype):
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype=moltype)[::-1]
+    assert str(aln.seqs["t"][1:4]) == "TC-"
+
+
+def test_reversed_protein_alignment_protein_letters():
+    aln = c3_alignment.make_aligned_seqs(
+        {"t": "MK*-WY", "u": "MKLVWY"}, moltype="protein_with_stop"
+    )[::-1]
+    assert aln.to_dict() == {"t": "YW-*KM", "u": "YWVLKM"}
+    assert str(aln.get_seq("t")) == "YW*KM"
+
+
+@_makers
+@pytest.mark.parametrize("moltype", ["protein", "protein_with_stop", "text", "bytes"])
+@pytest.mark.parametrize("method", ["rc", "reverse_complement"])
+def test_rc_not_nucleic_raises(mk_cls, moltype, method):
+    coll = mk_cls(_REV_DATA, moltype=moltype)
+    with pytest.raises(c3_moltype.MolTypeError):
+        getattr(coll, method)()
+
+
+def _reversed_alignment_feature(moltype):
+    aln = c3_alignment.make_aligned_seqs(
+        {"t": "AC-TGA", "u": "ACGTGA"}, moltype=moltype
+    )
+    aln.add_feature(biotype="gene", name="g", spans=[(1, 4)], on_alignment=True)
+    (feature,) = aln[::-1].get_features(name="g")
+    return feature
+
+
+def test_reversed_dna_alignment_feature_slice():
+    feature = _reversed_alignment_feature("dna")
+    assert feature.get_slice().to_dict() == {"t": "C-T", "u": "CGT"}
+
+
+def test_reversed_protein_alignment_feature_slice_raises():
+    feature = _reversed_alignment_feature("protein")
+    with pytest.raises(c3_moltype.MolTypeError):
+        feature.get_slice()
+
+
+def test_reversed_dna_alignment_is_reverse_complement():
+    aln = c3_alignment.make_aligned_seqs(_REV_DATA, moltype="dna")[::-1]
+    assert aln.to_dict() == {"t": "CAG-T", "u": "CACGT"}
+    assert str(aln.seqs["t"]) == "CAG-T"
+    assert str(aln.seqs["t"].seq) == "CAGT"
+    assert aln.degap().to_dict() == {"t": "CAGT", "u": "CACGT"}

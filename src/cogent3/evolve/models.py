@@ -2876,8 +2876,9 @@ def available_models(model_types=None):
 def deserialise_substitution_model(data):
     """returns a cogent3 substitution model instance"""
 
+    data = dict(data)
     data.pop("version", None)
-    kw = {} if "kw" not in data else data.pop("kw")
+    kw = dict(data.pop("kw", None) or {})
     sm = None
     if kw and "name" in kw:
         name = kw.pop("name")

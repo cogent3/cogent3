@@ -20,6 +20,7 @@ from scinexus.composable import (
 )
 from scinexus.data_store import (
     READONLY,
+    DataMember,
     DataStoreABC,
     DataStoreDirectory,
     Mode,
@@ -29,6 +30,7 @@ from scinexus.data_store import (
     make_record_for_json,
 )
 from scinexus.deserialise import deserialise_object
+from scinexus.io_util import get_format_suffixes
 from scinexus.sqlite_data_store import DataStoreSqlite
 
 import cogent3
@@ -286,20 +288,41 @@ def _(path: str) -> os.PathLike:
     return _read_it(Path(path))
 
 
+def _file_path(path: typing.Any) -> typing.Any:
+    if isinstance(path, DataMember) and isinstance(path.data_store, DataStoreDirectory):
+        return Path(path.data_store.source) / path.unique_id
+    return path
+
+
+def _path_name(path: typing.Any) -> str:
+    return getattr(path, "unique_id", getattr(path, "name", str(path)))
+
+
+def _suffix_parser(path: typing.Any, unaligned_seqs: bool) -> "SequenceParserBase":
+    file_suffix, _ = get_format_suffixes(_path_name(path))
+    return cogent3._plugin.get_seq_format_parser_plugin(
+        file_suffix=file_suffix, unaligned_seqs=unaligned_seqs
+    )
+
+
 def _load_seqs(
     path: str | Path,
     coll_maker: type,
     parser: "SequenceParserBase",
     moltype: c3_moltype.MolType | None = None,
 ) -> SeqsCollectionType:
-    if not parser.result_is_storage:
-        data = _read_it(path)
-        data = data.splitlines()
-        data = dict(iter(parser.loader(data)))
+    source = _file_path(path)
+    if isinstance(source, str | os.PathLike):
+        source = Path(source).expanduser()
+    if parser.result_is_storage:
+        data = parser.loader(source)
+    elif isinstance(source, os.PathLike):
+        data = dict(iter(parser.loader(source)))
     else:
-        data = parser.loader(path)
-    unique_id = getattr(path, "unique_id", getattr(path, "name", str(path)))
-    return coll_maker(data, moltype=moltype, source=unique_id)
+        # only some readers accept lines, but members of zipped or sqlite
+        # stores have no file path
+        data = dict(iter(parser.loader(_read_it(source).splitlines())))
+    return coll_maker(data, moltype=moltype, source=_path_name(path))
 
 
 class load_aligned(LoaderApp, cite=cite_cogent3):
@@ -308,7 +331,7 @@ class load_aligned(LoaderApp, cite=cite_cogent3):
     def __init__(
         self,
         moltype: MolTypes | None = None,
-        format_name: str = "fasta",
+        format_name: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -317,7 +340,9 @@ class load_aligned(LoaderApp, cite=cite_cogent3):
         moltype
             molecular type, string or instance, defaults to 'text'
         format_name
-            sequence file format
+            sequence file format. If not specified, it is chosen from each
+            file's suffix. Files whose suffix does not identify a format,
+            such as .txt, require it.
 
         Examples
         --------
@@ -325,15 +350,20 @@ class load_aligned(LoaderApp, cite=cite_cogent3):
         """
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = cogent3._plugin.get_seq_format_parser_plugin(
-            format_name=format_name.lower(),
+        self._parser = (
+            None
+            if format_name is None
+            else cogent3._plugin.get_seq_format_parser_plugin(
+                format_name=format_name.lower(), unaligned_seqs=False
+            )
         )
 
     T = SerialisableType | AlignedSeqsType
 
     def main(self, path: IdentifierType) -> T:
         """returns alignment"""
-        return _load_seqs(path, cogent3.make_aligned_seqs, self._parser, self.moltype)
+        parser = self._parser or _suffix_parser(path, unaligned_seqs=False)
+        return _load_seqs(path, cogent3.make_aligned_seqs, parser, self.moltype)
 
 
 class load_unaligned(LoaderApp, cite=cite_cogent3):
@@ -343,7 +373,7 @@ class load_unaligned(LoaderApp, cite=cite_cogent3):
         self,
         *,
         moltype: MolTypes | None = None,
-        format_name: str = "fasta",
+        format_name: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -351,8 +381,10 @@ class load_unaligned(LoaderApp, cite=cite_cogent3):
         ----------
         moltype
             molecular type, string or instance
-        format
-            sequence file format
+        format_name
+            sequence file format. If not specified, it is chosen from each
+            file's suffix. Files whose suffix does not identify a format,
+            such as .txt, require it.
 
         Examples
         --------
@@ -360,15 +392,20 @@ class load_unaligned(LoaderApp, cite=cite_cogent3):
         """
         moltype = moltype or "text"
         self.moltype = cogent3.get_moltype(moltype)
-        self._parser = cogent3._plugin.get_seq_format_parser_plugin(
-            format_name=format_name.lower(),
+        self._parser = (
+            None
+            if format_name is None
+            else cogent3._plugin.get_seq_format_parser_plugin(
+                format_name=format_name.lower(), unaligned_seqs=True
+            )
         )
 
     T = SerialisableType | UnalignedSeqsType
 
     def main(self, path: IdentifierType) -> T:
         """returns sequence collection"""
-        seqs = _load_seqs(path, cogent3.make_unaligned_seqs, self._parser, self.moltype)
+        parser = self._parser or _suffix_parser(path, unaligned_seqs=True)
+        seqs = _load_seqs(path, cogent3.make_unaligned_seqs, parser, self.moltype)
         return seqs.degap()
 
 
