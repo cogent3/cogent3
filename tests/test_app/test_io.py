@@ -296,6 +296,25 @@ def test_load_seqs_expands_home(DATA_DIR, tmp_path, monkeypatch, app_name, load_
     assert got.to_dict() == expect
 
 
+@pytest.mark.parametrize("transform", [str, pathlib.Path])
+@pytest.mark.parametrize(
+    ("app_name", "maker", "suffix"),
+    [
+        ("load_aligned", cogent3.make_aligned_seqs, "c3h5a"),
+        ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
+    ],
+)
+def test_load_h5seqs_expands_home(HOME_TMP_DIR, app_name, maker, suffix, transform):
+    """loader apps expand ~ in a path to a storage format"""
+    pytest.importorskip("cogent3_h5seqs")
+    data = {"a": "ACGT", "b": "ACGG"}
+    maker(data, moltype="dna").write(HOME_TMP_DIR / f"demo.{suffix}")
+    loader = get_app(app_name, moltype="dna")
+    got = loader(transform(f"~/{HOME_TMP_DIR.name}/demo.{suffix}"))
+    assert not isinstance(got, NotCompleted), got
+    assert got.to_dict() == data
+
+
 @pytest.mark.parametrize(("app_name", "load_func"), _LOADERS)
 def test_load_seqs_gzipped(DATA_DIR, tmp_path, app_name, load_func):
     """loader apps read gzip compressed sequence files"""
