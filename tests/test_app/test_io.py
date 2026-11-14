@@ -304,13 +304,17 @@ def test_load_seqs_expands_home(DATA_DIR, tmp_path, monkeypatch, app_name, load_
         ("load_unaligned", cogent3.make_unaligned_seqs, "c3h5u"),
     ],
 )
-def test_load_h5seqs_expands_home(HOME_TMP_DIR, app_name, maker, suffix, transform):
+def test_load_h5seqs_expands_home(
+    tmp_path, monkeypatch, app_name, maker, suffix, transform
+):
     """loader apps expand ~ in a path to a storage format"""
     pytest.importorskip("cogent3_h5seqs")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     data = {"a": "ACGT", "b": "ACGG"}
-    maker(data, moltype="dna").write(HOME_TMP_DIR / f"demo.{suffix}")
+    maker(data, moltype="dna").write(tmp_path / f"demo.{suffix}")
     loader = get_app(app_name, moltype="dna")
-    got = loader(transform(f"~/{HOME_TMP_DIR.name}/demo.{suffix}"))
+    got = loader(transform(f"~/demo.{suffix}"))
     assert not isinstance(got, NotCompleted), got
     assert got.to_dict() == data
 
