@@ -777,6 +777,17 @@ def test_add_seqs_invalid_type_raises(mk_cls, new_seqs, bad_type):
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
+@pytest.mark.parametrize(("name", "bad_type"), [(1, "int"), (b"z", "bytes")])
+def test_add_seqs_name_not_str_raises(mk_cls, name, bad_type):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    with pytest.raises(TypeError, match=f"name.+{bad_type}"):
+        coll.add_seqs({name: "GGGG"})
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
 def test_add_seqs_array_wrong_dtype_raises(mk_cls):
     coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
     new_seq = numpy.array([0, 1, 2, 3], dtype=numpy.int64)

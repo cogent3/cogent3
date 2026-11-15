@@ -1220,8 +1220,9 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         Parameters
         ----------
         seqs
-            {name: sequence, ...} where a sequence is a str, bytes or a
-            numpy array of alphabet indices with the collection's dtype
+            {name: sequence, ...} where a name is a str and a sequence is a
+            str, bytes or a numpy array of alphabet indices with the
+            collection's dtype
         force_unique_keys
             if True, raises ValueError if any name already exists in the
             collection or its storage. If False, existing sequences with
@@ -1237,8 +1238,9 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         Raises
         ------
         TypeError
-            if seqs is not a mapping, a sequence is not a str, bytes or
-            numpy array, or an array's dtype differs from the collection's
+            if seqs is not a mapping, a name is not a str, a sequence is not
+            a str, bytes or numpy array, or an array's dtype differs from the
+            collection's
         ValueError
             if a name already exists and force_unique_keys is True, an array
             is not 1-dimensional, the collection is a sliced alignment, or
@@ -1262,6 +1264,11 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         flip = as_displayed and self._displays_reversed
         data: dict[str, bytes | NumpyIntArrayType] = {}
         for name, seq in seqs.items():
+            if not isinstance(name, str):
+                msg = (
+                    f"sequence name {name!r} must be a str, not {type(name).__name__!r}"
+                )
+                raise TypeError(msg)
             if not isinstance(seq, (str, bytes, numpy.ndarray)):
                 msg = (
                     f"sequence {name!r} must be a str, bytes or numpy array, "
