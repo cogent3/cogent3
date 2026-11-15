@@ -748,10 +748,77 @@ def test_make_seqs_pairs_label_to_name_error_not_hidden(mk_cls):
         )
 
 
-def test_add_seqs_duplicate_names_raise():
-    coll = c3_alignment.make_unaligned_seqs({"b": "GGGG"}, moltype="dna")
-    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
-        coll.add_seqs([_SEQ_A1, _SEQ_A2])
+_ADD_SEQS_ALN = c3_alignment.make_aligned_seqs(
+    {"x": "AC-T", "y": "GGCC"}, moltype="dna"
+)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("new_seqs", "bad_type"),
+    [
+        (["ACGT"], "list"),
+        (_ADD_SEQS_ALN, "Alignment"),
+        ({"z": c3_moltype.DNA.make_seq(seq="ACGT", name="z")}, "DnaSequence"),
+        ({"z": _ADD_SEQS_ALN.seqs["x"]}, "Aligned"),
+        ({"z": 1234}, "int"),
+    ],
+)
+def test_add_seqs_invalid_type_raises(mk_cls, new_seqs, bad_type):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    with pytest.raises(TypeError, match=bad_type):
+        coll.add_seqs(new_seqs)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_add_seqs_array_wrong_dtype_raises(mk_cls):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    new_seq = numpy.array([0, 1, 2, 3], dtype=numpy.int64)
+    with pytest.raises(TypeError, match=r"int64.+uint8"):
+        coll.add_seqs({"z": new_seq})
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "new_seq",
+    [
+        numpy.array(1, dtype=numpy.uint8),
+        numpy.zeros((2, 4), dtype=numpy.uint8),
+    ],
+)
+def test_add_seqs_array_not_1d_raises(mk_cls, new_seq):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    with pytest.raises(ValueError, match="1-dimensional"):
+        coll.add_seqs({"z": new_seq})
+
+
+def test_add_seqs_rna_to_dna():
+    coll = c3_alignment.make_unaligned_seqs({"a": "AAAA"}, moltype="dna")
+    got = coll.add_seqs({"z": "acgu"})
+    assert got.to_dict() == {"a": "AAAA", "z": "ACGT"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "new_seq",
+    ["acgt", b"ACGT", numpy.array([2, 1, 3, 0], dtype=numpy.uint8)],
+)
+def test_add_seqs_accepted_types(mk_cls, new_seq):
+    coll = mk_cls({"a": "AAAA"}, moltype="dna")
+    got = coll.add_seqs(types.MappingProxyType({"z": new_seq}))
+    assert got.to_dict() == {"a": "AAAA", "z": "ACGT"}
 
 
 def _a_to_z(name):
@@ -788,7 +855,7 @@ def test_make_seqs_renaming_one_keeps_others(mk_cls, data, label_to_name, expect
 
 def test_add_seqs_renaming_one_keeps_others():
     coll = c3_alignment.make_unaligned_seqs({"b": "GGCC"}, moltype="dna")
-    got = coll.add_seqs({"z": _SEQ_A, "c": "CCCC"})
+    got = coll.add_seqs({"z": "ACGT", "c": "CCCC"})
     assert got.names == ("b", "z", "c")
     assert got.to_dict() == {"b": "GGCC", "z": "ACGT", "c": "CCCC"}
 
@@ -807,7 +874,7 @@ def test_add_seqs_to_renamed_keeps_all():
 @pytest.mark.parametrize(
     ("renamer", "new_seqs"),
     [
-        (None, {"a": c3_moltype.DNA.make_seq(seq="GGGG", name="q")}),
+        (None, {"a": "GGGG"}),
         (str.upper, {"A": "GGGG"}),
     ],
 )
@@ -826,8 +893,7 @@ def test_add_seqs_existing_name_raises(mk_cls, renamer, new_seqs):
 )
 def test_add_seqs_existing_name_replaced_when_not_unique(mk_cls):
     coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
-    new_seq = c3_moltype.DNA.make_seq(seq="GGGG", name="q")
-    got = coll.add_seqs({"a": new_seq}, force_unique_keys=False)
+    got = coll.add_seqs({"a": "GGGG"}, force_unique_keys=False)
     assert got.to_dict() == {"a": "GGGG", "b": "CCCC"}
 
 
@@ -2735,7 +2801,7 @@ def test_sequence_collection_add_seqs_metadata(mk_cls):
     data2 = {"name5": "BBB", "name6": "CCC"}
     aln = mk_cls(data, moltype="text", metadata={"key": "foo"})
     aln2 = mk_cls(data2, moltype="text", metadata={"key": "bar"})
-    out_aln = aln.add_seqs(aln2)
+    out_aln = aln.add_seqs(aln2.to_dict())
     assert out_aln.metadata["key"] == "foo"
 
 

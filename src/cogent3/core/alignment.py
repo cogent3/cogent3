@@ -1209,44 +1209,74 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
     def add_seqs(
         self,
-        seqs: dict[str, str | bytes | NumpyIntArrayType],
+        seqs: Mapping[str, str | bytes | NumpyIntArrayType],
         *,
+        force_unique_keys: bool = True,
         with_metadata: bool = True,
-        **kwargs: Any,
     ) -> Self:
         """Returns new collection with additional sequences.
 
         Parameters
         ----------
         seqs
-            sequences to add
+            {name: sequence, ...} where a sequence is a str, bytes or a
+            numpy array of alphabet indices with the collection's dtype
+        force_unique_keys
+            if True, raises ValueError if any name already exists in the
+            collection or its storage. If False, existing sequences with
+            those names are overwritten.
         with_metadata
             if False, the result has no metadata
-        kwargs
-            keyword arguments for the storage's add_seqs
+
+        Raises
+        ------
+        TypeError
+            if seqs is not a mapping, a sequence is not a str, bytes or
+            numpy array, or an array's dtype differs from the collection's
+        ValueError
+            if a name already exists and force_unique_keys is True, an array
+            is not 1-dimensional, or the sequences are not the same length
+            as an alignment
+        AlphabetError
+            if a sequence contains characters or indices invalid for the
+            collection's alphabet
         """
-        assign_names = _SeqNamer()
-        named_seqs = _make_name_seq_mapping(seqs, assign_names)
-        unique = kwargs.get("force_unique_keys", True)
-        if unique and not self._name_map.keys().isdisjoint(named_seqs):
+        if not isinstance(seqs, Mapping):
+            msg = (
+                "seqs must be a mapping of name to sequence, "
+                f"not {type(seqs).__name__!r}"
+            )
+            raise TypeError(msg)
+
+        if force_unique_keys and not self._name_map.keys().isdisjoint(seqs):
             msg = "One or more sequence names already exist in collection"
             raise ValueError(msg)
-        name_map = make_name_map(named_seqs)
-        data, offsets, _ = prep_for_seqs_data(
-            named_seqs,
-            self.moltype,
-            assign_names,
-        )
 
-        if not name_map:
-            name_map = dict(zip(data, data, strict=False))
+        dtype = numpy.dtype(self._seqs_data.alphabet.dtype)
+        data: dict[str, bytes | NumpyIntArrayType] = {}
+        for name, seq in seqs.items():
+            if not isinstance(seq, (str, bytes, numpy.ndarray)):
+                msg = (
+                    f"sequence {name!r} must be a str, bytes or numpy array, "
+                    f"not {type(seq).__name__!r}"
+                )
+                raise TypeError(msg)
+            if isinstance(seq, numpy.ndarray) and seq.dtype != dtype:
+                msg = (
+                    f"array for sequence {name!r} has dtype {seq.dtype}, "
+                    f"collection dtype is {dtype}"
+                )
+                raise TypeError(msg)
+            if isinstance(seq, numpy.ndarray) and seq.ndim != 1:
+                msg = f"array for sequence {name!r} must be 1-dimensional"
+                raise ValueError(msg)
+            data[name] = coerce_to_raw_seq_data(seq, self.moltype).seq
 
-        kwargs["offset"] = offsets
-        seqs_data = self._seqs_data.add_seqs(data, **kwargs)
+        seqs_data = self._seqs_data.add_seqs(data, force_unique_keys=force_unique_keys)
         return self.__class__(
             seqs_data=seqs_data,
             moltype=self.moltype,
-            name_map={**self._name_map, **name_map},
+            name_map={**self._name_map, **{name: name for name in data}},
             metadata=self._metadata_for(with_metadata, seqs_data),
             annotation_db=self._annotation_db,
         )

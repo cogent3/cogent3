@@ -37,6 +37,21 @@ print(seqs.to_fasta())
 
 More than one sequence can be added to a collection simultaneously. Note that `add_seqs()` does not modify the existing collection/alignment, it creates a new one.
 
+```{python}
+from cogent3 import make_aligned_seqs
+
+aln = make_aligned_seqs({"seq1": "ATGACC", "seq2": "ATCGCC"}, moltype="dna")
+aln.add_seqs({"seq3": "ATG-CC", "seq4": "AT--CC"})
+```
+
+`add_seqs()` takes a mapping of name to sequence, where each sequence is one of
+
+- a `str`
+- `bytes`
+- a 1-dimensional numpy array of alphabet indices, with the same dtype as the collection (`aln.storage.alphabet.dtype`)
+
+Any other input raises a `TypeError`. To add a `Sequence`, convert it with `str()` first. Annotations on a sequence are not carried across.
+
 ## The elements of a collection or alignment
 
 ### Accessing individual sequences from a collection or alignment by name
