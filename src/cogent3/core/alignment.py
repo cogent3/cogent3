@@ -1235,8 +1235,8 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
             numpy array, or an array's dtype differs from the collection's
         ValueError
             if a name already exists and force_unique_keys is True, an array
-            is not 1-dimensional, or the sequences are not the same length
-            as an alignment
+            is not 1-dimensional, the collection is a sliced alignment, or
+            the sequences are not the same length as an alignment
         AlphabetError
             if a sequence contains characters or indices invalid for the
             collection's alphabet
@@ -3958,6 +3958,23 @@ class Alignment(CollectionBase[Aligned]):
             return [] if self.num_seqs < 2 else [list(self.names)]
 
         return super().duplicated_seqs()
+
+    @override
+    @extend_docstring_from(CollectionBase.add_seqs)
+    def add_seqs(
+        self,
+        seqs: Mapping[str, str | bytes | NumpyIntArrayType],
+        *,
+        force_unique_keys: bool = True,
+        with_metadata: bool = True,
+    ) -> Self:
+        sr = self._slice_record
+        if sr.plus_step != 1 or len(sr) != sr.parent_len:
+            msg = "cannot add sequences to a sliced alignment"
+            raise ValueError(msg)
+        return super().add_seqs(
+            seqs, force_unique_keys=force_unique_keys, with_metadata=with_metadata
+        )
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs: Any) -> float:
         """

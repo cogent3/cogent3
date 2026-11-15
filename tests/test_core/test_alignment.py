@@ -801,6 +801,45 @@ def test_add_seqs_array_not_1d_raises(mk_cls, new_seq):
         coll.add_seqs({"z": new_seq})
 
 
+_ADD_SEQS_DNA_ALN = c3_alignment.make_aligned_seqs(
+    {"a": "AAACTT", "b": "CCCGTT"}, moltype="dna"
+)
+
+
+@pytest.mark.parametrize(
+    "aln",
+    [
+        _ADD_SEQS_DNA_ALN[1:4],
+        _ADD_SEQS_DNA_ALN[::2],
+        _ADD_SEQS_DNA_ALN[1:4].rc(),
+        _ADD_SEQS_DNA_ALN.rc()[1:4],
+    ],
+)
+def test_add_seqs_sliced_alignment_raises(aln):
+    with pytest.raises(ValueError, match="sliced alignment"):
+        aln.add_seqs({"z": "GGGTTA"})
+
+
+@pytest.mark.parametrize(
+    "aln",
+    [
+        _ADD_SEQS_DNA_ALN,
+        _ADD_SEQS_DNA_ALN[:],
+        _ADD_SEQS_DNA_ALN.rc(),
+        _ADD_SEQS_DNA_ALN[::-1],
+    ],
+)
+def test_add_seqs_full_width_alignment(aln):
+    got = aln.add_seqs({"z": "GGGTTA"})
+    assert got.names == ("a", "b", "z")
+
+
+def test_add_seqs_deepcopied_slice():
+    sub = _ADD_SEQS_DNA_ALN[1:4].deepcopy()
+    got = sub.add_seqs({"z": "GGG"})
+    assert got.to_dict() == {"a": "AAC", "b": "CCG", "z": "GGG"}
+
+
 def test_add_seqs_rna_to_dna():
     coll = c3_alignment.make_unaligned_seqs({"a": "AAAA"}, moltype="dna")
     got = coll.add_seqs({"z": "acgu"})

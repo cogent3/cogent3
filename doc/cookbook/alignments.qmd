@@ -44,13 +44,11 @@ aln = make_aligned_seqs({"seq1": "ATGACC", "seq2": "ATCGCC"}, moltype="dna")
 aln.add_seqs({"seq3": "ATG-CC", "seq4": "AT--CC"})
 ```
 
-`add_seqs()` takes a mapping of name to sequence, where each sequence is one of
+`add_seqs()` takes a mapping of name to sequence, where each sequence is one of `str`, `bytes` or `ndarray` (with the same dtype as the collections `.storage.alphabet.dtype`). Any other input raises a `TypeError`. To add a `Sequence`, convert it with `numpy.array()` first. Annotations on a sequence are not carried across.
 
-- a `str`
-- `bytes`
-- a 1-dimensional numpy array of alphabet indices, with the same dtype as the collection (`aln.storage.alphabet.dtype`)
-
-Any other input raises a `TypeError`. To add a `Sequence`, convert it with `str()` first. Annotations on a sequence are not carried across.
+::: {.callout-warning}
+Using `.add_seqs()` on a sliced alignment will raise a `ValueError`.
+:::
 
 ## The elements of a collection or alignment
 
