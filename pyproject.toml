@@ -139,6 +139,7 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "internet: marks tests that require internet access  (deselect with '-m \"not internet\"')",
     "discontinued: mark tests as discontinued (deselect with '-m \"not discontinued\"')",
+    "static_image: marks tests that need Chrome to export static images (deselect with '-m \"not static_image\"')",
 ]
 testpaths = "tests"
 addopts = ["--strict-config"]

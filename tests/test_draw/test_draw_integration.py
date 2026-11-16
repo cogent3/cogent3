@@ -475,6 +475,7 @@ def test_arrow_shapes(biotype):
     assert isinstance(shape, Arrow)
 
 
+@pytest.mark.static_image
 @pytest.mark.parametrize("transform", [str, pathlib.Path])
 def test_write_home_dir(HOME_TMP_DIR, transform):
     # write a static image to a "~/" home directory style path
