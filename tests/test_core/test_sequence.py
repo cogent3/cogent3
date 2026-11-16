@@ -3905,6 +3905,32 @@ def test_add_feature_on_stepped_slice_raises(make_view):
         make_view(seq).add_feature(biotype="gene", name="g", spans=[(0, 1)])
 
 
+@pytest.mark.parametrize("kind", ["plain", "offset", "member"])
+@pytest.mark.parametrize(
+    ("segments", "expect"),
+    [
+        ([slice(None, None, -1)], ["ACCCGGG"]),
+        ([slice(None, None, -2)], ["CCG"]),
+        ([slice(14, 1, -3)], ["ACG"]),
+        ([slice(None, None, 2), slice(None, None, -1)], ["ACGG"]),
+        ([slice(1, 12), slice(None, None, -1)], ["ACCCGGG"]),
+    ],
+)
+def test_negative_step_slice_keeps_features(kind, segments, expect):
+    raw = "AAACCCGGGAATTCGA"
+    offset = 5 if kind == "offset" else 0
+    seq = cogent3.make_seq(raw, name="a", moltype="dna", annotation_offset=offset)
+    seq.add_feature(biotype="gene", name="g", spans=[(2, 9)])
+    if kind == "member":
+        coll = cogent3.make_unaligned_seqs(
+            {"a": raw}, moltype="dna", annotation_db=seq.annotation_db
+        )
+        seq = coll.seqs["a"]
+    for segment in segments:
+        seq = seq[segment]
+    assert [str(f.get_slice()) for f in seq.get_features(name="g")] == expect
+
+
 def _annotated_view_for_moltype(kind):
     seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
     seq.add_feature(biotype="gene", name="g", spans=[(2, 6)])

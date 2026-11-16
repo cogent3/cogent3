@@ -1813,8 +1813,7 @@ class Sequence(AnnotatableMixin):
                 name=self.name,
                 metadata=self._metadata,
             )
-            stride = getattr(index, "step", 1) or 1
-            preserve_offset = stride > 0
+            preserve_offset = True
         else:
             msg = f"Cannot slice using a {type(index)}"
             raise TypeError(msg)
