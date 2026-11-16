@@ -1194,14 +1194,13 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
         if isinstance(seq, Aligned):
             seq = seq.seq
         if copy_annotations and self.has_annotation_db():
-            # we need to copy the sequence too to break the link to self.annotation_db
-            seq = seq.copy(exclude_annotations=True)
-            seq.annotation_db = type(self.annotation_db)()
-            seq.annotation_db.update(
+            db = type(self.annotation_db)()
+            db.update(
                 annot_db=cast("AnnotationDbABC", self.annotation_db),
                 seqids=seqname,
             )
-            return seq
+            # seq shares the collection's db, replacing it in place would close it
+            return seq._copy_view(annotation_db=db)
 
         seq.replace_annotation_db(self._annotation_db, check=False)
 

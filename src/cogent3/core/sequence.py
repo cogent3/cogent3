@@ -735,9 +735,20 @@ class Sequence(AnnotatableMixin):
             new.annotation_db = self.annotation_db
         return new
 
+    def _copy_view(self, annotation_db: AnnotationDbABC | None) -> Self:
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self._seq.copy(),
+            name=self.name,
+            metadata=self._metadata,
+            annotation_db=annotation_db,
+        )
+
     def _renamed(self, name: str) -> Self:
         if self._resolved_seqid is not None:
-            new = self.copy(sliced=False)
+            new = self._copy_view(
+                self.annotation_db if self.has_annotation_db() else None
+            )
         else:
             # with no stored name, name also becomes the name annotations use
             new = self.__class__(
