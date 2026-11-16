@@ -32,6 +32,7 @@ import numpy.typing as npt
 from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes
 from scinexus.misc import get_object_provenance
+from scinexus.warning import deprecated_callable
 
 import cogent3._plugin as c3_plugin
 from cogent3._version import __version__
@@ -1648,7 +1649,12 @@ class Sequence(AnnotatableMixin):
 
         self.annotation_db.update(seq_db, seqids=seqid)
 
-    def copy(
+    @deprecated_callable(
+        version="2027.4",
+        reason="eliminating code complexity in cogent3",
+        is_discontinued=True,
+    )
+    def copy(  # pragma: no cover
         self,
         exclude_annotations: bool = False,
         sliced: bool = True,

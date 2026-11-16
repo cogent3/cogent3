@@ -660,7 +660,7 @@ wheels = [
 
 [[package]]
 name = "cogent3"
-version = "2026.11.13"
+version = "2026.11.17"
 source = { editable = "." }
 dependencies = [
     { name = "charset-normalizer" },
@@ -4175,25 +4175,19 @@ wheels = [
 
 [[package]]
 name = "scriv"
-version = "1.8.1"
+version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
-    { name = "certifi" },
-    { name = "charset-normalizer" },
     { name = "click" },
     { name = "click-log" },
-    { name = "idna" },
     { name = "jinja2" },
     { name = "markdown-it-py" },
-    { name = "markupsafe" },
-    { name = "mdurl" },
     { name = "requests" },
-    { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/85/fccd08e7fe807f0c202fa54702eb9ed07aa6556d4c82d4a3a4ada93aa6a6/scriv-1.8.1.tar.gz", hash = "sha256:7c47f6981cf859fe3f3fe336e811c60e2d36713ce377d7a874d56779c33ec916", size = 98939, upload-time = "2026-11-08T16:56:20.12Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/14/9a/2ef2209e0672b264a2f2574dc88ea3cd9cfc9adfecbfd3165a900980ec8c/scriv-1.8.0.tar.gz", hash = "sha256:7b1a105dd411ac541998250fc8594742419f94cee984ca1257c5ebf5af21918b", size = 98160, upload-time = "2025-12-30T00:01:10.13Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4b/5c/b9809467770d4fd83bed6f6735d15408ec4235c8d3b8ef2c45bbe1534203/scriv-1.8.1-py3-none-any.whl", hash = "sha256:95f7344c5c2bf6295b7188ef1a96d124931bbba5f7e25143d4df6fadfc51d5c2", size = 39149, upload-time = "2026-11-08T16:56:18.736Z" },
+    { url = "https://files.pythonhosted.org/packages/02/e7/062480ede84ecb56ee0f8f2e5b5a3b2a5bceeb73bbdf909d3c13f5438749/scriv-1.8.0-py3-none-any.whl", hash = "sha256:f00f51325b2f4bc96b16fbb1239d4ab577cc2422301a5dd4f5f9378aae2549e0", size = 39085, upload-time = "2025-12-30T00:01:08.599Z" },
 ]
 
 [[package]]
