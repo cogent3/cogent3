@@ -1636,6 +1636,36 @@ def test_sequence_collection_get_seq():
         seqs.get_seq("seqx")
 
 
+@pytest.mark.parametrize(
+    ("mk_cls", "data"),
+    [
+        (
+            c3_alignment.make_unaligned_seqs,
+            {"a": "AAACCCGGGAAT", "b": "AAACCCGGGAAT"},
+        ),
+        (
+            c3_alignment.make_aligned_seqs,
+            {"a": "AA-ACCCGGGAAT", "b": "AAACCCGGGAAT-"},
+        ),
+    ],
+)
+def test_get_seq_copy_annotations(mk_cls, data):
+    db = GffAnnotationDb()
+    db.add_feature(seqid="a", biotype="gene", name="ga", spans=[(102, 106)])
+    db.add_feature(seqid="b", biotype="gene", name="gb", spans=[(0, 3)])
+    coll = mk_cls(data, moltype="dna", offset={"a": 100}, annotation_db=db)
+    got = coll.get_seq("a", copy_annotations=True)
+    assert got.annotation_offset == 100
+    assert got.annotation_db is not coll.annotation_db
+    assert len(got.annotation_db) == 1
+    assert [str(f.get_slice()) for f in got.get_features(name="ga")] == ["ACCC"]
+    got.add_feature(biotype="gene", name="new", spans=[(0, 2)])
+    assert len(coll.annotation_db) == 2
+    member = coll.get_seq("a")
+    assert [str(f.get_slice()) for f in member.get_features(name="ga")] == ["ACCC"]
+    close_dbs(got, coll)
+
+
 @pytest.fixture
 def gap_ambig_seqs():
     return {"s1": "ATGRY?", "s2": "T-AG??"}
