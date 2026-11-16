@@ -4103,6 +4103,52 @@ def test_aligned_seqs_data_add_seqs(dna_alphabet):
     assert new_ad.names == ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6")
 
 
+def test_aligned_seqs_data_add_seqs_keeps_reversed(dna_alphabet):
+    data = {"seq1": "ACGT-", "seq2": "ACG-T"}
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
+        data=data, alphabet=dna_alphabet, reversed_seqs={"seq1"}
+    )
+    new_ad = ad.add_seqs({"seq3": "A---T"})
+    assert new_ad.reversed_seqs == frozenset({"seq1"})
+
+
+@pytest.mark.parametrize(
+    ("old_alphabet", "new_alphabet"),
+    [
+        (c3_moltype.DNA.degen_gapped_alphabet, c3_moltype.RNA.degen_gapped_alphabet),
+        (c3_moltype.ASCII.alphabet, c3_moltype.DNA.degen_gapped_alphabet),
+    ],
+)
+def test_aligned_seqs_data_to_alphabet_keeps_reversed(old_alphabet, new_alphabet):
+    data = {"seq1": "ACGT-", "seq2": "ACG-T"}
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
+        data=data, alphabet=old_alphabet, reversed_seqs={"seq1"}
+    )
+    got = ad.to_alphabet(new_alphabet)
+    assert got.reversed_seqs == frozenset({"seq1"})
+
+
+def test_alignment_to_moltype_keeps_strand_of_reversed_seq():
+    seq = c3_moltype.DNA.make_seq(seq="AAACCCGGGT", name="a")
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": seq.rc(), "b": "TTTTTTTTTT"}, moltype="dna"
+    )
+    got = aln.to_moltype("rna")
+    assert got.get_seq("a").parent_coordinates() == ("a", 0, 10, -1)
+
+
+def test_alignment_add_seqs_keeps_strand_of_reversed_seq():
+    seq = c3_moltype.DNA.make_seq(seq="AAACCCGGGT", name="a")
+    seq.add_feature(biotype="gene", name="g1", spans=[(0, 4)])
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": seq.rc(), "b": "TTTTTTTTTT"}, moltype="dna"
+    )
+    got = aln.add_seqs({"z": "GGGGGGGGGG"})
+    assert got.get_seq("a").parent_coordinates() == ("a", 0, 10, -1)
+    (feature,) = got.get_seq("a").get_features(name="g1")
+    assert str(feature.get_slice()) == "AAAC"
+
+
 def test_aligned_seqs_data_add_seqs_diff_lengths_raises(dna_alphabet):
     """adding sequences of different lengths should raise an error"""
 
