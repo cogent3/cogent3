@@ -1142,6 +1142,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet=self.alphabet,
             offset={**self._offset, **(offset or {})},
             align_len=self.align_len,
+            reversed_seqs=set(self._reversed),
         )
 
     def to_alphabet(
@@ -1169,6 +1170,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
                 offset=self._offset,
                 align_len=self.align_len,
                 names=self.names,
+                reversed_seqs=set(self._reversed),
             )
 
         gapped = numpy.empty(
@@ -1190,6 +1192,7 @@ class AlignedSeqsData(AlignedSeqsDataABC):
             alphabet=alphabet,
             offset=self._offset,
             names=self.names,
+            reversed_seqs=set(self._reversed),
         )
 
     def variable_positions(

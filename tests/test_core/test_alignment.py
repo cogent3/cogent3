@@ -748,10 +748,127 @@ def test_make_seqs_pairs_label_to_name_error_not_hidden(mk_cls):
         )
 
 
-def test_add_seqs_duplicate_names_raise():
-    coll = c3_alignment.make_unaligned_seqs({"b": "GGGG"}, moltype="dna")
-    with pytest.raises(ValueError, match=re.escape("'a' from labels 'a', 'a'")):
-        coll.add_seqs([_SEQ_A1, _SEQ_A2])
+_ADD_SEQS_ALN = c3_alignment.make_aligned_seqs(
+    {"x": "AC-T", "y": "GGCC"}, moltype="dna"
+)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    ("new_seqs", "bad_type"),
+    [
+        (["ACGT"], "list"),
+        (_ADD_SEQS_ALN, "Alignment"),
+        ({"z": c3_moltype.DNA.make_seq(seq="ACGT", name="z")}, "DnaSequence"),
+        ({"z": _ADD_SEQS_ALN.seqs["x"]}, "Aligned"),
+        ({"z": 1234}, "int"),
+    ],
+)
+def test_add_seqs_invalid_type_raises(mk_cls, new_seqs, bad_type):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    with pytest.raises(TypeError, match=bad_type):
+        coll.add_seqs(new_seqs)
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(("name", "bad_type"), [(1, "int"), (b"z", "bytes")])
+def test_add_seqs_name_not_str_raises(mk_cls, name, bad_type):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    with pytest.raises(TypeError, match=f"name.+{bad_type}"):
+        coll.add_seqs({name: "GGGG"})
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_add_seqs_array_wrong_dtype_raises(mk_cls):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    new_seq = numpy.array([0, 1, 2, 3], dtype=numpy.int64)
+    with pytest.raises(TypeError, match=r"int64.+uint8"):
+        coll.add_seqs({"z": new_seq})
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "new_seq",
+    [
+        numpy.array(1, dtype=numpy.uint8),
+        numpy.zeros((2, 4), dtype=numpy.uint8),
+    ],
+)
+def test_add_seqs_array_not_1d_raises(mk_cls, new_seq):
+    coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
+    with pytest.raises(ValueError, match="1-dimensional"):
+        coll.add_seqs({"z": new_seq})
+
+
+_ADD_SEQS_DNA_ALN = c3_alignment.make_aligned_seqs(
+    {"a": "AAACTT", "b": "CCCGTT"}, moltype="dna"
+)
+
+
+@pytest.mark.parametrize(
+    "aln",
+    [
+        _ADD_SEQS_DNA_ALN[1:4],
+        _ADD_SEQS_DNA_ALN[::2],
+        _ADD_SEQS_DNA_ALN[1:4].rc(),
+        _ADD_SEQS_DNA_ALN.rc()[1:4],
+    ],
+)
+def test_add_seqs_sliced_alignment_raises(aln):
+    with pytest.raises(ValueError, match="sliced alignment"):
+        aln.add_seqs({"z": "GGGTTA"})
+
+
+@pytest.mark.parametrize(
+    "aln",
+    [
+        _ADD_SEQS_DNA_ALN,
+        _ADD_SEQS_DNA_ALN[:],
+        _ADD_SEQS_DNA_ALN.rc(),
+        _ADD_SEQS_DNA_ALN[::-1],
+    ],
+)
+def test_add_seqs_full_width_alignment(aln):
+    got = aln.add_seqs({"z": "GGGTTA"})
+    assert got.names == ("a", "b", "z")
+
+
+def test_add_seqs_deepcopied_slice():
+    sub = _ADD_SEQS_DNA_ALN[1:4].deepcopy()
+    got = sub.add_seqs({"z": "GGG"})
+    assert got.to_dict() == {"a": "AAC", "b": "CCG", "z": "GGG"}
+
+
+def test_add_seqs_rna_to_dna():
+    coll = c3_alignment.make_unaligned_seqs({"a": "AAAA"}, moltype="dna")
+    got = coll.add_seqs({"z": "acgu"})
+    assert got.to_dict() == {"a": "AAAA", "z": "ACGT"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+@pytest.mark.parametrize(
+    "new_seq",
+    ["acgt", b"ACGT", numpy.array([2, 1, 3, 0], dtype=numpy.uint8)],
+)
+def test_add_seqs_accepted_types(mk_cls, new_seq):
+    coll = mk_cls({"a": "AAAA"}, moltype="dna")
+    got = coll.add_seqs(types.MappingProxyType({"z": new_seq}))
+    assert got.to_dict() == {"a": "AAAA", "z": "ACGT"}
 
 
 def _a_to_z(name):
@@ -788,7 +905,7 @@ def test_make_seqs_renaming_one_keeps_others(mk_cls, data, label_to_name, expect
 
 def test_add_seqs_renaming_one_keeps_others():
     coll = c3_alignment.make_unaligned_seqs({"b": "GGCC"}, moltype="dna")
-    got = coll.add_seqs({"z": _SEQ_A, "c": "CCCC"})
+    got = coll.add_seqs({"z": "ACGT", "c": "CCCC"})
     assert got.names == ("b", "z", "c")
     assert got.to_dict() == {"b": "GGCC", "z": "ACGT", "c": "CCCC"}
 
@@ -807,7 +924,7 @@ def test_add_seqs_to_renamed_keeps_all():
 @pytest.mark.parametrize(
     ("renamer", "new_seqs"),
     [
-        (None, {"a": c3_moltype.DNA.make_seq(seq="GGGG", name="q")}),
+        (None, {"a": "GGGG"}),
         (str.upper, {"A": "GGGG"}),
     ],
 )
@@ -826,8 +943,7 @@ def test_add_seqs_existing_name_raises(mk_cls, renamer, new_seqs):
 )
 def test_add_seqs_existing_name_replaced_when_not_unique(mk_cls):
     coll = mk_cls({"a": "AAAA", "b": "CCCC"}, moltype="dna")
-    new_seq = c3_moltype.DNA.make_seq(seq="GGGG", name="q")
-    got = coll.add_seqs({"a": new_seq}, force_unique_keys=False)
+    got = coll.add_seqs({"a": "GGGG"}, force_unique_keys=False)
     assert got.to_dict() == {"a": "GGGG", "b": "CCCC"}
 
 
@@ -2696,16 +2812,89 @@ def test_sequence_collection_add_seqs(mk_cls):
     assert len(out_aln.names) == 6
 
 
+def _rc_unaligned():
+    coll = c3_alignment.make_unaligned_seqs({"a": "AAAC", "b": "CCCG"}, moltype="dna")
+    return coll.rc()
+
+
+def _rc_aligned():
+    aln = c3_alignment.make_aligned_seqs({"a": "AAAC", "b": "CC-G"}, moltype="dna")
+    return aln.rc()
+
+
+def _rc_rna_unaligned():
+    coll = c3_alignment.make_unaligned_seqs({"a": "AAAC", "b": "CCCG"}, moltype="rna")
+    return coll.rc()
+
+
+def _reversed_protein_unaligned():
+    return c3_alignment.make_unaligned_seqs(
+        {"a": "MKLV", "b": "MKW"}, moltype="protein", is_reversed=True
+    )
+
+
+def _reversed_protein_aligned():
+    aln = c3_alignment.make_aligned_seqs({"a": "MKLV", "b": "MK-W"}, moltype="protein")
+    return aln[::-1]
+
+
+@pytest.mark.parametrize(
+    ("mk_coll", "expect_existing", "new_seq", "stored_as_given"),
+    [
+        (_rc_unaligned, {"a": "GTTT", "b": "CGGG"}, "GGGT", "ACCC"),
+        (_rc_aligned, {"a": "GTTT", "b": "C-GG"}, "GG-T", "A-CC"),
+        (_rc_rna_unaligned, {"a": "GUUU", "b": "CGGG"}, "GGGU", "ACCC"),
+        (_reversed_protein_unaligned, {"a": "VLKM", "b": "WKM"}, "ACDE", "EDCA"),
+        (_reversed_protein_aligned, {"a": "VLKM", "b": "W-KM"}, "AC-E", "E-CA"),
+    ],
+)
+@pytest.mark.parametrize("as_displayed", [True, False])
+def test_add_seqs_reversed_collection(
+    mk_coll, expect_existing, new_seq, stored_as_given, as_displayed
+):
+    coll = mk_coll()
+    assert coll.to_dict() == expect_existing
+    got = coll.add_seqs({"z": new_seq}, as_displayed=as_displayed)
+    expect_z = new_seq if as_displayed else stored_as_given
+    assert got.to_dict() == {**expect_existing, "z": expect_z}
+
+
 @pytest.mark.parametrize(
     "mk_cls",
     [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
 )
-def test_sequence_collection_add_seqs_reversed(mk_cls):
-    data = {"name1": "AAA", "name2": "A--", "name3": "AAA", "name4": "AAA"}
-    data2 = {"name5": "TTT", "name6": "---"}
-    aln = mk_cls(data, moltype="dna", metadata={"key": "foo"})
-    out_aln = aln.add_seqs(data2)
-    assert len(out_aln.names) == 6
+def test_add_seqs_as_displayed_ignored_when_not_reversed(mk_cls):
+    coll = mk_cls({"a": "AAAC"}, moltype="dna")
+    expect = {"a": "AAAC", "z": "GGGT"}
+    assert coll.add_seqs({"z": "GGGT"}, as_displayed=False).to_dict() == expect
+    assert coll.add_seqs({"z": "GGGT"}, as_displayed=True).to_dict() == expect
+
+
+@pytest.mark.parametrize(
+    "new_seq",
+    ["gggu", b"GGGT", numpy.array([3, 3, 3, 0], dtype=numpy.uint8)],
+)
+@pytest.mark.parametrize("mk_coll", [_rc_unaligned, _rc_aligned])
+def test_add_seqs_reversed_collection_input_types(mk_coll, new_seq):
+    coll = mk_coll()
+    got = coll.add_seqs({"z": new_seq})
+    assert got.to_dict() == {**coll.to_dict(), "z": "GGGT"}
+
+
+@pytest.mark.parametrize(
+    "mk_cls",
+    [c3_alignment.make_unaligned_seqs, c3_alignment.make_aligned_seqs],
+)
+def test_add_seqs_reversed_collection_keeps_strand(mk_cls):
+    seq = c3_moltype.DNA.make_seq(seq="AAACCCGGGT", name="a")
+    seq.add_feature(biotype="gene", name="g1", spans=[(0, 4)])
+    coll = mk_cls({"a": seq, "b": "TTTTTTTTTT"}, moltype="dna").rc()
+    got = coll.add_seqs({"z": "GGGGGGGGGG"})
+    before, after = coll.get_seq("a"), got.get_seq("a")
+    assert after.parent_coordinates() == before.parent_coordinates()
+    assert before.parent_coordinates()[-1] == -1
+    expect = [str(f.get_slice()) for f in before.get_features(name="g1")]
+    assert [str(f.get_slice()) for f in after.get_features(name="g1")] == expect
 
 
 @pytest.mark.parametrize(
@@ -2735,7 +2924,7 @@ def test_sequence_collection_add_seqs_metadata(mk_cls):
     data2 = {"name5": "BBB", "name6": "CCC"}
     aln = mk_cls(data, moltype="text", metadata={"key": "foo"})
     aln2 = mk_cls(data2, moltype="text", metadata={"key": "bar"})
-    out_aln = aln.add_seqs(aln2)
+    out_aln = aln.add_seqs(aln2.to_dict())
     assert out_aln.metadata["key"] == "foo"
 
 
@@ -3912,6 +4101,52 @@ def test_aligned_seqs_data_add_seqs(dna_alphabet):
     new_data = {"seq4": "ACGTT", "seq5": "ACG--", "seq6": "-----"}
     new_ad = ad.add_seqs(new_data)
     assert new_ad.names == ("seq1", "seq2", "seq3", "seq4", "seq5", "seq6")
+
+
+def test_aligned_seqs_data_add_seqs_keeps_reversed(dna_alphabet):
+    data = {"seq1": "ACGT-", "seq2": "ACG-T"}
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
+        data=data, alphabet=dna_alphabet, reversed_seqs={"seq1"}
+    )
+    new_ad = ad.add_seqs({"seq3": "A---T"})
+    assert new_ad.reversed_seqs == frozenset({"seq1"})
+
+
+@pytest.mark.parametrize(
+    ("old_alphabet", "new_alphabet"),
+    [
+        (c3_moltype.DNA.degen_gapped_alphabet, c3_moltype.RNA.degen_gapped_alphabet),
+        (c3_moltype.ASCII.alphabet, c3_moltype.DNA.degen_gapped_alphabet),
+    ],
+)
+def test_aligned_seqs_data_to_alphabet_keeps_reversed(old_alphabet, new_alphabet):
+    data = {"seq1": "ACGT-", "seq2": "ACG-T"}
+    ad = c3_seq_storage.AlignedSeqsData.from_seqs(
+        data=data, alphabet=old_alphabet, reversed_seqs={"seq1"}
+    )
+    got = ad.to_alphabet(new_alphabet)
+    assert got.reversed_seqs == frozenset({"seq1"})
+
+
+def test_alignment_to_moltype_keeps_strand_of_reversed_seq():
+    seq = c3_moltype.DNA.make_seq(seq="AAACCCGGGT", name="a")
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": seq.rc(), "b": "TTTTTTTTTT"}, moltype="dna"
+    )
+    got = aln.to_moltype("rna")
+    assert got.get_seq("a").parent_coordinates() == ("a", 0, 10, -1)
+
+
+def test_alignment_add_seqs_keeps_strand_of_reversed_seq():
+    seq = c3_moltype.DNA.make_seq(seq="AAACCCGGGT", name="a")
+    seq.add_feature(biotype="gene", name="g1", spans=[(0, 4)])
+    aln = c3_alignment.make_aligned_seqs(
+        {"a": seq.rc(), "b": "TTTTTTTTTT"}, moltype="dna"
+    )
+    got = aln.add_seqs({"z": "GGGGGGGGGG"})
+    assert got.get_seq("a").parent_coordinates() == ("a", 0, 10, -1)
+    (feature,) = got.get_seq("a").get_features(name="g1")
+    assert str(feature.get_slice()) == "AAAC"
 
 
 def test_aligned_seqs_data_add_seqs_diff_lengths_raises(dna_alphabet):

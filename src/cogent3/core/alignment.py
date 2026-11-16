@@ -1209,47 +1209,98 @@ class CollectionBase(AnnotatableMixin, ABC, Generic[TSequenceOrAligned]):
 
     def add_seqs(
         self,
-        seqs: dict[str, str | bytes | NumpyIntArrayType],
+        seqs: Mapping[str, str | bytes | NumpyIntArrayType],
         *,
+        force_unique_keys: bool = True,
         with_metadata: bool = True,
-        **kwargs: Any,
+        as_displayed: bool = True,
     ) -> Self:
         """Returns new collection with additional sequences.
 
         Parameters
         ----------
         seqs
-            sequences to add
+            {name: sequence, ...} where a name is a str and a sequence is a
+            str, bytes or a numpy array of alphabet indices with the
+            collection's dtype
+        force_unique_keys
+            if True, raises ValueError if any name already exists in the
+            collection or its storage. If False, existing sequences with
+            those names are overwritten.
         with_metadata
             if False, the result has no metadata
-        kwargs
-            keyword arguments for the storage's add_seqs
+        as_displayed
+            only affects a reversed collection. If True, the new sequences
+            read as given, in the orientation of the existing ones. If False,
+            they are stored as given and so read reversed (reverse
+            complemented for DNA and RNA).
+
+        Raises
+        ------
+        TypeError
+            if seqs is not a mapping, a name is not a str, a sequence is not
+            a str, bytes or numpy array, or an array's dtype differs from the
+            collection's
+        ValueError
+            if a name already exists and force_unique_keys is True, an array
+            is not 1-dimensional, the collection is a sliced alignment, or
+            the sequences are not the same length as an alignment
+        AlphabetError
+            if a sequence contains characters or indices invalid for the
+            collection's alphabet
         """
-        assign_names = _SeqNamer()
-        named_seqs = _make_name_seq_mapping(seqs, assign_names)
-        unique = kwargs.get("force_unique_keys", True)
-        if unique and not self._name_map.keys().isdisjoint(named_seqs):
+        if not isinstance(seqs, Mapping):
+            msg = (
+                "seqs must be a mapping of name to sequence, "
+                f"not {type(seqs).__name__!r}"
+            )
+            raise TypeError(msg)
+
+        if force_unique_keys and not self._name_map.keys().isdisjoint(seqs):
             msg = "One or more sequence names already exist in collection"
             raise ValueError(msg)
-        name_map = make_name_map(named_seqs)
-        data, offsets, _ = prep_for_seqs_data(
-            named_seqs,
-            self.moltype,
-            assign_names,
-        )
 
-        if not name_map:
-            name_map = dict(zip(data, data, strict=False))
+        dtype = numpy.dtype(self._seqs_data.alphabet.dtype)
+        flip = as_displayed and self._displays_reversed
+        data: dict[str, bytes | NumpyIntArrayType] = {}
+        for name, seq in seqs.items():
+            if not isinstance(name, str):
+                msg = (
+                    f"sequence name {name!r} must be a str, not {type(name).__name__!r}"
+                )
+                raise TypeError(msg)
+            if not isinstance(seq, (str, bytes, numpy.ndarray)):
+                msg = (
+                    f"sequence {name!r} must be a str, bytes or numpy array, "
+                    f"not {type(seq).__name__!r}"
+                )
+                raise TypeError(msg)
+            if isinstance(seq, numpy.ndarray) and seq.dtype != dtype:
+                msg = (
+                    f"array for sequence {name!r} has dtype {seq.dtype}, "
+                    f"collection dtype is {dtype}"
+                )
+                raise TypeError(msg)
+            if isinstance(seq, numpy.ndarray) and seq.ndim != 1:
+                msg = f"array for sequence {name!r} must be 1-dimensional"
+                raise ValueError(msg)
+            raw = coerce_to_raw_seq_data(seq, self.moltype).seq
+            if flip:
+                raw = self.moltype.rc(raw) if self.moltype.is_nucleic else raw[::-1]
+            data[name] = raw
 
-        kwargs["offset"] = offsets
-        seqs_data = self._seqs_data.add_seqs(data, **kwargs)
-        return self.__class__(
-            seqs_data=seqs_data,
-            moltype=self.moltype,
-            name_map={**self._name_map, **name_map},
-            metadata=self._metadata_for(with_metadata, seqs_data),
-            annotation_db=self._annotation_db,
-        )
+        seqs_data = self._seqs_data.add_seqs(data, force_unique_keys=force_unique_keys)
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs |= {
+            "seqs_data": seqs_data,
+            "name_map": {**self._name_map, **{name: name for name in data}},
+            "metadata": self._metadata_for(with_metadata, seqs_data),
+        }
+        return self.__class__(**init_kwargs)
+
+    @property
+    def _displays_reversed(self) -> bool:
+        return self._is_reversed
 
     def renamed_seqs(self, renamer: Callable[[str], str]) -> Self:
         """Returns new collection with renamed sequences.
@@ -3928,6 +3979,32 @@ class Alignment(CollectionBase[Aligned]):
             return [] if self.num_seqs < 2 else [list(self.names)]
 
         return super().duplicated_seqs()
+
+    @override
+    @extend_docstring_from(CollectionBase.add_seqs)
+    def add_seqs(
+        self,
+        seqs: Mapping[str, str | bytes | NumpyIntArrayType],
+        *,
+        force_unique_keys: bool = True,
+        with_metadata: bool = True,
+        as_displayed: bool = True,
+    ) -> Self:
+        sr = self._slice_record
+        if sr.plus_step != 1 or len(sr) != sr.parent_len:
+            msg = "cannot add sequences to a sliced alignment"
+            raise ValueError(msg)
+        return super().add_seqs(
+            seqs,
+            force_unique_keys=force_unique_keys,
+            with_metadata=with_metadata,
+            as_displayed=as_displayed,
+        )
+
+    @property
+    @override
+    def _displays_reversed(self) -> bool:
+        return self._slice_record.is_reversed
 
     def alignment_quality(self, app_name: str = "ic_score", **kwargs: Any) -> float:
         """
