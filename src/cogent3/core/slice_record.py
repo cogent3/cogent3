@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from abc import ABC, abstractmethod
 from typing import Any, Self, SupportsIndex
 
@@ -577,8 +578,8 @@ class SliceRecord(SliceRecordABC):
         return {}
 
     def copy(self, sliced: bool = False) -> Self:
-        """returns self"""
-        return self
+        """returns a copy"""
+        return copy.copy(self)
 
     def __repr__(self) -> str:
         return (

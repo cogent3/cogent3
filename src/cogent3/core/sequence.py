@@ -1651,11 +1651,12 @@ class Sequence(AnnotatableMixin):
         exclude_annotations
             drops annotation_db when True
         """
-        # when slicing a seqview with sliced=True, seqview discards the
-        # offset attribute. Sequence then needs to be provided to its
-        # constructor from its current state.
-        offset = self.annotation_offset if sliced else 0
         data = self._seq.copy(sliced=sliced)
+        # a copied view can keep some or all of the offset, e.g. a collection
+        # member keeps its storage offset, so supply only what it dropped
+        offset = self.annotation_offset - (
+            data.parent_offset + data.slice_record.parent_start
+        )
         db = (
             self.annotation_db
             if self.has_annotation_db() and not exclude_annotations

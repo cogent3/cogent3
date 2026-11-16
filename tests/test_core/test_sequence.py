@@ -3624,6 +3624,63 @@ def test_copy_copy_does_not_share_metadata():
     assert seq.metadata.to_dict() == {"k": 1}
 
 
+def _annotated_member(kind, offset):
+    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
+    seq.add_feature(biotype="gene", name="g", spans=[(offset + 2, offset + 6)])
+    make = (
+        cogent3.make_aligned_seqs if kind == "aligned" else cogent3.make_unaligned_seqs
+    )
+    coll = make(
+        {"a": "AAACCCGGGAAT", "b": "AAACCCGGGAAT"},
+        moltype="dna",
+        offset={"a": offset},
+        annotation_db=seq.annotation_db,
+    )
+    return coll.get_seq("a") if kind == "aligned" else coll.seqs["a"]
+
+
+@pytest.mark.parametrize("kind", ["unaligned", "aligned"])
+@pytest.mark.parametrize(
+    ("segment", "expect"), [(slice(None), 100), (slice(2, 8), 102)]
+)
+@pytest.mark.parametrize("sliced", [True, False])
+def test_copy_offset_member(kind, segment, expect, sliced):
+    member = _annotated_member(kind, 100)[segment]
+    first = member.copy(sliced=sliced)
+    second = member.copy(sliced=sliced)
+    assert first._seq.slice_record is not member._seq.slice_record
+    for seq in (member, first, second):
+        assert seq.annotation_offset == expect
+        assert [str(f.get_slice()) for f in seq.get_features(name="g")] == ["ACCC"]
+
+
+@pytest.mark.parametrize(
+    ("segment", "expect"), [(slice(None, None, 2), 100), (slice(1, 10, 3), 101)]
+)
+def test_copy_stepped_offset_member_keeps_offset(segment, expect):
+    member = _annotated_member("unaligned", 100)[segment]
+    member.copy()
+    assert member.annotation_offset == expect
+    assert member.copy().annotation_offset == expect
+
+
+def test_copy_rc_offset_member_keeps_offset():
+    member = _annotated_member("unaligned", 100).rc()
+    member.copy()
+    assert member.annotation_offset == 100
+    assert member.copy().annotation_offset == 100
+
+
+@pytest.mark.parametrize(
+    ("segment", "expect"), [(slice(None, None, 2), ["AC"]), (slice(1, 10, 3), ["C"])]
+)
+def test_copy_stepped_member_keeps_features(segment, expect):
+    member = _annotated_member("unaligned", 0)[segment]
+    got = member.copy()
+    for seq in (member, got):
+        assert [str(f.get_slice()) for f in seq.get_features(name="g")] == expect
+
+
 def test_old_pickle_state_with_info_slot():
     # state as pickled before info was renamed, applied the way pickle does
     seq = cogent3.make_seq("ACGT", name="s", moltype="dna")

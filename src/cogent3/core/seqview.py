@@ -414,7 +414,9 @@ class SeqDataView(SeqView):
     # refactor: design, do we support copy? do we support copy with sliced?
     def copy(self, sliced: bool = False) -> Self:
         """returns copy"""
-        return self
+        init_kwargs = self._get_init_kwargs()
+        init_kwargs["slice_record"] = self.slice_record.copy()
+        return self.__class__(**init_kwargs)
 
     def to_rich_dict(self) -> dict[str, Any]:
         """returns a json serialisable dict.
