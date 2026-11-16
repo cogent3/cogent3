@@ -1,4 +1,157 @@
 
+<a id='changelog-2026.11.17'></a>
+# Changes in release "2026.11.17"
+
+This is a bug fix and minor enhancement release.
+
+## Enhancements
+
+- The `load_aligned` and `load_unaligned` apps now choose the file format
+  from each file's suffix when `format_name` is not given, as
+  `load_aligned_seqs` does. For example, `get_app("load_aligned")` now loads
+  `.c3h5a` files. A file whose suffix does not identify its format, such as
+  `.txt` or none needs `format_name`. Such files were previously read
+  as fasta.
+
+## Bug fixes
+
+- The `load_aligned` app now loads h5seqs alignments when given
+  `format_name="c3h5a"` or `format_name="c3h5s"`. It previously raised
+  "does not support parsing unaligned seqs".
+- The `load_aligned` and `load_unaligned` apps now load h5seqs files
+  (`c3h5a`, `c3h5s`, `c3h5u`) taken from a directory data store. They
+  previously failed with a `TypeError`.
+- `load_unaligned_seqs` with a glob pattern, such as `"data/*.fasta"`, now
+  passes extra keyword arguments such as `is_reversed` to
+  `make_unaligned_seqs`, as it does for a single file. Unknown arguments now
+  raise `TypeError` instead of being silently ignored.
+- Reordering sequences, for example with `take_seqs(["b", "a"])`, or swapping
+  two names with `renamed_seqs`, now sets a collection's `modified` to `True`.
+  Previously such alignments written to h5seqs `.c3h5a` or `.c3h5s` files were
+  saved in the original order, or with each sequence under its old name.
+- Deserialising no longer changes the dict passed in for: `IndelMap`, `FeatureMap`,
+ `Sequence`, `Table`, `DistanceMatrix`, `DictArray`, codon alphabet,
+  substitution model, likelihood function, annotation database.
+- A likelihood function loaded with `deserialise_object` now keeps the name it
+  was saved with, instead of taking the model's name.
+- Saving and loading a `Table`, through `to_rich_dict`, `to_json` or `pickle`,
+  no longer makes text columns 32 times wider each time. Tables with byte-string
+  columns can now be loaded.
+- The `load_aligned` and `load_unaligned` apps now read GenBank and MSF files,
+  and gzip compressed sequence files, when given a file path or a member of a
+  directory data store. GenBank and MSF members of zipped data stores still
+  cannot be read. Both apps also expand `~` in a path to an HDF5 file, as
+  they already did for text formats.
+- `label_to_name` is now applied once, not twice, by `make_unaligned_seqs`,
+  `make_aligned_seqs`, `load_unaligned_seqs` (including loading several files
+  with a wildcard) and `load_aligned_seqs`. A function that adds `"_x"` now
+  turns `"a"` into `"a_x"`, not `"a_x_x"`.
+- A reverse complemented `Sequence` passed to `make_unaligned_seqs` or
+  `make_aligned_seqs` under a different name, through `label_to_name` or a
+  dict key, now keeps its strand. Before, it was treated as plus strand, so
+  its annotations were read from the wrong strand.
+- Making or loading a sequence collection or alignment now raises
+  `ValueError` when two sequences end up with the same name, instead of
+  silently keeping only the last one. This covers names made equal by
+  `label_to_name`, repeated names in the input, repeated labels in a file, and
+  a supplied name that matches an automatically assigned one such as `seq_0`.
+  Files with repeated labels that loaded before, minus a sequence, now fail to
+  load using the `load_*_seqs` functions.
+- `add_seqs` now raises `ValueError` when a new sequence is given a name
+  already in the collection, instead of silently replacing that sequence.
+  Pass `force_unique_keys=False` to replace on purpose.
+- A sequence keeps using the name it was created with for its annotations
+  after `seq.name` is changed. Previously `add_feature` stored new features
+  under the new name, where `get_features` could not find them, and
+  `copy_annotations`, `degap`, `with_masked_annotations`, `parse_out_gaps`,
+  `trim_stop_codon` and `to_moltype` lost track of existing ones. Features
+  now report that original name as their `seqid`, as features from a
+  renamed collection already do.
+- `load_seq` on a GenBank file with `label_to_name` keeps the file's
+  annotations reachable. Previously the renamed sequence found none.
+- A feature added to a slice of a sequence, or to a sequence with an
+  `annotation_offset`, can be found again with `get_features`. Previously
+  `add_feature` and `annotate_matches_to` stored its positions relative to
+  the slice, so `get_features` found nothing or a different region of the
+  sequence. The sequence the slice was taken from now finds it too.
+- `to_moltype` on a slice, a reverse complement, or a sequence with an
+  `annotation_offset` keeps its features in the right place.
+- `to_moltype` drops annotations where they cannot be placed: on a slice
+  taken with a step other than 1 or -1, and on a reverse complement
+  converted to a moltype that is not nucleic, such as text. Previously the
+  features were found at the wrong positions.
+- A reversed text or bytes sequence, such as `seq[::-1]`, prints its
+  characters in reverse order, as a reversed protein sequence already did.
+  Previously it raised `AssertionError`. `MolType.complement` now raises
+  `MolTypeError` for every moltype that is not DNA or RNA, whatever the
+  input type.
+- A reversed protein or text alignment, such as `aln[::-1]`, reads in
+  reverse order, whether taken as a whole or one sequence at a time.
+  Previously `to_dict`, `str` and `positions`
+  gave the original order, `get_seq` gave the reverse, and `get_gapped_seq`,
+  `degap`, printing a single sequence and saving to json raised an error.
+- `degap`, `parse_out_gaps`, `with_masked_annotations` and `trim_stop_codon`
+  keep features in place on a slice, a reverse complement, or a sequence
+  with an `annotation_offset`. Previously the result started at position 0
+  on the plus strand, so for `seq[2:]` a gene reading `CCC` was found as
+  `CGG` after `degap()`, even with no gaps to remove. On a slice taken with
+  a step other than 1 or -1 the result now has no annotations.
+- `add_seqs()` on a reversed collection or alignment, such as one from
+  `rc()` or `aln[::-1]`, now keeps it reversed. Before, the existing
+  sequences flipped back to their stored orientation. By default, new
+  sequences read as given. With `as_displayed=False` they are stored as
+  given, so they read reversed (reverse complemented for DNA and RNA).
+- `add_seqs()` and `to_moltype()` on an alignment holding a reverse
+  complemented sequence, such as one made from `seq.rc()`, now keep that
+  sequence's strand. Before, the storage lost its record of which sequences
+  were reversed, so the sequence reported the plus strand and its
+  annotations were read from the wrong strand.
+
+## Deprecations
+
+- `Sequence.copy()` is discontinued and will be removed in version 2027.4.
+  It now emits a `DeprecationWarning`. Its result depended on the `sliced`
+  argument and on whether the sequence belonged to a collection, and
+  removing it reduces code complexity in cogent3.
+
+## API changes
+
+- A sequence created without a name can no longer hold annotations.
+  `add_feature`, `annotate_matches_to` and `copy_annotations` raise
+  `ValueError` for it, even if `seq.name` was set afterwards, and
+  `get_features` finds nothing. Previously its features were stored without
+  a name, and `get_features` returned every feature in its annotation db,
+  including other sequences'. Create the sequence with a name instead.
+- `add_feature` raises `ValueError` on a sequence sliced with a step other
+  than 1 or -1, such as `seq[::2]`, and so does `annotate_matches_to` when
+  the pattern is found. Such a slice holds every other position, so a
+  feature on it cannot be stored as a single range on the original sequence.
+  Previously the feature was stored at the wrong position.
+- `rc()` and `reverse_complement()` on a `SequenceCollection` or `Alignment`
+  raise `MolTypeError` unless the moltype is DNA or RNA, as
+  `get_translation()` already does. Previously a protein collection was
+  reversed without complementing, a protein or text alignment was returned
+  unchanged, and a text collection raised `AssertionError`. Use `[::-1]` to
+  reverse a protein or text alignment.
+- `get_slice()` on a feature found on a reversed protein or text alignment
+  now raises `MolTypeError`. A minus strand feature on a protein or text
+  sequence already raised. Previously it returned the forward slice.
+- `add_seqs()` on a `SequenceCollection` or `Alignment` now accepts only a
+  mapping of name to `str`, `bytes` or a numpy array with the collection's
+  dtype. Anything else, including lists, collections and `Sequence` or
+  `Aligned` values, raises a `TypeError`. Convert a `Sequence` with `str()`
+  first. Its annotations are not carried across. Extra keyword arguments are
+  no longer passed through to the storage, only `force_unique_keys`.
+- `Alignment.add_seqs()` raises a `ValueError` on a sliced alignment, such as
+  `aln[2:5]` or `aln[::2]`. Before, the slice was silently dropped, so the
+  result had the full width and new sequences had to match it. A full
+  alignment, including a reverse complemented one, is still accepted. To add
+  to a slice, make it a new alignment first with `aln[2:5].deepcopy()`.
+- `add_seqs()` raises a `TypeError` when a sequence name is not a `str`.
+  Before, a name such as `1` was accepted but could not be looked up, since
+  an integer is read as a position, so `get_seq(1)` returned a different
+  sequence.
+
 <a id='changelog-2026.11.13'></a>
 # Changes in release "2026.11.13"
 
