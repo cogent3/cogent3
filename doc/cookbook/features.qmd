@@ -686,7 +686,7 @@ aln3[unified]
 Reverse complementing a sequence **does not** reverse features. Features are considered to have strand specific meaning (e.g. CDS, exons) and so they retain the reference to the frame for which they were defined.
 
 ```{python}
-plus = make_seq("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG", moltype="dna")
+plus = make_seq("CCCCCAAAAAAAAAATTTTTTTTTTAAAGG", name="seq1", moltype="dna")
 plus_rpt = plus.add_feature(biotype="blah", name="a", spans=[(5, 15), (25, 28)])
 plus[plus_rpt]
 ```
@@ -699,4 +699,15 @@ minus
 ```{python}
 minus_rpt = list(minus.get_features(biotype="blah"))[0]
 minus[minus_rpt]
+```
+
+`add_feature()` takes plus strand coordinates, even when called on a reverse complemented sequence. Here `(0, 5)` is the first five positions of `plus` (`CCCCC`), not the first five shown for `minus` (`CCTTT`).
+
+```{python}
+minus[:5]
+```
+
+```{python}
+added = minus.add_feature(biotype="blah", name="b", spans=[(0, 5)])
+minus[added]
 ```

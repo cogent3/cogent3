@@ -1478,11 +1478,12 @@ class Sequence(AnnotatableMixin):
         name
             name of the feature
         spans
-            coordinates for this sequence
+            in plus strand coordinates, relative to the start of this sequence.
+            To specify strand, use the strand parameter.
         parent_id
             name of the feature parent
         strand
-            '+' or '-', defaults to '+'
+            '+' or '-' relative to the plus strand, defaults to '+'
         on_alignment
             whether the feature spans are alignment coordinates
         seqid
