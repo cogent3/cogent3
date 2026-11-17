@@ -551,7 +551,7 @@ def test_feature_not_equal(ann_seq):
     assert f1 is not f2
     assert f1 != f2
     # same attributes except parent different parent seq
-    nseq = ann_seq.copy()
+    nseq = ann_seq[:]
     (nf1,) = list(nseq.get_features(biotype="gene"))
     assert nf1 != f1
 

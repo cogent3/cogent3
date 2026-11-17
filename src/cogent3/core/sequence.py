@@ -32,6 +32,7 @@ import numpy.typing as npt
 from scinexus.deserialise import register_deserialiser
 from scinexus.io_util import atomic_write, get_format_suffixes
 from scinexus.misc import get_object_provenance
+from scinexus.warning import deprecated_callable
 
 import cogent3._plugin as c3_plugin
 from cogent3._version import __version__
@@ -735,9 +736,20 @@ class Sequence(AnnotatableMixin):
             new.annotation_db = self.annotation_db
         return new
 
+    def _copy_view(self, annotation_db: AnnotationDbABC | None) -> Self:
+        return self.__class__(
+            moltype=self.moltype,
+            seq=self._seq.copy(),
+            name=self.name,
+            metadata=self._metadata,
+            annotation_db=annotation_db,
+        )
+
     def _renamed(self, name: str) -> Self:
         if self._resolved_seqid is not None:
-            new = self.copy(sliced=False)
+            new = self._copy_view(
+                self.annotation_db if self.has_annotation_db() else None
+            )
         else:
             # with no stored name, name also becomes the name annotations use
             new = self.__class__(
@@ -1478,11 +1490,12 @@ class Sequence(AnnotatableMixin):
         name
             name of the feature
         spans
-            coordinates for this sequence
+            in plus strand coordinates, relative to the start of this sequence.
+            To specify strand, use the strand parameter.
         parent_id
             name of the feature parent
         strand
-            '+' or '-', defaults to '+'
+            '+' or '-' relative to the plus strand, defaults to '+'
         on_alignment
             whether the feature spans are alignment coordinates
         seqid
@@ -1636,7 +1649,12 @@ class Sequence(AnnotatableMixin):
 
         self.annotation_db.update(seq_db, seqids=seqid)
 
-    def copy(
+    @deprecated_callable(
+        version="2027.4",
+        reason="eliminating code complexity in cogent3",
+        is_discontinued=True,
+    )
+    def copy(  # pragma: no cover
         self,
         exclude_annotations: bool = False,
         sliced: bool = True,
@@ -1813,8 +1831,7 @@ class Sequence(AnnotatableMixin):
                 name=self.name,
                 metadata=self._metadata,
             )
-            stride = getattr(index, "step", 1) or 1
-            preserve_offset = stride > 0
+            preserve_offset = True
         else:
             msg = f"Cannot slice using a {type(index)}"
             raise TypeError(msg)

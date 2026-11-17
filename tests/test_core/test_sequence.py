@@ -87,35 +87,6 @@ def test_moltype_make_bytes_seq():
     "moltype",
     ["dna", "rna", "protein", "protein_with_stop", "text"],
 )
-def test_sequence_copy(moltype):
-    """correctly returns a copy version of self"""
-    mt = c3_moltype.get_moltype(moltype)
-    s = mt.make_seq(seq="CCCCCCCCCCCCCAAAA", name="test_copy")
-    annot1 = s.add_feature(biotype="exon", name="annot1", spans=[(0, 10)])
-    annot2 = s.add_feature(biotype="exon", name="annot2", spans=[(10, 14)])
-    got = s.copy()
-    got_annot1 = next(iter(got.get_features(biotype="exon", name="annot1")))
-    got_annot2 = next(iter(got.get_features(biotype="exon", name="annot2")))
-    assert got is not s
-    assert got_annot1 is not annot1
-    assert got_annot2 is not annot2
-    assert got.name == s.name
-    assert got.metadata.to_dict() == s.metadata.to_dict()
-    assert str(got) == str(s)
-    assert got.moltype == s.moltype
-    annot1_slice = str(annot1.get_slice())
-    annot2_slice = str(annot2.get_slice())
-    got1_slice = str(got_annot1.get_slice())
-    got2_slice = str(got_annot2.get_slice())
-    assert annot1_slice == got1_slice
-    assert annot2_slice == got2_slice
-    close_dbs(s, got)
-
-
-@pytest.mark.parametrize(
-    "moltype",
-    ["dna", "rna", "protein", "protein_with_stop", "text"],
-)
 @pytest.mark.parametrize("seq", ["ACG", "AC-G", "-A-C"])
 def test_sequence_compare_to_string(moltype, seq):
     """Sequence should compare equal to same string."""
@@ -2679,29 +2650,6 @@ def test_gapped_by_map_segment_iter():
 
 
 @pytest.mark.parametrize("rev", [False, True])
-@pytest.mark.parametrize("sliced", [False, True])
-@pytest.mark.parametrize("start_stop", [(None, None), (3, 7)])
-def test_copied_parent_coordinates(sliced, rev, start_stop):
-    orig_name = "orig"
-    seq = c3_moltype.DNA.make_seq(seq="ACGGTGGGAC", name=orig_name)
-    start, stop = start_stop
-    start = start or 0
-    stop = stop or len(seq)
-    sl = slice(start, stop)
-    seq = seq[sl]
-    sliced_name = "sliced"
-    seq.name = sliced_name
-    assert seq.name == sliced_name
-    seq = seq.rc() if rev else seq
-    copied = seq.copy(sliced=sliced)
-    assert copied.name == sliced_name
-    # matches original
-    assert copied.parent_coordinates() == seq.parent_coordinates()
-    # and expected -- the coordinate name always reflects the underlying sequence
-    assert copied.parent_coordinates() == (orig_name, start, stop, -1 if rev else 1)
-
-
-@pytest.mark.parametrize("rev", [False, True])
 def test_parent_coordinates(one_seq, rev):
     seq = one_seq[1:1]
     seq = seq.rc() if rev else seq
@@ -3515,7 +3463,6 @@ def test_info_setter_replaces_contents():
         lambda s: s.degap(),
         lambda s: s.rc(),
         lambda s: s[1:3],
-        lambda s: s.copy(),
         lambda s: s.to_moltype("rna"),
         lambda s: s.strip_bad(),
     ],
@@ -3622,63 +3569,6 @@ def test_copy_copy_does_not_share_metadata():
     dup = copy.copy(seq)
     dup.metadata["k"] = 2
     assert seq.metadata.to_dict() == {"k": 1}
-
-
-def _annotated_member(kind, offset):
-    seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
-    seq.add_feature(biotype="gene", name="g", spans=[(offset + 2, offset + 6)])
-    make = (
-        cogent3.make_aligned_seqs if kind == "aligned" else cogent3.make_unaligned_seqs
-    )
-    coll = make(
-        {"a": "AAACCCGGGAAT", "b": "AAACCCGGGAAT"},
-        moltype="dna",
-        offset={"a": offset},
-        annotation_db=seq.annotation_db,
-    )
-    return coll.get_seq("a") if kind == "aligned" else coll.seqs["a"]
-
-
-@pytest.mark.parametrize("kind", ["unaligned", "aligned"])
-@pytest.mark.parametrize(
-    ("segment", "expect"), [(slice(None), 100), (slice(2, 8), 102)]
-)
-@pytest.mark.parametrize("sliced", [True, False])
-def test_copy_offset_member(kind, segment, expect, sliced):
-    member = _annotated_member(kind, 100)[segment]
-    first = member.copy(sliced=sliced)
-    second = member.copy(sliced=sliced)
-    assert first._seq.slice_record is not member._seq.slice_record
-    for seq in (member, first, second):
-        assert seq.annotation_offset == expect
-        assert [str(f.get_slice()) for f in seq.get_features(name="g")] == ["ACCC"]
-
-
-@pytest.mark.parametrize(
-    ("segment", "expect"), [(slice(None, None, 2), 100), (slice(1, 10, 3), 101)]
-)
-def test_copy_stepped_offset_member_keeps_offset(segment, expect):
-    member = _annotated_member("unaligned", 100)[segment]
-    member.copy()
-    assert member.annotation_offset == expect
-    assert member.copy().annotation_offset == expect
-
-
-def test_copy_rc_offset_member_keeps_offset():
-    member = _annotated_member("unaligned", 100).rc()
-    member.copy()
-    assert member.annotation_offset == 100
-    assert member.copy().annotation_offset == 100
-
-
-@pytest.mark.parametrize(
-    ("segment", "expect"), [(slice(None, None, 2), ["AC"]), (slice(1, 10, 3), ["C"])]
-)
-def test_copy_stepped_member_keeps_features(segment, expect):
-    member = _annotated_member("unaligned", 0)[segment]
-    got = member.copy()
-    for seq in (member, got):
-        assert [str(f.get_slice()) for f in seq.get_features(name="g")] == expect
 
 
 def test_old_pickle_state_with_info_slot():
@@ -3903,6 +3793,32 @@ def test_add_feature_on_stepped_slice_raises(make_view):
     seq = cogent3.make_seq("AAACCCGGGAAT", name="a", moltype="dna")
     with pytest.raises(ValueError, match="step other than 1 or -1"):
         make_view(seq).add_feature(biotype="gene", name="g", spans=[(0, 1)])
+
+
+@pytest.mark.parametrize("kind", ["plain", "offset", "member"])
+@pytest.mark.parametrize(
+    ("segments", "expect"),
+    [
+        ([slice(None, None, -1)], ["ACCCGGG"]),
+        ([slice(None, None, -2)], ["CCG"]),
+        ([slice(14, 1, -3)], ["ACG"]),
+        ([slice(None, None, 2), slice(None, None, -1)], ["ACGG"]),
+        ([slice(1, 12), slice(None, None, -1)], ["ACCCGGG"]),
+    ],
+)
+def test_negative_step_slice_keeps_features(kind, segments, expect):
+    raw = "AAACCCGGGAATTCGA"
+    offset = 5 if kind == "offset" else 0
+    seq = cogent3.make_seq(raw, name="a", moltype="dna", annotation_offset=offset)
+    seq.add_feature(biotype="gene", name="g", spans=[(2, 9)])
+    if kind == "member":
+        coll = cogent3.make_unaligned_seqs(
+            {"a": raw}, moltype="dna", annotation_db=seq.annotation_db
+        )
+        seq = coll.seqs["a"]
+    for segment in segments:
+        seq = seq[segment]
+    assert [str(f.get_slice()) for f in seq.get_features(name="g")] == expect
 
 
 def _annotated_view_for_moltype(kind):
