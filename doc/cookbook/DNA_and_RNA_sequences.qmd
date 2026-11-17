@@ -266,7 +266,7 @@ In this instance we can use features.
 ```{python}
 from cogent3 import make_seq
 
-seq = make_seq("ATGATGATGATG", moltype="dna")
+seq = make_seq("ATGATGATGATG", name="seq1", moltype="dna")
 indices = [(i, i + 2) for i in range(len(seq))[::3]]
 pos12 = seq.add_feature(biotype="pos12", name="pos12", spans=indices)
 pos12 = pos12.get_slice()
