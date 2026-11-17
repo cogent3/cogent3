@@ -99,4 +99,14 @@ def testdocs(session):
     # with, from QUARTO_PYTHON
     session.env["QUARTO_PYTHON"] = str(py)
     session.run("quartodoc", "build", "--config", "doc/_quarto.yml")
-    session.run("quarto", "render", "doc", *session.posargs, external=True)
+    # frozen output is keyed on the page source only, so it hides cells broken
+    # by library changes
+    session.run(
+        "quarto",
+        "render",
+        "doc",
+        "-M",
+        "freeze:false",
+        *session.posargs,
+        external=True,
+    )
