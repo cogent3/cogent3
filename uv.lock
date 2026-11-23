@@ -4175,7 +4175,7 @@ wheels = [
 
 [[package]]
 name = "scriv"
-version = "1.8.0"
+version = "1.8.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -4185,9 +4185,9 @@ dependencies = [
     { name = "markdown-it-py" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/14/9a/2ef2209e0672b264a2f2574dc88ea3cd9cfc9adfecbfd3165a900980ec8c/scriv-1.8.0.tar.gz", hash = "sha256:7b1a105dd411ac541998250fc8594742419f94cee984ca1257c5ebf5af21918b", size = 98160, upload-time = "2025-12-30T00:01:10.13Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8a/3b/0e3540d4eb0e3cf9f951699005f9f5804c0b10f9ef007a9bb1b93b684453/scriv-1.8.2.tar.gz", hash = "sha256:ae0ec6586de4c42994cd2019fde6e870c506a8d85a4eb830d9f53132f9e4eb7c", size = 98543, upload-time = "2026-11-15T20:29:09.713Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/e7/062480ede84ecb56ee0f8f2e5b5a3b2a5bceeb73bbdf909d3c13f5438749/scriv-1.8.0-py3-none-any.whl", hash = "sha256:f00f51325b2f4bc96b16fbb1239d4ab577cc2422301a5dd4f5f9378aae2549e0", size = 39085, upload-time = "2025-12-30T00:01:08.599Z" },
+    { url = "https://files.pythonhosted.org/packages/00/f3/68bd3081a1b204784d19058eccc76dbcb382ab0732e24c56021a204ec563/scriv-1.8.2-py3-none-any.whl", hash = "sha256:7c967d3ddd3ba82b78bde0c046ba18f2aa127191c3b5385642d6fcde49fcb87b", size = 39170, upload-time = "2026-11-15T20:29:08.279Z" },
 ]
 
 [[package]]
