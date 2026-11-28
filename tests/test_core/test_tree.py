@@ -1755,6 +1755,51 @@ def test_unrooted():
     assert len(unrooted.get_node_names()) < len(rooted.get_node_names())
 
 
+@pytest.mark.parametrize(
+    ("rooted_newick", "expected_newick"),
+    [
+        ("((A:1,B:2):3,(C:4,D:5):6);", "(A:1.0,B:2.0,(C:4.0,D:5.0):9.0);"),
+        ("(A:1,(B:2,C:3):4);", "(A:5.0,B:2.0,C:3.0);"),
+        ("((A:1,B:2):3,C);", "(A:1.0,B:2.0,C:3.0);"),
+        ("((A:1,B:2,C:3):4);", "(A:1.0,B:2.0,C:3.0);"),
+        ("((A,B),(C,D));", "(A,B,(C,D));"),
+    ],
+)
+def test_unrooted_moves_expanded_length_to_sibling(
+    rooted_newick: str, expected_newick: str
+) -> None:
+    unrooted = make_tree(treestring=rooted_newick).unrooted()
+    assert unrooted.get_newick(with_distances=True) == expected_newick
+
+
+@pytest.mark.parametrize(
+    "rooted_newick",
+    ["((A:1,B:2):3,(C:4,D:5):6);", "(A:1,(B:2,C:3):4);"],
+)
+def test_unrooted_preserves_tip_distances_and_total_length(
+    rooted_newick: str,
+) -> None:
+    rooted = make_tree(treestring=rooted_newick)
+    unrooted = rooted.unrooted()
+    names = rooted.get_tip_names()
+    assert_allclose(
+        unrooted.tip_to_tip_distances().take_dists(names).array,
+        rooted.tip_to_tip_distances().take_dists(names).array,
+    )
+    assert unrooted.total_length() == rooted.total_length()
+
+
+def test_tip_to_tip_distances_names_via_unrooted_subtree() -> None:
+    tree = make_tree(treestring="((A:1,B:2):3,C:4,D:5);")
+    names = ["A", "B", "C"]
+    subtree = tree.get_sub_tree(names)
+    assert len(subtree.children) == 3
+    assert_allclose(
+        tree.tip_to_tip_distances(names=names).take_dists(names).array,
+        tree.tip_to_tip_distances().take_dists(names).array,
+    )
+
+
 def test_get_figure():
     """exercising get_figure"""
     t_str = "(A:1,B:2,(C:3,D:3)E:2,(F,((G:1,H:2)I:2)J:3)K:2)L;"
