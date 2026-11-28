@@ -1723,16 +1723,20 @@ class PhyloNode:
         constructor = self._default_tree_constructor()
         need_to_expand = len(self.children) < 3
         new_children: list[Self] = []
+        retained_children: list[Self] = []
+        expanded_length: float | None = None
         for oldnode in self.children:
             if oldnode.children and need_to_expand:
-                for sib in oldnode.children:
-                    new_sib = sib.deepcopy()
-                    if new_sib.length is not None and oldnode.length is not None:
-                        new_sib.length += oldnode.length
-                    new_children.append(new_sib)
+                new_children.extend(sib.deepcopy() for sib in oldnode.children)
+                expanded_length = oldnode.length
                 need_to_expand = False
             else:
-                new_children.append(oldnode.deepcopy())
+                retained_child = oldnode.deepcopy()
+                retained_children.append(retained_child)
+                new_children.append(retained_child)
+        if expanded_length is not None:
+            for retained_child in retained_children:
+                retained_child.length = (retained_child.length or 0) + expanded_length
         return constructor(self, new_children, None)
 
     def rooted_at(self, edge_name: str) -> Self:
